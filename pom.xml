@@ -130,8 +130,7 @@
                 <version>2.0.3</version>
                 <configuration>
                     <jdkVersion>${jdk.version}</jdkVersion>
-                    <!-- TODO: your own heroku app name below (MUST include your net-id)   -->
-                    <appName>your_heroku_app_name</appName>
+                    <appName>comp610-ricebay-team-b</appName>
                     <processTypes>
                         <!-- Tell Heroku how to launch your application -->
                         <!-- You might have to remove the ./ in front   -->
@@ -158,7 +157,92 @@
                 <configuration>
                     <mainClass>edu.rice.comp610.controller.Controller</mainClass>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>npm install (initialize)</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <executable>npm</executable>
+                            <arguments>
+                                <argument>install</argument>
+                            </arguments>
+                            <workingDirectory>${basedir}/src/frontend</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm install (clean)</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <phase>pre-clean</phase>
+                        <configuration>
+                            <executable>npm</executable>
+                            <arguments>
+                                <argument>install</argument>
+                            </arguments>
+                            <workingDirectory>${basedir}/src/frontend</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm run build (generate-resources)</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <executable>npm</executable>
+                            <arguments>
+                                <argument>run</argument>
+                                <argument>build</argument>
+                            </arguments>
+                            <workingDirectory>${basedir}/src/frontend</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm run test (test)</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <phase>test</phase>
+                        <configuration>
+                            <executable>npm</executable>
+                            <arguments>
+                                <argument>run</argument>
+                                <argument>test</argument>
+                                <argument>--</argument>
+                                <argument>--skipTests=${maven.test.skip}</argument>
+                            </arguments>
+                            <workingDirectory>${basedir}/src/frontend</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>npm run clean (clean)</id>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <phase>clean</phase>
+                        <configuration>
+                            <executable>npm</executable>
+                            <arguments>
+                                <argument>run</argument>
+                                <argument>clean</argument>
+                            </arguments>
+                            <workingDirectory>${basedir}/src/frontend</workingDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+                <excludes>
+                    <exclude>public/.gitkeep</exclude>
+                </excludes>
+            </resource>
+        </resources>
     </build>
 </project>
