@@ -9,9 +9,18 @@
 5. Student name: `NAME #5 HERE`   Student netID: `NetID #5 HERE`
 6. Student name: `NAME #6 HERE`   Student netID: `NetID #6 HERE`
 
-Team name: `Your team name here`
+Team name: `COMP610 RiceBay Team B`
 
-Heroku app URL: `YOUR HOSTED HEROKU URL HERE`
+Heroku app URL: `https://comp610-ricebay-team-b.herokuapp.com/`
+
+## Dependencies
+### Java SDK 17+
+
+Please install the Java SDK manually or via Intellij.
+
+### NodeJS LTS
+
+Please follow the instructions [here](https://nodejs.org/en/download/) to install NodeJS.
 
 ## How to run
 

@@ -110,3 +110,6 @@ buildNumber.properties
 .mvn/wrapper/maven-wrapper.jar
 
 .idea
+
+src/main/resources/public/*.html
+src/main/resources/public/*.js
