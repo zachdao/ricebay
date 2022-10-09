@@ -7,7 +7,8 @@
         "build": "webpack",
         "build:dev": "webpack --watch",
         "lint": "prettier --check .",
-        "lint:fix": "prettier --write ."
+        "lint:fix": "prettier --write .",
+        "clean": "rimraf ../main/resources/public/*.js ../main/resources/public/*.html"
     },
     "devDependencies": {
         "@babel/core": "^7.19.3",
@@ -22,14 +23,15 @@
         "html-webpack-plugin": "^5.5.0",
         "jest": "^29.1.2",
         "jest-environment-jsdom": "^29.1.2",
+        "jest-styled-components": "^7.1.1",
         "jest-transform-stub": "^2.0.0",
         "prettier": "^2.7.1",
         "react-test-renderer": "^18.2.0",
+        "rimraf": "^3.0.2",
         "style-loader": "^3.3.1",
+        "styled-components": "^5.3.6",
         "webpack": "^5.74.0",
-        "webpack-cli": "^4.10.0",
-        "jest-styled-components": "^7.1.1",
-        "styled-components": "^5.3.6"
+        "webpack-cli": "^4.10.0"
     },
     "dependencies": {
         "@adobe/react-spectrum": "^3.22.0",
