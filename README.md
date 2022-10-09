@@ -2,12 +2,12 @@
 
 ## Student Info
 
-1. Student name: `NAME #1 HERE`   Student netID: `NetID #1 HERE`
-2. Student name: `NAME #2 HERE`   Student netID: `NetID #2 HERE`
-3. Student name: `NAME #3 HERE`   Student netID: `NetID #3 HERE`
-4. Student name: `NAME #4 HERE`   Student netID: `NetID #4 HERE`
-5. Student name: `NAME #5 HERE`   Student netID: `NetID #5 HERE`
-6. Student name: `NAME #6 HERE`   Student netID: `NetID #6 HERE`
+1. Student name: `Dustin Homan`   Student netID: `deh5`
+2. Student name: `Amy Rueve`   Student netID: `ar126`
+3. Student name: `Nebojsa Dimic`   Student netID: `nsd4`
+4. Student name: `Zach Dao`   Student netID: `zrd3`
+5. Student name: `Geoffrey Hardy`   Student netID: `gth1`
+6. Student name: `Jay Hyatt`   Student netID: `ah86`
 
 Team name: `COMP610 RiceBay Team B`
 
