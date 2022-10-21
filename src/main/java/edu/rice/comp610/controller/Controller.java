@@ -1,7 +1,7 @@
 package edu.rice.comp610.controller;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonParser;
+import edu.rice.comp610.model.Account;
 import edu.rice.comp610.model.SearchSortField;
 import edu.rice.comp610.util.IUtil;
 import edu.rice.comp610.util.JsonStatusResponse;
@@ -44,19 +44,14 @@ public class Controller {
         // TODO Set up SparkJava endpoints
 
         // Dummy endpoint because SparkJava wants at least one endpoint defined.   Delete this line when other endpoint(s) have been added.
-        post("/accounts/create", (request, response) -> gson.toJson(accountController.createAccount(
-                request.params("alias"),
-                request.params("email"),
-                request.params("givenName"),
-                request.params("surname"),
-                request.params("password"),
-                request.params("zelleId")
+        post("/accounts/create", (request, response) -> gson.toJson(
+                accountController.createAccount(gson.fromJson(request.body(), Account.class)
         )));
 
         get("/auctions/search", ((request, response) -> gson.toJson(auctionController.search(
                 request.params("query"),
                 SearchSortField.valueOf(request.params("sortField")),
-                Boolean.valueOf(request.params("sortAscending"))
+                Boolean.parseBoolean(request.params("sortAscending"))
         ))));
 
 

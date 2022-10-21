@@ -1,5 +1,6 @@
 package edu.rice.comp610.controller;
 
+import edu.rice.comp610.model.Account;
 import edu.rice.comp610.util.JsonStatusResponse;
 
 /**
@@ -14,23 +15,12 @@ public class AccountController {
      * associated with an account. If neither of these scenarios occur, this information will be sent to the database
      * and stored.
      *
-     * @param alias the user's chosen login name (must be unique in the system)
-     * @param email the user's email address (must be unique in the system)
-     * @param givenName the user's given name
-     * @param surname the user's surname
-     * @param password the password selected by the user
-     * @param zelleId the user's Zelle ID
+     * @param account the user's account information.
      * @return JsonStatusResponse indicating success or failure. In the case of failure, an error message will be
      * included in the response.
+     * @see Account
      */
-    JsonStatusResponse createAccount(
-            String alias,
-            String email,
-            String givenName,
-            String surname,
-            String password,
-            String zelleId
-    ) {
+    JsonStatusResponse createAccount(Account account) {
         return new JsonStatusResponse(true, null, "OK");
     }
 }
