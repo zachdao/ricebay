@@ -1,13 +1,11 @@
 package edu.rice.comp610.controller;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import edu.rice.comp610.model.SearchSortField;
 import edu.rice.comp610.util.IUtil;
 import edu.rice.comp610.util.JsonStatusResponse;
 import edu.rice.comp610.util.Util;
-
-import java.beans.PropertyChangeListener;
 
 import static spark.Spark.*;
 
@@ -37,14 +35,30 @@ public class Controller {
         Gson gson = new Gson();
         IUtil util = Util.getInstance();
 
-        JsonParser jsonParser = util.getJsonParser();
+//        JsonParser jsonParser = util.getJsonParser();
 
         // TODO Instantiate the app's model
+        final AccountController accountController = new AccountController();
+        final AuctionController auctionController = new AuctionController();
 
         // TODO Set up SparkJava endpoints
 
         // Dummy endpoint because SparkJava wants at least one endpoint defined.   Delete this line when other endpoint(s) have been added.
-        get("/anEndpoint", (request, response) -> new JsonStatusResponse(true,null, "ok"));
+        post("/accounts/create", (request, response) -> gson.toJson(accountController.createAccount(
+                request.params("alias"),
+                request.params("email"),
+                request.params("givenName"),
+                request.params("surname"),
+                request.params("password"),
+                request.params("zelleId")
+        )));
+
+        get("/auctions/search", ((request, response) -> gson.toJson(auctionController.search(
+                request.params("query"),
+                SearchSortField.valueOf(request.params("sortField")),
+                Boolean.valueOf(request.params("sortAscending"))
+        ))));
+
 
         // A redirect happen when user go to wrong location.
         notFound((req, res) -> {

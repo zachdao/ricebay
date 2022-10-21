@@ -1,0 +1,132 @@
+package edu.rice.comp610.model;
+
+import java.util.Date;
+import java.util.Objects;
+import java.util.UUID;
+
+/**
+ * An auction listing in the RiceBay system.
+ *
+ * <p>Represents the item listed, including title, description, photos, bid settings, start and end dates.</p>
+ */
+public class Auction {
+    private UUID ownerId;
+    private int categoryId;
+    private String title;
+    private String description;
+    private int minimumBid;
+    private int bidIncrement;
+    private Date startDate;
+    private Date endDate;
+    private float salesTaxRate;
+    private AuctionState state;
+
+    public UUID getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(UUID ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public int getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getMinimumBid() {
+        return minimumBid;
+    }
+
+    public void setMinimumBid(int minimumBid) {
+        this.minimumBid = minimumBid;
+    }
+
+    public int getBidIncrement() {
+        return bidIncrement;
+    }
+
+    public void setBidIncrement(int bidIncrement) {
+        this.bidIncrement = bidIncrement;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
+    }
+
+    public float getSalesTaxRate() {
+        return salesTaxRate;
+    }
+
+    public void setSalesTaxRate(float salesTaxRate) {
+        this.salesTaxRate = salesTaxRate;
+    }
+
+    public AuctionState getState() {
+        return state;
+    }
+
+    public void setState(AuctionState state) {
+        this.state = state;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Auction auction = (Auction) o;
+        return categoryId == auction.categoryId && minimumBid == auction.minimumBid && bidIncrement == auction.bidIncrement && Float.compare(auction.salesTaxRate, salesTaxRate) == 0 && ownerId.equals(auction.ownerId) && Objects.equals(title, auction.title) && Objects.equals(description, auction.description) && startDate.equals(auction.startDate) && endDate.equals(auction.endDate) && state == auction.state;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ownerId, categoryId, title, description, minimumBid, bidIncrement, startDate, endDate, salesTaxRate, state);
+    }
+
+    @Override
+    public String toString() {
+        return "Auction{" +
+                "ownerId=" + ownerId +
+                ", categoryId=" + categoryId +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", minimumBid=" + minimumBid +
+                ", bidIncrement=" + bidIncrement +
+                ", startDate=" + startDate +
+                ", endDate=" + endDate +
+                ", salesTaxRate=" + salesTaxRate +
+                ", state=" + state +
+                '}';
+    }
+}
