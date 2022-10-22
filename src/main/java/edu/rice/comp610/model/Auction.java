@@ -1,8 +1,6 @@
 package edu.rice.comp610.model;
 
-import java.util.Date;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * An auction listing in the RiceBay system.
@@ -11,9 +9,8 @@ import java.util.UUID;
  */
 public class Auction {
     private UUID id;
-
     private UUID ownerId;
-    private int categoryId;
+    private List<Integer> categoryIds;
     private String title;
     private String description;
     private int minimumBid;
@@ -39,12 +36,12 @@ public class Auction {
         this.ownerId = ownerId;
     }
 
-    public int getCategoryId() {
-        return categoryId;
+    public List<Integer> getCategoryIds() {
+        return categoryIds;
     }
 
-    public void setCategoryId(int categoryId) {
-        this.categoryId = categoryId;
+    public void setCategoryId(List<Integer> categoryIds) {
+        this.categoryIds = categoryIds;
     }
 
     public String getTitle() {
@@ -116,12 +113,22 @@ public class Auction {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Auction auction = (Auction) o;
-        return categoryId == auction.categoryId && minimumBid == auction.minimumBid && bidIncrement == auction.bidIncrement && Float.compare(auction.salesTaxRate, salesTaxRate) == 0 && Objects.equals(id, auction.id) && Objects.equals(ownerId, auction.ownerId) && Objects.equals(title, auction.title) && Objects.equals(description, auction.description) && Objects.equals(startDate, auction.startDate) && Objects.equals(endDate, auction.endDate) && state == auction.state;
+        return Objects.equals(categoryIds, auction.categoryIds)
+                && minimumBid == auction.minimumBid
+                && bidIncrement == auction.bidIncrement
+                && Float.compare(auction.salesTaxRate, salesTaxRate) == 0
+                && Objects.equals(id, auction.id)
+                && Objects.equals(ownerId, auction.ownerId)
+                && Objects.equals(title, auction.title)
+                && Objects.equals(description, auction.description)
+                && Objects.equals(startDate, auction.startDate)
+                && Objects.equals(endDate, auction.endDate)
+                && state == auction.state;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, ownerId, categoryId, title, description, minimumBid, bidIncrement, startDate, endDate, salesTaxRate, state);
+        return Objects.hash(id, ownerId, categoryIds, title, description, minimumBid, bidIncrement, startDate, endDate, salesTaxRate, state);
     }
 
     @Override
@@ -129,7 +136,7 @@ public class Auction {
         return "Auction{" +
                 "id=" + id +
                 ", ownerId=" + ownerId +
-                ", categoryId=" + categoryId +
+                ", categoryId=" + categoryIds +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", minimumBid=" + minimumBid +
