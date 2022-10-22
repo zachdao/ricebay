@@ -36,17 +36,17 @@ public class Controller {
         IUtil util = Util.getInstance();
 
         // TODO Instantiate the app's model
-        final AccountController accountController = new AccountController();
-        final AuctionController auctionController = new AuctionController();
+        final UserManager userManager = new UserManager();
+        final AuctionManager auctionManager = new AuctionManager();
 
         // TODO Set up SparkJava endpoints
 
         post("/accounts/create", (request, response) -> gson.toJson(
-                accountController.createAccount(gson.fromJson(request.body(), Account.class)
-        )));
+                userManager.saveAccount(gson.fromJson(request.body(), Account.class)))
+        );
 
         get("/auctions/search", ((request, response) -> gson.toJson(
-                auctionController.search(
+                auctionManager.search(
                         new AuctionQuery(
                                 request.params("query"),
                                 AuctionSortField.valueOf(request.params("sortField")),
