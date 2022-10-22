@@ -1,7 +1,9 @@
 package edu.rice.comp610.controller;
 
 import edu.rice.comp610.model.Account;
-import edu.rice.comp610.util.JsonStatusResponse;
+import edu.rice.comp610.model.Auction;
+
+import java.util.List;
 
 /**
  * Controller that handles incoming requests for creating, viewing and updating accounts in the RiceBay system.
@@ -20,7 +22,7 @@ public class AccountController {
      * included in the response.
      * @see Account
      */
-    JsonStatusResponse createAccount(Account account) {
-        return new JsonStatusResponse(true, null, "OK");
+    public AppResponse<Account> createAccount(Account account) {
+        return new AppResponse<>(true, null, "OK");
     }
 }

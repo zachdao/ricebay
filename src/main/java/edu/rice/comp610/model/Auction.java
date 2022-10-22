@@ -10,6 +10,8 @@ import java.util.UUID;
  * <p>Represents the item listed, including title, description, photos, bid settings, start and end dates.</p>
  */
 public class Auction {
+    private UUID id;
+
     private UUID ownerId;
     private int categoryId;
     private String title;
@@ -20,6 +22,14 @@ public class Auction {
     private Date endDate;
     private float salesTaxRate;
     private AuctionState state;
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
     public UUID getOwnerId() {
         return ownerId;
@@ -106,18 +116,19 @@ public class Auction {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Auction auction = (Auction) o;
-        return categoryId == auction.categoryId && minimumBid == auction.minimumBid && bidIncrement == auction.bidIncrement && Float.compare(auction.salesTaxRate, salesTaxRate) == 0 && ownerId.equals(auction.ownerId) && Objects.equals(title, auction.title) && Objects.equals(description, auction.description) && startDate.equals(auction.startDate) && endDate.equals(auction.endDate) && state == auction.state;
+        return categoryId == auction.categoryId && minimumBid == auction.minimumBid && bidIncrement == auction.bidIncrement && Float.compare(auction.salesTaxRate, salesTaxRate) == 0 && Objects.equals(id, auction.id) && Objects.equals(ownerId, auction.ownerId) && Objects.equals(title, auction.title) && Objects.equals(description, auction.description) && Objects.equals(startDate, auction.startDate) && Objects.equals(endDate, auction.endDate) && state == auction.state;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ownerId, categoryId, title, description, minimumBid, bidIncrement, startDate, endDate, salesTaxRate, state);
+        return Objects.hash(id, ownerId, categoryId, title, description, minimumBid, bidIncrement, startDate, endDate, salesTaxRate, state);
     }
 
     @Override
     public String toString() {
         return "Auction{" +
-                "ownerId=" + ownerId +
+                "id=" + id +
+                ", ownerId=" + ownerId +
                 ", categoryId=" + categoryId +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
