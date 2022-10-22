@@ -2,9 +2,9 @@ package edu.rice.comp610.controller;
 
 import com.google.gson.Gson;
 import edu.rice.comp610.model.Account;
-import edu.rice.comp610.model.SearchSortField;
+import edu.rice.comp610.store.AuctionQuery;
+import edu.rice.comp610.store.AuctionSortField;
 import edu.rice.comp610.util.IUtil;
-import edu.rice.comp610.util.JsonStatusResponse;
 import edu.rice.comp610.util.Util;
 
 import static spark.Spark.*;
@@ -35,30 +35,29 @@ public class Controller {
         Gson gson = new Gson();
         IUtil util = Util.getInstance();
 
-//        JsonParser jsonParser = util.getJsonParser();
-
         // TODO Instantiate the app's model
         final AccountController accountController = new AccountController();
         final AuctionController auctionController = new AuctionController();
 
         // TODO Set up SparkJava endpoints
 
-        // Dummy endpoint because SparkJava wants at least one endpoint defined.   Delete this line when other endpoint(s) have been added.
         post("/accounts/create", (request, response) -> gson.toJson(
                 accountController.createAccount(gson.fromJson(request.body(), Account.class)
         )));
 
-        get("/auctions/search", ((request, response) -> gson.toJson(auctionController.search(
-                request.params("query"),
-                SearchSortField.valueOf(request.params("sortField")),
-                Boolean.parseBoolean(request.params("sortAscending"))
+        get("/auctions/search", ((request, response) -> gson.toJson(
+                auctionController.search(
+                        new AuctionQuery(
+                                request.params("query"),
+                                AuctionSortField.valueOf(request.params("sortField")),
+                                Boolean.parseBoolean(request.params("sortAscending")))
         ))));
 
 
         // A redirect happen when user go to wrong location.
         notFound((req, res) -> {
             res.redirect("/");
-            return gson.toJson(new JsonStatusResponse(false, null, "redirecting to main page"));
+            return gson.toJson(new AppResponse<Void>(false, null, "redirecting to main page"));
         });
         awaitInitialization();
 
