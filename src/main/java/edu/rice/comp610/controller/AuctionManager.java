@@ -2,14 +2,13 @@ package edu.rice.comp610.controller;
 
 import edu.rice.comp610.model.Auction;
 import edu.rice.comp610.store.AuctionQuery;
-import edu.rice.comp610.store.AuctionSortField;
 
 import java.util.List;
 
 /**
  * Controller that handles requests for creating, updating, searching and viewing auctions
  */
-public class AuctionController {
+public class AuctionManager {
 
     /**
      * Searches for auctions matching query string and returns matching results.
