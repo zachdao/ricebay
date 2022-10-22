@@ -11,10 +11,19 @@ import java.util.UUID;
  * which this bid was placed.
  */
 public class Bid {
+    private UUID id;
     private Date timestamp;
     private int amount;
     private UUID ownerId;
     private UUID auctionId;
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
     public Date getTimestamp() {
         return timestamp;
@@ -53,17 +62,22 @@ public class Bid {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Bid bid = (Bid) o;
-        return amount == bid.amount && Objects.equals(timestamp, bid.timestamp) && Objects.equals(ownerId, bid.ownerId) && Objects.equals(auctionId, bid.auctionId);
+        return Objects.equals(id, bid.id)
+                && amount == bid.amount
+                && Objects.equals(timestamp, bid.timestamp)
+                && Objects.equals(ownerId, bid.ownerId)
+                && Objects.equals(auctionId, bid.auctionId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(timestamp, amount, ownerId, auctionId);
+        return Objects.hash(id, timestamp, amount, ownerId, auctionId);
     }
 
     @Override
     public String toString() {
         return "Bid{" +
+                "id=" + id +
                 "timestamp=" + timestamp +
                 ", amount=" + amount +
                 ", ownerId=" + ownerId +
