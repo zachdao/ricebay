@@ -1,59 +1,37 @@
 package edu.rice.comp610.store;
 
-import edu.rice.comp610.model.Account;
-import edu.rice.comp610.model.Auction;
-
+import java.lang.reflect.Field;
 import java.util.List;
-import java.util.UUID;
 
 /**
- * Manages interactions with the database.
+ * Manages loading and storing data in the database.
  */
 public class DatabaseManager {
 
     /**
-     * Search for auctions based on the specified {@link AuctionQuery}.
-     * @param query the query parameters to search for.
-     * @return a list of matching {@link Auction}s
+     * Loads objects of a specified type {@literal modelClass} from the database.
+     *
+     * @param modelClass the type of objects to return
+     * @param sql the SQL query to execute on the database; should be a {@literal SELECT} query
+     * @param filterBy the list of parameters that are used in the SQL query, within the {@literal WHERE} class.
+     * @return the list of results from the query.
+     * @param <T> The type of model being loaded.
      */
-    public List<Auction> searchAuctions(AuctionQuery query) {
-        return null;
+    public <T> List<T> loadObjects(Class<T> modelClass, String sql, Object... filterBy) {
+        return List.of();
     }
 
     /**
-     * Save a user's account information. If the accountId field is null, then this method creates a new account. If
-     * the accountId is set, then it updates the account with the given ID.
-     * @param account the account to save.
+     * Saves objects of a given type in the database.
+     *
+     * @param sql the SQL query string that stores data in the database; should be an {@literal INSERT}
+     *            or {@literal UPDATE} statement.
+     * @param fields the set of fields used in the SQL statement as parameters
+     * @param objects The objects to store in the database. The fields list will be used to pull fields out of the
+     *                object and pass them as parameters to the SQL statement.
+     * @param <T> The type of object being saved.
      */
-    public void saveAccount(Account account) {
-
+    public <T> void saveObjects(String sql, Field[] fields, T objects) {
     }
 
-    /**
-     * Loads the account information of a user with the given alias. If a user with the given alias does not exist,
-     * then throws an exception.
-     * @param alias the alias of the account to load.
-     * @throws ObjectNotFoundException if the account is not found
-     */
-    public Account loadAccount(String alias) throws ObjectNotFoundException {
-        return null;
-    }
-
-    /**
-     * Saves the given auction. If the auctionId field is null, then this method creates a new auction. If
-     * the auctionId is set, then it updates the auction with the given ID.
-     * @param auction the auction to save.
-     */
-    public void saveAuction(Auction auction) {
-    }
-
-    /**
-     * Loads the auction with the given ID. If an auction with the given ID does not exist,
-     * then throws an exception.
-     * @param auctionId the ID of the auction to load.
-     * @throws ObjectNotFoundException if the auction is not found
-     */
-    public Auction loadAuction(UUID auctionId) throws ObjectNotFoundException {
-        return null;
-    }
 }
