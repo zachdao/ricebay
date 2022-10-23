@@ -24,6 +24,7 @@ public class UserManager {
     }
 
     /**
+     * Retrieves information about a user account
      *
      * @param alias the user's login name
      * @return a response object containing the corresponding user account, or null if the account does not exist.
@@ -31,4 +32,26 @@ public class UserManager {
     public AppResponse<Account> retrieveAccount(String alias) {
         return new AppResponse<>(true, null, "OK");
     }
+
+
+    /**
+     * Given the alias (username), compare the password saved in the database and return a success or failure based on success of login
+     *
+     * @param alias the user's account information.
+     * @return a response with the status of the login attempt; if an error occurred, the response will include an error
+     * message.
+     */
+    public AppResponse<Account> validateLogin(String alias) {return new AppResponse<>(true, null, "OK");}
+
+
+    /**
+     * Given the alias (username), destroy the user session
+     *
+     * @param alias the user's account information.
+     * @return a response with the status of the session destruction; if an error occurred, the response will include an error
+     * message.
+     */
+    public AppResponse<Account> logout(String alias) {return new AppResponse<>(true, null, "OK");}
+
+
 }
