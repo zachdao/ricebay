@@ -13,7 +13,7 @@ import java.util.UUID;
 public class Bid {
     private UUID id;
     private Date timestamp;
-    private int amount;
+    private Double amount;
     private UUID ownerId;
     private UUID auctionId;
 
@@ -33,11 +33,11 @@ public class Bid {
         this.timestamp = timestamp;
     }
 
-    public int getAmount() {
+    public Double getAmount() {
         return amount;
     }
 
-    public void setAmount(int amount) {
+    public void setAmount(Double amount) {
         this.amount = amount;
     }
 
