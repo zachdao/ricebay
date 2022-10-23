@@ -2,10 +2,13 @@ package edu.rice.comp610.controller;
 
 import com.google.gson.Gson;
 import edu.rice.comp610.model.Account;
+import edu.rice.comp610.model.Auction;
 import edu.rice.comp610.store.AuctionQuery;
 import edu.rice.comp610.store.AuctionSortField;
 import edu.rice.comp610.util.IUtil;
 import edu.rice.comp610.util.Util;
+
+import java.util.UUID;
 
 import static spark.Spark.*;
 
@@ -41,18 +44,28 @@ public class Controller {
 
         // TODO Set up SparkJava endpoints
 
-        post("/accounts/create", (request, response) -> gson.toJson(
+        // USER/ACCOUNT ENDPOINTS ------------------------------------------------------------
+        post("/accounts", (request, response) -> gson.toJson(
                 userManager.saveAccount(gson.fromJson(request.body(), Account.class)))
         );
 
+        // AUCTION ENDPOINTS -----------------------------------------------------------------
         get("/auctions/search", ((request, response) -> gson.toJson(
                 auctionManager.search(
                         new AuctionQuery(
                                 request.params("query"),
                                 AuctionSortField.valueOf(request.params("sortField")),
-                                Boolean.parseBoolean(request.params("sortAscending")))
-        ))));
-
+                                Boolean.parseBoolean(request.params("sortAscending"))))))
+        );
+        post("/auctions", ((request, response) ->
+                gson.toJson(auctionManager.createAuction(gson.fromJson(request.body(), Auction.class))))
+        );
+        put("/auctions/:id", ((request, response) ->
+                gson.toJson(auctionManager.updateAuction(gson.fromJson(request.body(), Auction.class))))
+        );
+        get("/auctions/:id", ((request, response) ->
+                gson.toJson(auctionManager.loadAuction(UUID.fromString(request.params("id")))))
+        );
 
         // A redirect happen when user go to wrong location.
         notFound((req, res) -> {
