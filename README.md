@@ -86,9 +86,6 @@ The new migration class will be in `database/migrations/<migration name>.py` wit
 argument to the "up" and "down" functions, the migrator will pass you a psycopg2 cursor so that you can execute your
 desired SQL.
 
-As displayed in the output, please add an import in `database/migrator.py` for your new migration. We need to have the
-import so that the decorators that register the migrations are executed.
-
 #### Running Migrations
 
 To apply the migrations in the `migrations` directory, get your database connection information and run:

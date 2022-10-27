@@ -1,4 +1,5 @@
 import argparse
+import importlib.util
 import os
 import sys
 
@@ -6,11 +7,24 @@ import psycopg2
 
 from database.migration import migrations
 
-# MIGRATION IMPORTS GO HERE!
-# We need to import the migration classes to activate their decorators
 
-# noinspection PyUnresolvedReferences
-import database.migrations.InitialSchema
+def dynamic_import(base_dir):
+    """
+    Dynamically import all python files from a given directory
+    :param base_dir: the directory that contains the python files you want imported
+    :return:
+    """
+    files_to_import = [os.path.join(base_dir, f) for f in os.listdir(os.path.join(base_dir)) if f.endswith('.py')]
+    for file in files_to_import:
+        name = os.path.split(file)[-1].strip(".py")
+        spec = importlib.util.spec_from_file_location(name, file)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        globals()[name] = mod
+
+
+# Import our migration files so their decorators register
+dynamic_import(os.path.join(os.getcwd(), 'migrations'))
 
 parser = argparse.ArgumentParser(
     description="migrator is a utility that generates migrations and runs migrations (up or down)")
@@ -69,7 +83,7 @@ class {args.migration_name}:
         pass
 
         """)
-    print(f'Please add the following import to the migrator!\n\n\timport database.migrations.{args.migration_name}')
+    print(f'Your migration has been created at database/migrations/{args.migration_name}.py')
 
 
 def main():
