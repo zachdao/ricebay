@@ -22,6 +22,27 @@ Please install the Java SDK manually or via Intellij.
 
 Please follow the instructions [here](https://nodejs.org/en/download/) to install NodeJS.
 
+### PostgreSQL
+
+#### Using Docker
+
+Run the container, exposing port 5432, like:
+
+```shell
+docker run --rm -it -e POSTGRES_PASSWORD=postgrespwd -e POSTGRES_USER=postgres -e POSTGRES_DB=ricebay -d -p 5432:5432 postgres
+```
+
+Don't have Docker? Don't worry it is easy install! [https://docs.docker.com/desktop/install/windows-install/](https://docs.docker.com/desktop/install/windows-install/) (there is a Mac install as well).
+
+Docker is a [container](https://www.docker.com/resources/what-container/) runtime. Docker is built to run on Linux, Docker Desktop is a VM that will run what you need to run Docker so you can run it on Windows or MacOS.
+
+#### Natively
+
+Running PostgreSQL natively for development isn't recommended, running it in Docker is much easier. Please do that. But.... if you don't like yourself, these links will get you started.
+
+ * [https://www.postgresql.org/docs/current/tutorial-start.html](https://www.postgresql.org/docs/current/tutorial-start.html)
+ * [https://wiki.postgresql.org/wiki/Running_%26_Installing_PostgreSQL_On_Native_Windows](https://wiki.postgresql.org/wiki/Running_%26_Installing_PostgreSQL_On_Native_Windows)
+
 ## How to run
 
 ### Run in IDEA
