@@ -16,24 +16,8 @@ CREATE TABLE IF NOT EXISTS account (
     password varchar NOT NULL,
     last_password varchar,
     image bytea,
-    default_payment_method int
+    zelle_id varchar DEFAULT ''
 );
-        """)
-        db_cursor.execute("""
-CREATE TABLE IF NOT EXISTS payment_method (
-    id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    zelle_id varchar NOT NULL UNIQUE,
-    owner_id uuid NOT NULL
-        CONSTRAINT owner
-            REFERENCES account
-            ON DELETE CASCADE,
-    DEFAULT_method boolean DEFAULT false
-);
-        """)
-        db_cursor.execute("""
-ALTER TABLE account ADD
-    CONSTRAINT payment
-        FOREIGN KEY (default_payment_method) REFERENCES payment_method (id)
         """)
         db_cursor.execute("""
 CREATE TABLE IF NOT EXISTS rating (
@@ -47,7 +31,7 @@ CREATE TABLE IF NOT EXISTS rating (
             ON DELETE CASCADE,
     rating smallint NOT NULL
         CONSTRAINT rating_rating_check
-            CHECK (rating <= 5),
+            CHECK (rating >= 1 AND rating <= 5),
     PRIMARY KEY (rater_id, seller_id)
 );
         """)
@@ -56,14 +40,14 @@ CREATE TABLE IF NOT EXISTS auction (
     id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
     title varchar NOT NULL,
     description varchar NOT NULL,
-    minimum_bid integer NOT NULL,
-    bid_increment integer
+    minimum_bid money NOT NULL,
+    bid_increment money
         CONSTRAINT auction_bid_increment_check
-            CHECK (bid_increment > 0),
+            CHECK (bid_increment > 0::money),
     start_date date NOT NULL,
     end_date date NOT NULL,
     tax_percent double precision,
-    state integer NOT NULL,
+    published boolean DEFAULT false,
     owner_id uuid NOT NULL
         CONSTRAINT owner
             REFERENCES account
@@ -109,9 +93,9 @@ CREATE TABLE IF NOT EXISTS picture (
 CREATE TABLE IF NOT EXISTS bid (
     id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
     timestamp date DEFAULT now(),
-    amount integer NOT NULL
+    amount money NOT NULL
         CONSTRAINT bid_amount_check
-            CHECK (amount > 0),
+            CHECK (amount > 0::money),
     owner_id uuid NOT NULL
         CONSTRAINT bidder
             REFERENCES account
@@ -145,6 +129,4 @@ CREATE TABLE IF NOT EXISTS auction_category (
         db_cursor.execute("DROP TABLE IF EXISTS rating;")
         db_cursor.execute("DROP TABLE IF EXISTS category;")
         db_cursor.execute("DROP TABLE IF EXISTS auction;")
-        db_cursor.execute("ALTER TABLE account DROP CONSTRAINT payment;")
-        db_cursor.execute("DROP TABLE IF EXISTS payment_method;")
         db_cursor.execute("DROP TABLE IF EXISTS account;")
