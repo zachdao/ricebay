@@ -1,0 +1,42 @@
+name: Run Database Schema Migrations
+
+on:
+  workflow_dispatch:
+    inputs:
+      dbName:
+        description: 'Database Name to connect to'
+        required: true
+      dbHost:
+        description: 'Hostname or IP of PostgreSQL instance to connect to'
+        required: true
+      dbPort:
+        description: 'Port number of PostgreSQL instance to connect to'
+        required: true
+        default: '5432'
+      dbUser:
+        description: 'Username to authenticate with'
+        required: true
+      dbPassword:
+        description: 'Password to authenticate with'
+
+jobs:
+  migrateDBSchema:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@4
+        with:
+          python-version: '3.9'
+          cache: 'pip'
+      - name: Install psycopg2
+        run: pip install psycopg2
+      - name: Run migrations
+        run: |
+          cd database
+          echo "Available Python migration files"
+          python migrator.py list
+          echo "Running migrate up"
+          python migrator.py migrate --db-name ${{ github.event.inputs.DB_NAME }} --db-host ${{ github.event.inputs.DB_HOST }} --db-port ${{ github.event.inputs.DB_PORT }} --db-user ${{ github.event.inputs.DB_USER }} --db-password ${{ github.event.inputs.DB_PASSWORD }} up
+          echo "Finished migration, here are the migrations that have been run against the DB"
+          python migrator.py migrate --db-name ${{ github.event.inputs.DB_NAME }} --db-host ${{ github.event.inputs.DB_HOST }} --db-port ${{ github.event.inputs.DB_PORT }} --db-user ${{ github.event.inputs.DB_USER }} --db-password ${{ github.event.inputs.DB_PASSWORD }} list
