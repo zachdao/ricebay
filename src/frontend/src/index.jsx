@@ -6,6 +6,7 @@ import { NotFoundError } from './NotFoundError';
 import { defaultTheme, Provider } from '@adobe/react-spectrum';
 import { Login } from './login/Login';
 import { Toaster } from 'react-hot-toast';
+import {Register} from "./register/Register";
 
 const router = createBrowserRouter([
     {
@@ -16,6 +17,11 @@ const router = createBrowserRouter([
     {
         path: '/login',
         element: <Login />,
+        errorElement: <NotFoundError />, // TODO: Make an authorized error boundary
+    },
+    {
+        path: '/register',
+        element: <Register />,
         errorElement: <NotFoundError />, // TODO: Make an authorized error boundary
     },
 ]);
