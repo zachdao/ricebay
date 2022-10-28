@@ -6,8 +6,12 @@ import edu.rice.comp610.model.Auction;
 import edu.rice.comp610.store.AuctionQuery;
 import edu.rice.comp610.store.AuctionSortField;
 import edu.rice.comp610.util.IUtil;
+import edu.rice.comp610.util.UnauthorizedException;
 import edu.rice.comp610.util.Util;
+import spark.utils.IOUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.UUID;
 
 import static spark.Spark.*;
@@ -45,33 +49,70 @@ public class Controller {
         // TODO Set up SparkJava endpoints
 
         // USER/ACCOUNT ENDPOINTS ------------------------------------------------------------
-        post("/accounts", (request, response) -> gson.toJson(
-                userManager.saveAccount(gson.fromJson(request.body(), Account.class)))
-        );
+        path("/accounts", () -> {
+            post("", (request, response) -> gson.toJson(
+                    userManager.saveAccount(gson.fromJson(request.body(), Account.class)))
+            );
+
+            post("/login", ((request, response) -> {
+                var credentials = util.getJsonParser().parse(request.body());
+                var email = credentials.getAsJsonObject().get("email").getAsString();
+                var password = credentials.getAsJsonObject().get("password").getAsString();
+
+                return gson.toJson(userManager.validateLogin(email, password));
+            }));
+        });
 
         // AUCTION ENDPOINTS -----------------------------------------------------------------
-        get("/auctions/search", ((request, response) -> gson.toJson(
-                auctionManager.search(
-                        new AuctionQuery(
-                                request.params("query"),
-                                AuctionSortField.valueOf(request.params("sortField")),
-                                Boolean.parseBoolean(request.params("sortAscending"))))))
-        );
-        post("/auctions", ((request, response) ->
-                gson.toJson(auctionManager.createAuction(gson.fromJson(request.body(), Auction.class))))
-        );
-        put("/auctions/:id", ((request, response) ->
-                gson.toJson(auctionManager.updateAuction(gson.fromJson(request.body(), Auction.class))))
-        );
-        get("/auctions/:id", ((request, response) ->
-                gson.toJson(auctionManager.loadAuction(UUID.fromString(request.params("id")))))
-        );
-
-        // A redirect happen when user go to wrong location.
-        notFound((req, res) -> {
-            res.redirect("/");
-            return gson.toJson(new AppResponse<Void>(false, null, "redirecting to main page"));
+        path("/auctions", () -> {
+            post("", ((request, response) ->
+                    gson.toJson(auctionManager.createAuction(gson.fromJson(request.body(), Auction.class))))
+            );
+            get("/search", ((request, response) -> gson.toJson(
+                    auctionManager.search(
+                            new AuctionQuery(
+                                    request.params("query"),
+                                    AuctionSortField.valueOf(request.params("sortField")),
+                                    Boolean.parseBoolean(request.params("sortAscending"))))))
+            );
+            get("/:id", ((request, response) ->
+                    gson.toJson(auctionManager.loadAuction(UUID.fromString(request.params("id")))))
+            );
+            put("/:id", ((request, response) ->
+                    gson.toJson(auctionManager.updateAuction(gson.fromJson(request.body(), Auction.class))))
+            );
         });
+
+        // A redirect to our SPA if it isn't a route we recognize
+        get("*", (req, res) -> {
+            res.type("application/json");
+            try (InputStream stream = getClass().getResourceAsStream("/public/index.html")) {
+                assert stream != null;
+                res.status(200);
+                res.type("text/html");
+                return IOUtils.toString(stream);
+            } catch (IOException e) {
+                // If the resource doesn't exist, return a 404
+                // We should never get here!
+                res.status(404);
+                res.type("application/json");
+                return "not supported";
+            }
+        });
+
+        exception(UnauthorizedException.class, (exception, request, response) -> {
+            response.status(401);
+            response.type("application/json");
+            response.body(exception.getMessage());
+        });
+
+        exception(Exception.class, (exception, request, response) -> {
+            System.out.println("Unhandled exception: " + exception.getMessage());
+            response.status(500);
+            response.type("application/json");
+            response.body("Internal Server Error");
+        });
+
         awaitInitialization();
 
         System.out.println("Server started and running on http://localhost:" + getHerokuAssignedPort());
