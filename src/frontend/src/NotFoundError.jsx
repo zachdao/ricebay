@@ -7,11 +7,13 @@ import {
     Button,
 } from '@adobe/react-spectrum';
 import NotFound from '@spectrum-icons/illustrations/NotFound';
+import { useNavigate } from 'react-router-dom';
 
 export const NotFoundError = () => {
+    const navigate = useNavigate();
     return (
         <Flex
-            width="100vh"
+            width="100vw"
             height="100vh"
             alignItems="center"
             justifyContent="center"
@@ -26,9 +28,9 @@ export const NotFoundError = () => {
                 <Button
                     marginTop="size-100"
                     variant="secondary"
-                    onPress={() => window.location.reload()}
+                    onPress={() => navigate(-1)}
                 >
-                    Reload
+                    Go Back
                 </Button>
             </IllustratedMessage>
         </Flex>
