@@ -24,7 +24,7 @@ module.exports = {
         filename: 'main.[contenthash].js',
         path: path.resolve(__dirname, '..', 'main', 'resources', 'public'),
         clean: {
-            keep: /\.gitkeep/,
+            keep: /\.gitkeep|images/,
         },
     },
     plugins: [

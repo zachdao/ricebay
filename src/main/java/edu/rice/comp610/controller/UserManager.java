@@ -1,6 +1,7 @@
 package edu.rice.comp610.controller;
 
 import edu.rice.comp610.model.Account;
+import edu.rice.comp610.util.UnauthorizedException;
 
 /**
  * Controller that handles incoming requests for creating, viewing and updating accounts in the RiceBay system.
@@ -37,11 +38,18 @@ public class UserManager {
     /**
      * Given the alias (username), compare the password saved in the database and return a success or failure based on success of login
      *
-     * @param alias the user's account information.
+     * @param email the user's email
+     * @param password the user's password
      * @return a response with the status of the login attempt; if an error occurred, the response will include an error
      * message.
+     * @throws UnauthorizedException if unable to validate credentials
      */
-    public AppResponse<Account> validateLogin(String alias) {return new AppResponse<>(true, null, "OK");}
+    public AppResponse<Account> validateLogin(String email, String password) throws UnauthorizedException {
+        if (!email.endsWith("@rice.edu") || password.length() < 4 || email.length() < "@rice.edu".length() + 1) {
+            throw new UnauthorizedException();
+        }
+        return new AppResponse<>(true, null, "OK");
+    }
 
 
     /**
