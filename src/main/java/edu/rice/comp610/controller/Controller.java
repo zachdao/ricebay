@@ -5,6 +5,8 @@ import edu.rice.comp610.model.Account;
 import edu.rice.comp610.model.Auction;
 import edu.rice.comp610.store.AuctionQuery;
 import edu.rice.comp610.store.AuctionSortField;
+import edu.rice.comp610.store.DatabaseManager;
+import edu.rice.comp610.store.PostgresDatabaseManager;
 import edu.rice.comp610.util.IUtil;
 import edu.rice.comp610.util.Util;
 
@@ -39,8 +41,9 @@ public class Controller {
         IUtil util = Util.getInstance();
 
         // TODO Instantiate the app's model
+        final DatabaseManager databaseManager = new PostgresDatabaseManager();
         final UserManager userManager = new UserManager();
-        final AuctionManager auctionManager = new AuctionManager();
+        final AuctionManager auctionManager = new AuctionManager(databaseManager);
 
         // TODO Set up SparkJava endpoints
 

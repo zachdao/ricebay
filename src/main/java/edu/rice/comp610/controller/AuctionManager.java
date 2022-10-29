@@ -1,9 +1,12 @@
 package edu.rice.comp610.controller;
 
+import edu.rice.comp610.model.Account;
 import edu.rice.comp610.model.Auction;
+import edu.rice.comp610.model.Category;
 import edu.rice.comp610.store.AuctionQuery;
-import edu.rice.comp610.store.ObjectNotFoundException;
+import edu.rice.comp610.store.DatabaseManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,15 +15,43 @@ import java.util.UUID;
  */
 public class AuctionManager {
 
+    private final DatabaseManager databaseManager;
+
+    public AuctionManager(DatabaseManager databaseManager) {
+        this.databaseManager = databaseManager;
+    }
+
     /**
      * Creates a new auction in the system. A new id is assigned to the auction by the system.
      *
      * @param auction the auction to create
-     * @return a response containing an new auction with its id field filled in, or an error message if an error
+     * @return a response containing a new auction with its id field filled in, or an error message if an error
      * occurred.
      */
     AppResponse<UUID> createAuction(Auction auction) {
-        return new AppResponse<>(true, null, "OK");
+        // TODO: use the QueryManager to construct queries.
+        List<Account> accounts = databaseManager.loadObjects(Account.class,
+                "SELECT * FROM account WHERE id = ?", auction.getOwnerId());
+        if (accounts.isEmpty()) {
+            return new AppResponse<>(false, null, "Account ID " + auction.getOwnerId()
+                    + " does not exist");
+        }
+
+        List<Category> categories = new ArrayList<>();
+        // TODO: querying one object at a time in a loop is inefficient; refactor to use one query.
+        for (UUID id : auction.getCategoryIds()) {
+            List<Category> tmp = databaseManager.loadObjects(Category.class,
+                    "SELECT * FROM category WHERE id = ?", id);
+            if (tmp.isEmpty()) {
+                return new AppResponse<>(false, null, "Category ID " + id + " does not exist");
+            }
+            categories.addAll(tmp);
+        }
+
+        auction.setId(UUID.randomUUID());
+        databaseManager.saveObjects("INSERT INTO auction () VALUES ()", auction.getClass().getFields(), auction);
+
+        return new AppResponse<>(true, auction.getId(), "OK");
     }
 
     /**
