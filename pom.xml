@@ -109,6 +109,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.4.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -137,6 +138,15 @@
                     <show>private</show>
                     <nohelp>true</nohelp>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>javadoc</goal>
+                        </goals>
+                        <id>package-javadoc</id>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>com.heroku.sdk</groupId>
@@ -227,7 +237,6 @@
                                 <argument>run</argument>
                                 <argument>test</argument>
                                 <argument>--</argument>
-                                <argument>--skipTests=${maven.test.skip}</argument>
                             </arguments>
                             <workingDirectory>${basedir}/src/frontend</workingDirectory>
                         </configuration>
@@ -256,6 +265,12 @@
                 <excludes>
                     <exclude>public/.gitkeep</exclude>
                 </excludes>
+            </resource>
+            <resource>
+                <directory>${project.reporting.outputDirectory}</directory>
+                <includes>
+                    <include>apidocs</include>
+                </includes>
             </resource>
         </resources>
     </build>

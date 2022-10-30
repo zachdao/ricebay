@@ -28,3 +28,5 @@ jobs:
         run: mvn compile
       - name: Test
         run: mvn test
+      - name JavaDoc
+      - run: mvn javadoc:javadoc
