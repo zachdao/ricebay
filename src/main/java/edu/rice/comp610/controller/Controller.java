@@ -46,7 +46,7 @@ public class Controller {
 
         // TODO Instantiate the app's model
         final DatabaseManager databaseManager = new PostgresDatabaseManager();
-        final UserManager userManager = new UserManager();
+        final UserManager userManager = new UserManager(databaseManager);
         final AuctionManager auctionManager = new AuctionManager(databaseManager);
 
         // TODO Set up SparkJava endpoints
