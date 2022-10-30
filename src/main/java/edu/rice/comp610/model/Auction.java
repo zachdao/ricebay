@@ -10,7 +10,7 @@ import java.util.*;
 public class Auction {
     private UUID id;
     private UUID ownerId;
-    private List<Integer> categoryIds;
+    private List<UUID> categoryIds;
     private String title;
     private String description;
     private int minimumBid;
@@ -36,11 +36,11 @@ public class Auction {
         this.ownerId = ownerId;
     }
 
-    public List<Integer> getCategoryIds() {
+    public List<UUID> getCategoryIds() {
         return categoryIds;
     }
 
-    public void setCategoryId(List<Integer> categoryIds) {
+    public void setCategoryIds(List<UUID> categoryIds) {
         this.categoryIds = categoryIds;
     }
 
