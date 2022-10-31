@@ -7,6 +7,7 @@ import edu.rice.comp610.store.AuctionQuery;
 import edu.rice.comp610.store.AuctionSortField;
 import edu.rice.comp610.store.DatabaseManager;
 import edu.rice.comp610.store.PostgresDatabaseManager;
+import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.IUtil;
 import edu.rice.comp610.util.UnauthorizedException;
 import edu.rice.comp610.util.Util;
@@ -107,6 +108,12 @@ public class Controller {
             response.status(401);
             response.type("application/json");
             response.body(exception.getMessage());
+        });
+
+        exception(BadRequestException.class, (exception, request, response) -> {
+            response.status(400);
+            response.type("application/json");
+            response.body(gson.toJson(exception.getRequestErrors()));
         });
 
         exception(Exception.class, (exception, request, response) -> {
