@@ -2,6 +2,7 @@ package edu.rice.comp610.controller;
 
 import edu.rice.comp610.model.Account;
 import edu.rice.comp610.store.DatabaseManager;
+import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.UnauthorizedException;
 
 import javax.crypto.SecretKeyFactory;
@@ -11,11 +12,16 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Controller that handles incoming requests for creating, viewing and updating accounts in the RiceBay system.
  */
 public class UserManager {
+
+    private static final String RICE_EMAIL_SUFFIX = "@rice.edu";
 
     DatabaseManager databaseManager;
 
@@ -35,8 +41,93 @@ public class UserManager {
      * included in the response.
      * @see Account
      */
-    public AppResponse<Account> saveAccount(Account account) {
-        return new AppResponse<>(true, null, "OK");
+    public AppResponse<Account> saveAccount(Account account) throws BadRequestException {
+        // Validate the account is correct
+        Map<String, String> validationErrors = validateAccount(account);
+        if (!validationErrors.isEmpty()) {
+            throw new BadRequestException("invalid_account_parameters", validationErrors);
+        }
+
+        try {
+            // When saving a new account, we will get the password, and we will get a null ID
+            if (account.getId() == null) {
+                // Add the UUID
+                account.setId(UUID.randomUUID());
+
+                // Replace the plaintext password with the hashed + salted password
+                account.setPassword(hashPassword(account.getPassword()));
+            }
+
+            databaseManager.saveObjects("INSERT INTO account () values () ON CONFLICT (id) DO UPDATE", account.getClass().getFields(), account);
+
+            return new AppResponse<>(true, account, "OK");
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            return new AppResponse<>(false, null, "Internal Server Error: failed to create account");
+        }
+    }
+
+    /**
+     * Given an account, build a map of errors for each field in the account. The keys should match the frontend form.
+     * @param account the account to check validity
+     * @return a map of frontend key to error message, an empty map implies no errors
+     */
+    private Map<String, String> validateAccount(Account account) {
+        HashMap<String, String> errors = new HashMap<>();
+
+        // Validate First Name
+        if (account.getGivenName().isEmpty()) {
+            errors.put("firstName", "Invalid Name: must provide a first name");
+        }
+
+        // Validate Last name
+        if (account.getSurname().isEmpty()) {
+            errors.put("lastName", "Invalid Name: must provide a last name");
+        }
+
+        // Validate email
+        errors.putAll(checkEmail(account.getEmail()));
+
+        // Ensure unique email
+        if (databaseManager.loadObjects(Account.class, "SELECT * FROM account WHERE email='?'", account.getEmail()).size() > 0) {
+            errors.put("email", "Invalid Email: email already in use");
+        }
+
+        // Ensure non-empty alias
+        if (account.getAlias().length() < 2) {
+            errors.put("alias", "Invalid Alias: alias must be at least two characters");
+        }
+
+        // Ensure unique alias
+        if (databaseManager.loadObjects(Account.class, "SELECT * FROM account WHERE alias='?'", account.getAlias()).size() > 0) {
+            errors.put("alias", "Invalid Alias: alias already in use");
+        }
+
+        // Ensure password length (ONLY for NEW accounts)
+        if (account.getId() == null) {
+            errors.putAll(checkPassword(account.getPassword()));
+        }
+
+        return errors;
+    }
+
+    private Map<String, String> checkEmail(String email) {
+        HashMap<String, String> errors = new HashMap<>();
+        if (!email.endsWith(RICE_EMAIL_SUFFIX) || email.length() < RICE_EMAIL_SUFFIX.length() + 1) {
+            errors.put("email", "Invalid Email: must be a @rice.edu email");
+        }
+
+        return errors;
+    }
+
+    private Map<String, String> checkPassword(String password) {
+        HashMap<String, String> errors = new HashMap<>();
+
+        // TODO: Potential expansion to include checking compromised passwords and other requirements
+        if (password.length() < 4) {
+            errors.put("password", "Invalid Password: password must be at least four characters");
+        }
+
+        return errors;
     }
 
     /**
@@ -61,13 +152,13 @@ public class UserManager {
      */
     public AppResponse<Account> validateLogin(String email, String password) throws UnauthorizedException {
         // Throw out any requests that are automatically invalid
-        if (!email.endsWith("@rice.edu") || password.length() < 4 || email.length() < "@rice.edu".length() + 1) {
+        if (!checkEmail(email).isEmpty() || !checkPassword(password).isEmpty()) {
             throw new UnauthorizedException();
         }
 
         try {
             // Find the account by email
-            var accounts = databaseManager.loadObjects(Account.class, "SELECT firstName, lastName, alias, email WHERE email='$1'", email);
+            var accounts = databaseManager.loadObjects(Account.class, "SELECT * WHERE email='$1'", email);
 
             // Email didn't match a single account
             if (accounts.size() != 1) {
