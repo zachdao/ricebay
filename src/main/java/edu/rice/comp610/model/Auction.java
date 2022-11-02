@@ -1,5 +1,8 @@
 package edu.rice.comp610.model;
 
+import edu.rice.comp610.store.OneToMany;
+import edu.rice.comp610.store.PrimaryKey;
+
 import java.util.*;
 
 /**
@@ -20,6 +23,7 @@ public class Auction {
     private float salesTaxRate;
     private AuctionState state;
 
+    @PrimaryKey
     public UUID getId() {
         return id;
     }
@@ -36,6 +40,7 @@ public class Auction {
         this.ownerId = ownerId;
     }
 
+    @OneToMany(table="category", on="acution_id")
     public List<UUID> getCategoryIds() {
         return categoryIds;
     }
