@@ -1,4 +1,4 @@
-from database.migration import migration
+from migration import migration
 
 
 @migration(order=1)
