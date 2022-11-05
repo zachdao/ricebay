@@ -1,5 +1,7 @@
 package edu.rice.comp610.model;
 
+import edu.rice.comp610.store.PrimaryKey;
+
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
@@ -31,6 +33,7 @@ public class Account {
     private String lastPassword;
     private byte[] image;
 
+    @PrimaryKey
     public UUID getId() {
         return id;
     }
