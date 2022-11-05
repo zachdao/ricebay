@@ -1,6 +1,7 @@
 package edu.rice.comp610.controller;
 
 import edu.rice.comp610.model.Account;
+import edu.rice.comp610.store.DatabaseException;
 import edu.rice.comp610.store.DatabaseManager;
 import edu.rice.comp610.store.Query;
 import edu.rice.comp610.store.QueryManager;
@@ -14,7 +15,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -67,7 +67,7 @@ public class UserManager {
             databaseManager.saveObjects(accountQuery, account);
 
             return new AppResponse<>(true, account, "OK");
-        } catch (NoSuchAlgorithmException | SQLException |InvalidKeySpecException e) {
+        } catch (NoSuchAlgorithmException | DatabaseException |InvalidKeySpecException e) {
             return new AppResponse<>(false, null, "Internal Server Error: failed to create account");
         }
     }
@@ -77,7 +77,7 @@ public class UserManager {
      * @param account the account to check validity
      * @return a map of frontend key to error message, an empty map implies no errors
      */
-    private Map<String, String> validateAccount(Account account) throws SQLException {
+    private Map<String, String> validateAccount(Account account) throws DatabaseException {
         HashMap<String, String> errors = new HashMap<>();
 
         // Validate First Name
@@ -180,7 +180,7 @@ public class UserManager {
             }
 
             return new AppResponse<>(true, accounts.get(0), "OK");
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | SQLException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | DatabaseException e) {
             System.err.println("Caught an exception while trying to authenticate a user. We'll throw an unauthorized error for safety.");
             e.printStackTrace();
             throw new UnauthorizedException();

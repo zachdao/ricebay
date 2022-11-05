@@ -1,6 +1,5 @@
 package edu.rice.comp610.store;
 
-import java.sql.SQLException;
 import java.util.List;
 
 public interface DatabaseManager {
@@ -12,7 +11,7 @@ public interface DatabaseManager {
      * @param <T>        The type of model being loaded.
      * @return the list of results from the query.
      */
-    <T> List<T> loadObjects(Query<T> query, Object... filterBy) throws SQLException;
+    <T> List<T> loadObjects(Query<T> query, Object... filterBy) throws DatabaseException;
 
     /**
      * Saves objects of a given type in the database.
@@ -23,5 +22,5 @@ public interface DatabaseManager {
      *                object and pass them as parameters to the SQL statement.
      * @param <T>     The type of object being saved.
      */
-    <T> void saveObjects(Query<T> query, T... objects) throws SQLException;
+    <T> void saveObjects(Query<T> query, T... objects) throws DatabaseException;
 }

@@ -3,14 +3,8 @@ package edu.rice.comp610.controller;
 import edu.rice.comp610.model.Account;
 import edu.rice.comp610.model.Auction;
 import edu.rice.comp610.model.Category;
-import edu.rice.comp610.store.AuctionQuery;
-import edu.rice.comp610.store.DatabaseManager;
-import edu.rice.comp610.store.Query;
-import edu.rice.comp610.store.QueryManager;
+import edu.rice.comp610.store.*;
 
-import java.lang.reflect.InvocationTargetException;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -58,7 +52,7 @@ public class AuctionManager {
             databaseManager.saveObjects(auctionQuery, auction);
 
             return new AppResponse<>(true, auction.getId(), "OK");
-        } catch (SQLException e) {
+        } catch (DatabaseException e) {
             throw new RuntimeException(e);
         }
     }

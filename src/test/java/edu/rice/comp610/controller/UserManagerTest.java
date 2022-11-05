@@ -1,6 +1,7 @@
 package edu.rice.comp610.controller;
 
 import edu.rice.comp610.model.Account;
+import edu.rice.comp610.store.DatabaseException;
 import edu.rice.comp610.store.DatabaseManager;
 import edu.rice.comp610.store.Query;
 import edu.rice.comp610.store.QueryManager;
@@ -9,7 +10,6 @@ import edu.rice.comp610.util.UnauthorizedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,7 +28,7 @@ public class UserManagerTest {
     UserManager userManager = new UserManager(queryManager, databaseManager);
 
     @BeforeEach
-    void setUp() throws SQLException {
+    void setUp() throws DatabaseException {
         // Default to returning an empty list
         when(databaseManager.loadObjects(any(Query.class), any(Object[].class)))
                 .thenReturn(List.of());
@@ -55,7 +55,7 @@ public class UserManagerTest {
     }
 
     @Test
-    void validateLoginWithValidCredentials() throws SQLException {
+    void validateLoginWithValidCredentials() throws DatabaseException {
         try {
             AppResponse<Account> response = userManager.validateLogin("bob123@rice.edu", "password");
             assertTrue(response.isSuccess());
@@ -68,19 +68,19 @@ public class UserManagerTest {
     }
 
     @Test
-    void validateLoginWithAutomaticFail() throws SQLException {
+    void validateLoginWithAutomaticFail() throws DatabaseException {
         assertThrows(UnauthorizedException.class, () -> userManager.validateLogin("bob123@gmail.com", "password"));
         verify(databaseManager, never()).loadObjects(any(), any(), any());
     }
 
     @Test
-    void validateLoginWithBadPasswordFails() throws SQLException {
+    void validateLoginWithBadPasswordFails() throws DatabaseException {
         assertThrows(UnauthorizedException.class, () -> userManager.validateLogin("bob123@rice.edu", "not bob's password"));
         verify(databaseManager).loadObjects(any(Query.class), eq(BOBS_ACCOUNT.getEmail()));
     }
 
     @Test
-    void validateLoginWithBadEmailFails() throws SQLException {
+    void validateLoginWithBadEmailFails() throws DatabaseException {
 
         assertThrows(UnauthorizedException.class, () -> userManager.validateLogin("foobar@rice.edu", "password"));
         verify(databaseManager).loadObjects(any(Query.class), eq("foobar@rice.edu"));

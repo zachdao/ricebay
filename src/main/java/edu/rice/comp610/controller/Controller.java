@@ -44,7 +44,7 @@ public class Controller {
 
         // TODO Instantiate the app's model
         final QueryManager queryManager = new QueryManager();
-        final DatabaseManager databaseManager = new PostgresDatabaseManager();
+        final DatabaseManager databaseManager = new PostgresDatabaseManager("", null);
         final UserManager userManager = new UserManager(queryManager, databaseManager);
         final AuctionManager auctionManager = new AuctionManager(queryManager, databaseManager);
 
