@@ -2,6 +2,8 @@ package edu.rice.comp610.controller;
 
 import edu.rice.comp610.model.Account;
 import edu.rice.comp610.store.DatabaseManager;
+import edu.rice.comp610.store.Query;
+import edu.rice.comp610.store.QueryManager;
 import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.UnauthorizedException;
 
@@ -12,6 +14,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -23,9 +26,11 @@ public class UserManager {
 
     private static final String RICE_EMAIL_SUFFIX = "@rice.edu";
 
+    private final QueryManager queryManager;
     DatabaseManager databaseManager;
 
-    public UserManager(DatabaseManager databaseManager) {
+    public UserManager(QueryManager queryManager, DatabaseManager databaseManager) {
+        this.queryManager = queryManager;
         this.databaseManager = databaseManager;
     }
 
@@ -43,12 +48,12 @@ public class UserManager {
      */
     public AppResponse<Account> saveAccount(Account account) throws BadRequestException {
         // Validate the account is correct
-        Map<String, String> validationErrors = validateAccount(account);
-        if (!validationErrors.isEmpty()) {
-            throw new BadRequestException("invalid_account_parameters", validationErrors);
-        }
-
         try {
+            Map<String, String> validationErrors = validateAccount(account);
+            if (!validationErrors.isEmpty()) {
+                throw new BadRequestException("invalid_account_parameters", validationErrors);
+            }
+
             // When saving a new account, we will get the password, and we will get a null ID
             if (account.getId() == null) {
                 // Add the UUID
@@ -58,10 +63,11 @@ public class UserManager {
                 account.setPassword(hashPassword(account.getPassword()));
             }
 
-            databaseManager.saveObjects("INSERT INTO account () values () ON CONFLICT (id) DO UPDATE", account.getClass().getFields(), account);
+            Query<Account> accountQuery = queryManager.makeUpdateQuery(Account.class);
+            databaseManager.saveObjects(accountQuery, account);
 
             return new AppResponse<>(true, account, "OK");
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+        } catch (NoSuchAlgorithmException | SQLException |InvalidKeySpecException e) {
             return new AppResponse<>(false, null, "Internal Server Error: failed to create account");
         }
     }
@@ -71,7 +77,7 @@ public class UserManager {
      * @param account the account to check validity
      * @return a map of frontend key to error message, an empty map implies no errors
      */
-    private Map<String, String> validateAccount(Account account) {
+    private Map<String, String> validateAccount(Account account) throws SQLException {
         HashMap<String, String> errors = new HashMap<>();
 
         // Validate First Name
@@ -88,7 +94,8 @@ public class UserManager {
         errors.putAll(checkEmail(account.getEmail()));
 
         // Ensure unique email
-        if (databaseManager.loadObjects(Account.class, "SELECT * FROM account WHERE email='?'", account.getEmail()).size() > 0) {
+        Query<Account> emailQuery = queryManager.makeLoadQuery(Account.class, "email");
+        if (databaseManager.loadObjects(emailQuery, account.getEmail()).size() > 0) {
             errors.put("email", "Invalid Email: email already in use");
         }
 
@@ -98,7 +105,8 @@ public class UserManager {
         }
 
         // Ensure unique alias
-        if (databaseManager.loadObjects(Account.class, "SELECT * FROM account WHERE alias='?'", account.getAlias()).size() > 0) {
+        Query<Account> aliasQuery = queryManager.makeLoadQuery(Account.class, "alias");
+        if (databaseManager.loadObjects(aliasQuery, account.getAlias()).size() > 0) {
             errors.put("alias", "Invalid Alias: alias already in use");
         }
 
@@ -158,7 +166,8 @@ public class UserManager {
 
         try {
             // Find the account by email
-            var accounts = databaseManager.loadObjects(Account.class, "SELECT * WHERE email='$1'", email);
+            Query<Account> emailQuery = queryManager.makeLoadQuery(Account.class, "email");
+            var accounts = databaseManager.loadObjects(emailQuery, email);
 
             // Email didn't match a single account
             if (accounts.size() != 1) {
@@ -171,7 +180,7 @@ public class UserManager {
             }
 
             return new AppResponse<>(true, accounts.get(0), "OK");
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | SQLException e) {
             System.err.println("Caught an exception while trying to authenticate a user. We'll throw an unauthorized error for safety.");
             e.printStackTrace();
             throw new UnauthorizedException();
