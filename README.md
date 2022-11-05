@@ -22,6 +22,14 @@ Please install the Java SDK manually or via Intellij.
 
 Please follow the instructions [here](https://nodejs.org/en/download/) to install NodeJS.
 
+### Docker
+
+Docker is required to use Testcontainers, a tool that enables easier set up to run integration tests with a local database. It is also useful for running your own test instance of PostreSQL (see below).
+
+Don't have Docker? Don't worry it is easy install! [https://docs.docker.com/desktop/install/windows-install/](https://docs.docker.com/desktop/install/windows-install/) (there is a Mac install as well).
+
+Docker is a [container](https://www.docker.com/resources/what-container/) runtime. Docker is built to run on Linux, Docker Desktop is a VM that will run what you need to run Docker so you can run it on Windows or MacOS.
+
 ### PostgreSQL
 
 #### Using Docker
@@ -32,10 +40,6 @@ Run the container, exposing port 5432, like:
 docker run --rm -it -e POSTGRES_PASSWORD=postgrespwd -e POSTGRES_USER=postgres -e POSTGRES_DB=ricebay -d -p 5432:5432 postgres
 ```
 
-Don't have Docker? Don't worry it is easy install! [https://docs.docker.com/desktop/install/windows-install/](https://docs.docker.com/desktop/install/windows-install/) (there is a Mac install as well).
-
-Docker is a [container](https://www.docker.com/resources/what-container/) runtime. Docker is built to run on Linux, Docker Desktop is a VM that will run what you need to run Docker so you can run it on Windows or MacOS.
-
 #### Natively
 
 Running PostgreSQL natively for development isn't recommended, running it in Docker is much easier. Please do that. But.... if you don't like yourself, these links will get you started.
@@ -43,7 +47,7 @@ Running PostgreSQL natively for development isn't recommended, running it in Doc
  * [https://www.postgresql.org/docs/current/tutorial-start.html](https://www.postgresql.org/docs/current/tutorial-start.html)
  * [https://wiki.postgresql.org/wiki/Running_%26_Installing_PostgreSQL_On_Native_Windows](https://wiki.postgresql.org/wiki/Running_%26_Installing_PostgreSQL_On_Native_Windows)
 
-## How to run
+## How to run riceBay
 
 ### Run in IDEA
 
@@ -85,6 +89,18 @@ mvn clean test
 ```
 
 ## Development Guides
+
+### Adding a model class?
+
+Here's a check list to make sure your model works with the DatabaseManager and QueryManager:
+
+* The model class name should match the table name, except following Java camel-case naming, substituting underscores for capital
+  letters, e.g., `table_name -> TableName`.
+* Field names should match DB column names except following Java camel-case naming, e.g., `column_name -> columnName`.
+* Add @PrimaryKey annotations to your primary key's get or set methods. Use the generated property if your primary key
+  has an auto-generated key.
+* Add @OneToMany annotations to get and set methods for any fields that are references to a one-to-many relationship, 
+  which is not stored directly in your model's table.
 
 ### Adding a new table? Altering a table? You need the "migrator"!
 
