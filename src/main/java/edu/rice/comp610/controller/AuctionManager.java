@@ -5,7 +5,11 @@ import edu.rice.comp610.model.Auction;
 import edu.rice.comp610.model.Category;
 import edu.rice.comp610.store.AuctionQuery;
 import edu.rice.comp610.store.DatabaseManager;
+import edu.rice.comp610.store.Query;
+import edu.rice.comp610.store.QueryManager;
 
+import java.lang.reflect.InvocationTargetException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -15,9 +19,11 @@ import java.util.UUID;
  */
 public class AuctionManager {
 
+    private final QueryManager queryManager;
     private final DatabaseManager databaseManager;
 
-    public AuctionManager(DatabaseManager databaseManager) {
+    public AuctionManager(QueryManager queryManager, DatabaseManager databaseManager) {
+        this.queryManager = queryManager;
         this.databaseManager = databaseManager;
     }
 
@@ -29,29 +35,32 @@ public class AuctionManager {
      * occurred.
      */
     AppResponse<UUID> createAuction(Auction auction) {
-        // TODO: use the QueryManager to construct queries.
-        List<Account> accounts = databaseManager.loadObjects(Account.class,
-                "SELECT * FROM account WHERE id = ?", auction.getOwnerId());
-        if (accounts.isEmpty()) {
-            return new AppResponse<>(false, null, "Account ID " + auction.getOwnerId()
-                    + " does not exist");
-        }
-
-        List<Category> categories = new ArrayList<>();
-        // TODO: querying one object at a time in a loop is inefficient; refactor to use one query.
-        for (UUID id : auction.getCategoryIds()) {
-            List<Category> tmp = databaseManager.loadObjects(Category.class,
-                    "SELECT * FROM category WHERE id = ?", id);
-            if (tmp.isEmpty()) {
-                return new AppResponse<>(false, null, "Category ID " + id + " does not exist");
+        try {
+            // TODO: use the QueryManager to construct queries.
+            Query<Account> accountQuery = queryManager.makeLoadQuery(Account.class, "id");
+            List<Account> accounts = databaseManager.loadObjects(accountQuery, auction.getOwnerId());
+            if (accounts.isEmpty()) {
+                return new AppResponse<>(false, null, "Account ID " + auction.getOwnerId()
+                        + " does not exist");
             }
-            categories.addAll(tmp);
+
+            // TODO: querying one object at a time in a loop is inefficient; refactor to use one query.
+            Query<Category> categoryQuery = queryManager.makeLoadQuery(Category.class, "id");
+            for (int id : auction.getCategoryIds()) {
+                List<Category> tmp = databaseManager.loadObjects(categoryQuery, id);
+                if (tmp.isEmpty()) {
+                    return new AppResponse<>(false, null, "Category ID " + id + " does not exist");
+                }
+            }
+
+            auction.setId(UUID.randomUUID());
+            Query<Auction> auctionQuery = queryManager.makeUpdateQuery(Auction.class);
+            databaseManager.saveObjects(auctionQuery, auction);
+
+            return new AppResponse<>(true, auction.getId(), "OK");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-
-        auction.setId(UUID.randomUUID());
-        databaseManager.saveObjects("INSERT INTO auction () VALUES ()", auction.getClass().getFields(), auction);
-
-        return new AppResponse<>(true, auction.getId(), "OK");
     }
 
     /**

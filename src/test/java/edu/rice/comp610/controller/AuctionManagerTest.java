@@ -2,20 +2,20 @@ package edu.rice.comp610.controller;
 
 import edu.rice.comp610.model.Account;
 import edu.rice.comp610.model.Auction;
-import edu.rice.comp610.model.AuctionState;
 import edu.rice.comp610.model.Category;
 import edu.rice.comp610.store.DatabaseManager;
+import edu.rice.comp610.store.Query;
+import edu.rice.comp610.store.QueryManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
 
 import static edu.rice.comp610.testing.Dates.parseDate;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -26,12 +26,13 @@ class AuctionManagerTest {
     private static final Account ACCOUNT_BOB = new Account();
 
     static {
-        CAT_ELECTRONICS.setId(UUID.randomUUID());
+        CAT_ELECTRONICS.setId(123);
         ACCOUNT_BOB.setId(UUID.randomUUID());
     }
     Auction NEW_AUCTION = new Auction();
     DatabaseManager databaseManager = mock(DatabaseManager.class);
-    AuctionManager auctionManager = new AuctionManager(databaseManager);
+    QueryManager queryManager = new QueryManager();
+    AuctionManager auctionManager = new AuctionManager(queryManager, databaseManager);
 
     @BeforeEach
     void setUp() {
@@ -41,18 +42,18 @@ class AuctionManagerTest {
         NEW_AUCTION.setMinimumBid(123);
         NEW_AUCTION.setStartDate(parseDate("2022-10-20"));
         NEW_AUCTION.setEndDate(parseDate("2022-10-20"));
-        NEW_AUCTION.setSalesTaxRate(0.06f);
-        NEW_AUCTION.setState(AuctionState.ACTIVE);
+        NEW_AUCTION.setTaxPercent(0.06f);
+        NEW_AUCTION.setPublished(true);
         NEW_AUCTION.setCategoryIds(List.of(CAT_ELECTRONICS.getId()));
         NEW_AUCTION.setOwnerId(ACCOUNT_BOB.getId());
         NEW_AUCTION.setId(null);
     }
 
     @Test
-    void createAndLoadAuction() {
-        when(databaseManager.loadObjects(eq(Account.class), anyString(), eq(ACCOUNT_BOB.getId())))
+    void createAndLoadAuction() throws Exception {
+        when(databaseManager.loadObjects(any(Query.class), eq(ACCOUNT_BOB.getId())))
                 .thenReturn(List.of(ACCOUNT_BOB));
-        when(databaseManager.loadObjects(eq(Category.class), anyString(), eq(CAT_ELECTRONICS.getId())))
+        when(databaseManager.loadObjects(any(Query.class), eq(CAT_ELECTRONICS.getId())))
                 .thenReturn(List.of(CAT_ELECTRONICS));
 
         AppResponse<UUID> response = auctionManager.createAuction(NEW_AUCTION);
@@ -61,10 +62,10 @@ class AuctionManagerTest {
     }
 
     @Test
-    void createAuctionWithNonExistentCategory() {
-        when(databaseManager.loadObjects(eq(Account.class), anyString(), eq(ACCOUNT_BOB.getId())))
+    void createAuctionWithNonExistentCategory() throws Exception {
+        when(databaseManager.loadObjects(any(Query.class), eq(ACCOUNT_BOB.getId())))
                 .thenReturn(List.of(ACCOUNT_BOB));
-        when(databaseManager.loadObjects(eq(Category.class), anyString(), eq(CAT_ELECTRONICS.getId())))
+        when(databaseManager.loadObjects(any(Query.class), eq(CAT_ELECTRONICS.getId())))
                 .thenReturn(List.of()); // empty result
 
         AppResponse<UUID> response = auctionManager.createAuction(NEW_AUCTION);
@@ -74,10 +75,10 @@ class AuctionManagerTest {
     }
 
     @Test
-    void createAuctionWithNonExistentOwner() {
-        when(databaseManager.loadObjects(eq(Account.class), anyString(), eq(ACCOUNT_BOB.getId())))
+    void createAuctionWithNonExistentOwner() throws Exception {
+        when(databaseManager.loadObjects(any(Query.class), eq(ACCOUNT_BOB.getId())))
                 .thenReturn(List.of()); // empty result
-        when(databaseManager.loadObjects(eq(Category.class), anyString(), eq(CAT_ELECTRONICS.getId())))
+        when(databaseManager.loadObjects(any(Query.class), eq(CAT_ELECTRONICS.getId())))
                 .thenReturn(List.of(CAT_ELECTRONICS));
 
         AppResponse<UUID> response = auctionManager.createAuction(NEW_AUCTION);

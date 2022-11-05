@@ -13,15 +13,15 @@ import java.util.*;
 public class Auction {
     private UUID id;
     private UUID ownerId;
-    private List<UUID> categoryIds;
+    private List<Integer> categoryIds;
     private String title;
     private String description;
     private int minimumBid;
     private int bidIncrement;
     private Date startDate;
     private Date endDate;
-    private float salesTaxRate;
-    private AuctionState state;
+    private float taxPercent;
+    private boolean published;
 
     @PrimaryKey
     public UUID getId() {
@@ -41,11 +41,11 @@ public class Auction {
     }
 
     @OneToMany(table="category", on="acution_id")
-    public List<UUID> getCategoryIds() {
+    public List<Integer> getCategoryIds() {
         return categoryIds;
     }
 
-    public void setCategoryIds(List<UUID> categoryIds) {
+    public void setCategoryIds(List<Integer> categoryIds) {
         this.categoryIds = categoryIds;
     }
 
@@ -97,20 +97,19 @@ public class Auction {
         this.endDate = endDate;
     }
 
-    public float getSalesTaxRate() {
-        return salesTaxRate;
+    public float getTaxPercent() {
+        return taxPercent;
     }
 
-    public void setSalesTaxRate(float salesTaxRate) {
-        this.salesTaxRate = salesTaxRate;
+    public void setTaxPercent(float taxPercent) {
+        this.taxPercent = taxPercent;
     }
 
-    public AuctionState getState() {
-        return state;
+    public boolean getPublished() {
+        return published;
     }
-
-    public void setState(AuctionState state) {
-        this.state = state;
+    public void setPublished(boolean published) {
+        this.published = published;
     }
 
     @Override
@@ -121,19 +120,19 @@ public class Auction {
         return Objects.equals(categoryIds, auction.categoryIds)
                 && minimumBid == auction.minimumBid
                 && bidIncrement == auction.bidIncrement
-                && Float.compare(auction.salesTaxRate, salesTaxRate) == 0
+                && Float.compare(auction.taxPercent, taxPercent) == 0
                 && Objects.equals(id, auction.id)
                 && Objects.equals(ownerId, auction.ownerId)
                 && Objects.equals(title, auction.title)
                 && Objects.equals(description, auction.description)
                 && Objects.equals(startDate, auction.startDate)
                 && Objects.equals(endDate, auction.endDate)
-                && state == auction.state;
+                && published == auction.published;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, ownerId, categoryIds, title, description, minimumBid, bidIncrement, startDate, endDate, salesTaxRate, state);
+        return Objects.hash(id, ownerId, categoryIds, title, description, minimumBid, bidIncrement, startDate, endDate, taxPercent, published);
     }
 
     @Override
@@ -148,8 +147,8 @@ public class Auction {
                 ", bidIncrement=" + bidIncrement +
                 ", startDate=" + startDate +
                 ", endDate=" + endDate +
-                ", salesTaxRate=" + salesTaxRate +
-                ", state=" + state +
+                ", taxPercentage=" + taxPercent +
+                ", published=" + published +
                 '}';
     }
 }
