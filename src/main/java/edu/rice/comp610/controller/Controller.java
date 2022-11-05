@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import edu.rice.comp610.model.Account;
 import edu.rice.comp610.model.Auction;
 import edu.rice.comp610.store.*;
+import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.IUtil;
 import edu.rice.comp610.util.UnauthorizedException;
 import edu.rice.comp610.util.Util;
@@ -44,7 +45,7 @@ public class Controller {
         // TODO Instantiate the app's model
         final QueryManager queryManager = new QueryManager();
         final DatabaseManager databaseManager = new PostgresDatabaseManager();
-        final UserManager userManager = new UserManager();
+        final UserManager userManager = new UserManager(databaseManager);
         final AuctionManager auctionManager = new AuctionManager(queryManager, databaseManager);
 
         // TODO Set up SparkJava endpoints
@@ -105,6 +106,12 @@ public class Controller {
             response.status(401);
             response.type("application/json");
             response.body(exception.getMessage());
+        });
+
+        exception(BadRequestException.class, (exception, request, response) -> {
+            response.status(400);
+            response.type("application/json");
+            response.body(gson.toJson(exception.getRequestErrors()));
         });
 
         exception(Exception.class, (exception, request, response) -> {
