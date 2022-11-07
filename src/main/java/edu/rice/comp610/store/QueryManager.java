@@ -3,6 +3,7 @@ package edu.rice.comp610.store;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Generates SQL queries for use with the {@link DatabaseManager}.
@@ -15,7 +16,19 @@ public class QueryManager {
     static final class Accessors {
         Method getter;
         Method setter;
+        boolean isOneToMany() {
+            return getter.isAnnotationPresent(OneToMany.class) || setter.isAnnotationPresent(OneToMany.class);
+        }
+        boolean isPrimaryKey() {
+            return getter.isAnnotationPresent(PrimaryKey.class) || setter.isAnnotationPresent(PrimaryKey.class);
+        }
+
+        boolean isGenerated() {
+            return (getter.isAnnotationPresent(PrimaryKey.class) && getter.getAnnotation(PrimaryKey.class).generated())
+                    || (setter.isAnnotationPresent(PrimaryKey.class) && setter.getAnnotation(PrimaryKey.class).generated());
+        }
     }
+
     static <T> Map<String, Accessors> makeColumnsToAccessorsMap(Class<T> modelClass)
     {
         Map<String, Accessors> result = new TreeMap<>();
@@ -26,14 +39,26 @@ public class QueryManager {
             if (method.getName().startsWith("set") && method.getParameterTypes().length == 1) {
                 String column = toColumn(method.getName().substring(3));
                 result.putIfAbsent(column, new Accessors());
-                result.get(column).setter = method;
+                Accessors accessors = result.get(column);
+                accessors.setter = method;
             }
             if (method.getName().startsWith("get") && method.getParameterTypes().length == 0) {
                 String column = toColumn(method.getName().substring(3));
                 result.putIfAbsent(column, new Accessors());
-                result.get(column).getter = method;
+                Accessors accessors = result.get(column);
+                accessors.getter = method;
             }
         }
+        result.entrySet().forEach(
+                entry -> {
+                    if (entry.getValue().setter == null) {
+                        throw new IllegalStateException("No setter for field " + entry.getKey());
+                    }
+                    if (entry.getValue().getter == null) {
+                        throw new IllegalStateException("No getter for field " + entry.getKey());
+                    }
+                }
+        );
         return result;
     }
 
@@ -41,7 +66,7 @@ public class QueryManager {
         return methodName.replaceAll("([A-Z])", "_$1").toLowerCase().substring(1);
     }
 
-    QueryManager() {
+    public QueryManager() {
 
     }
 
@@ -53,7 +78,7 @@ public class QueryManager {
      * @param filterBy the set of fields to filter by.
      * @return a SQL query string .
      */
-    public String makeLoadQuery(Class<?> modelClass, String... filterBy) {
+    public <T> Query<T> makeLoadQuery(Class<T> modelClass, String... filterBy) {
         Map<String, Accessors> accessorsMap = makeColumnsToAccessorsMap(modelClass);
         String primaryTable = modelClass.getSimpleName().toLowerCase();
 
@@ -75,7 +100,8 @@ public class QueryManager {
                 stringBuilder.append(" AND ");
             stringBuilder.append(column).append(" = ?");
         }
-        return stringBuilder.toString();
+        String sql = stringBuilder.toString();
+        return new Query<>(modelClass, sql, filterBy, accessorsMap);
     }
 
     /**
@@ -86,7 +112,7 @@ public class QueryManager {
      * @param modelClass the model class that will be loaded.
      * @return a SQL query string .
      */
-    public String makeUpdateQuery(Class<?> modelClass) {
+    public <T> Query<T> makeUpdateQuery(Class<T> modelClass) {
         Map<String, Accessors> accessorsMap = makeColumnsToAccessorsMap(modelClass);
         String primaryTable = modelClass.getSimpleName().toLowerCase();
         StringBuilder stringBuilder = new StringBuilder();
@@ -95,9 +121,7 @@ public class QueryManager {
         stringBuilder.append(" (");
 
         List<String> insertColumns = accessorsMap.entrySet().stream()
-                .filter(entry ->
-                        !entry.getValue().getter.isAnnotationPresent(OneToMany.class)
-                        && !entry.getValue().setter.isAnnotationPresent(OneToMany.class))
+                .filter(entry -> !entry.getValue().isGenerated() && !entry.getValue().isOneToMany())
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
@@ -107,21 +131,21 @@ public class QueryManager {
         stringBuilder.append(insertColumns.stream().map(key -> "?").collect(Collectors.joining(", ")));
 
         // Compute the list of update columns
-        String updateColumns = accessorsMap.entrySet().stream()
-                .filter(entry ->
-                        !entry.getValue().getter.isAnnotationPresent(PrimaryKey.class)
-                        && !entry.getValue().setter.isAnnotationPresent(PrimaryKey.class)
-                        && !entry.getValue().getter.isAnnotationPresent(OneToMany.class)
-                        && !entry.getValue().setter.isAnnotationPresent(OneToMany.class))
+        List<String> updateColumns = accessorsMap.entrySet().stream()
+                .filter(entry -> !entry.getValue().isPrimaryKey() && !entry.getValue().isOneToMany())
                 .map(entry -> entry.getKey() + " = ?")
-                .collect(Collectors.joining(", "));
+                .collect(Collectors.toList());
         stringBuilder.append(") ON CONFLICT (");
-        stringBuilder.append(accessorsMap.entrySet().stream()
-                .filter(entry -> entry.getValue().setter.isAnnotationPresent(PrimaryKey.class)
-                        || entry.getValue().getter.isAnnotationPresent(PrimaryKey.class)).collect(Collectors.toList())
-                .get(0).getKey());
-        stringBuilder.append(") UPDATE ");
-        stringBuilder.append(updateColumns);
-        return stringBuilder.toString();
+        List<Map.Entry<String, Accessors>> pkColumns = accessorsMap.entrySet().stream()
+                .filter(entry -> entry.getValue().isPrimaryKey()).collect(Collectors.toList());
+        if (pkColumns.isEmpty()) {
+            throw new IllegalStateException("Model class has no fields marked with @PrimaryKey");
+        }
+        stringBuilder.append(String.join(", ", pkColumns.get(0).getKey()));
+        stringBuilder.append(") DO UPDATE SET ");
+        stringBuilder.append(String.join(", ", updateColumns));
+        String sql = stringBuilder.toString();
+        List<String> params = Stream.concat(insertColumns.stream(), updateColumns.stream()).collect(Collectors.toList());
+        return new Query<>(modelClass, sql, params, accessorsMap);
     }
 }

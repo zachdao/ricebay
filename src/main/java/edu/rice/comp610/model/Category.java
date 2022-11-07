@@ -1,8 +1,8 @@
 package edu.rice.comp610.model;
 
-import java.util.Arrays;
+import edu.rice.comp610.store.PrimaryKey;
+
 import java.util.Objects;
-import java.util.UUID;
 
 
 /**
@@ -18,16 +18,17 @@ import java.util.UUID;
  */
 public class Category {
 
-    private UUID id;
+    private int id;
     private String name;
     private String description;
 
 
-    public UUID getId() {
+    @PrimaryKey(generated = true)
+    public int getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(int id) {
         this.id = id;
     }
 

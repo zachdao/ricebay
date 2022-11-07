@@ -16,8 +16,8 @@ class QueryManagerTest {
         var map = QueryManager.makeColumnsToAccessorsMap(Auction.class);
         assertNotNull(map);
         assertEquals(map.keySet(), Set.of(
-                "bid_increment", "category_ids", "description", "end_date", "id", "minimum_bid", "owner_id", "sales_tax_rate",
-                "start_date", "state", "title"));
+                "bid_increment", "category_ids", "description", "end_date", "id", "minimum_bid", "owner_id",
+                "published", "start_date", "tax_percent", "title"));
         for (var entry : map.entrySet()) {
             assertNotNull(entry.getValue().getter, entry.getKey() + " has null getter");
             assertNotNull(entry.getValue().setter, entry.getKey() + " has null setter");
@@ -25,19 +25,21 @@ class QueryManagerTest {
     }
     @Test
     void makeLoadQuery() {
-        String sql = queryManager.makeLoadQuery(Auction.class, "id");
-        assertEquals("SELECT bid_increment, description, end_date, id, minimum_bid, owner_id, " +
-                "sales_tax_rate, start_date, state, title FROM auction " +
-                "WHERE id = ?", sql);
+        Query<Auction> query = queryManager.makeLoadQuery(Auction.class, "id");
+        assertEquals("SELECT bid_increment, description, end_date, id, minimum_bid, owner_id, published, " +
+                "start_date, tax_percent, title FROM auction " +
+                "WHERE id = ?",
+                query.getSql());
     }
 
     @Test
     void makeUpdateQuery() {
-        String sql = queryManager.makeUpdateQuery(Auction.class);
+        Query<Auction> query = queryManager.makeUpdateQuery(Auction.class);
         assertEquals("INSERT INTO auction (bid_increment, description, end_date, id, " +
-                "minimum_bid, owner_id, sales_tax_rate, start_date, state, title) " +
+                "minimum_bid, owner_id, published, start_date, tax_percent, title) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
-                "ON CONFLICT (id) UPDATE bid_increment = ?, description = ?, end_date = ?, " +
-                "minimum_bid = ?, owner_id = ?, sales_tax_rate = ?, start_date = ?, state = ?, title = ?", sql);
+                "ON CONFLICT (id) DO UPDATE SET bid_increment = ?, description = ?, end_date = ?, " +
+                "minimum_bid = ?, owner_id = ?, published = ?, start_date = ?, tax_percent = ?, title = ?",
+                query.getSql());
     }
 }
