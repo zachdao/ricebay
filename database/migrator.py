@@ -5,7 +5,7 @@ import sys
 
 import psycopg2
 
-from database.migration import migrations
+from migration import migrations
 
 
 def dynamic_import(base_dir):
@@ -24,7 +24,7 @@ def dynamic_import(base_dir):
 
 
 # Import our migration files so their decorators register
-dynamic_import(os.path.join(os.getcwd(), 'migrations'))
+dynamic_import('migrations')
 
 parser = argparse.ArgumentParser(
     description="migrator is a utility that generates migrations and runs migrations (up or down)")
