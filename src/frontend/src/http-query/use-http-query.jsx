@@ -26,6 +26,27 @@ export const useHttpQuery = (url, options) => {
                     setStatus(500);
                 }
             });
+        // fetch is the native browser API alternative to Axios. Here is how
+        // you would accomplish the same as above.
+        // The main difference between fetch and Axios, is that fetch will
+        // successfully resolve the promise regardless of the status. Axios
+        // will throw an error for non-200 status codes.
+        //
+        // fetch(url, ...options).then(res => {
+        //     if (res.status === 200) {
+        //         setData(res.data);
+        //         setStatus(res.status);
+        //         setError(null);
+        //     } else {
+        //         setData(null);
+        //         setError(err);
+        //         if (err.response) {
+        //             setStatus(err.response.status);
+        //         } else {
+        //             setStatus(500);
+        //         }
+        //     }
+        // });
     }, []);
 
     return { appResponse, error, status };
