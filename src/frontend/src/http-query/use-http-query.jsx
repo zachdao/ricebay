@@ -26,7 +26,7 @@ export const useHttpQuery = (url, options) => {
                     setStatus(500);
                 }
             });
-    });
+    }, []);
 
     return { appResponse, error, status };
 };
