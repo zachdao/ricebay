@@ -4,14 +4,12 @@ import com.google.gson.Gson;
 import edu.rice.comp610.model.Account;
 import edu.rice.comp610.model.Auction;
 import edu.rice.comp610.store.*;
-import edu.rice.comp610.util.BadRequestException;
-import edu.rice.comp610.util.IUtil;
-import edu.rice.comp610.util.UnauthorizedException;
-import edu.rice.comp610.util.Util;
+import edu.rice.comp610.util.*;
 import spark.utils.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Properties;
 import java.util.UUID;
 
 import static spark.Spark.*;
@@ -42,9 +40,11 @@ public class Controller {
         Gson gson = new Gson();
         IUtil util = Util.getInstance();
 
+        Properties properties = PropertiesLoader.loadProperties();
+
         // TODO Instantiate the app's model
         final QueryManager queryManager = new QueryManager();
-        final DatabaseManager databaseManager = new PostgresDatabaseManager("", null);
+        final DatabaseManager databaseManager = new PostgresDatabaseManager(properties);
         final UserManager userManager = new UserManager(queryManager, databaseManager);
         final AuctionManager auctionManager = new AuctionManager(queryManager, databaseManager);
 
