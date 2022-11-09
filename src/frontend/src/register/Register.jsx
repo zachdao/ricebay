@@ -8,8 +8,8 @@ import toast from "react-hot-toast";
 import {Toast} from "../toast/Toast";
 
 export const Register = () => {
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
+    const [givenName, setGivenName] = useState('');
+    const [surname, setSurname] = useState('');
     const [alias, setAlias] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -22,8 +22,8 @@ export const Register = () => {
         try {
             setError('');
             await axios.post('/accounts', {
-                firstName,
-                lastName,
+                givenName,
+                surname,
                 alias,
                 email,
                 password
@@ -32,7 +32,7 @@ export const Register = () => {
         } catch (e) {
             setError('Invalid input!');
         }
-    }, [firstName, lastName, alias, email, password]);
+    }, [givenName, surname, alias, email, password]);
 
     useEffect(() => {
         if (error) {
@@ -63,8 +63,8 @@ export const Register = () => {
             <TextField
                 validationState={error ? 'invalid' : undefined}
                 label="First Name"
-                value={firstName}
-                onChange={setFirstName}
+                value={givenName}
+                onChange={setGivenName}
                 type="text"
                 onBlur={() => setError('')}
                 isRequired
@@ -72,8 +72,8 @@ export const Register = () => {
             <TextField
                 validationState={error ? 'invalid' : undefined}
                 label="Last Name"
-                value={lastName}
-                onChange={setLastName}
+                value={surname}
+                onChange={setSurname}
                 type="text"
                 onBlur={() => setError('')}
                 isRequired
