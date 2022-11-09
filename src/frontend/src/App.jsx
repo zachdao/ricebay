@@ -11,7 +11,7 @@ export const App = () => {
     return (
         <Grid
             areas={['header header', 'sidebar content', 'footer footer']}
-            columns={['1fr', '3fr']}
+            columns={['.5fr', '3fr']}
             rows={['size-1000', 'auto', 'size-1000']}
             height="100vh"
             backgroundColor="white"
@@ -23,7 +23,7 @@ export const App = () => {
             </View>
             {showSidebar && (
                 <View gridArea="sidebar" height="100%">
-                    <Sidebar />
+                    <Sidebar dismiss={() => setShowSidebar(false)} />
                 </View>
             )}
             <View
