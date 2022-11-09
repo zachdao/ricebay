@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 export const useHttpQuery = (url, options) => {
-    const [data, setData] = useState();
-    const [error, setError] = useState();
-    const [status, setStatus] = useState();
+    const [appResponse, setAppResponse] = useState(null);
+    const [error, setError] = useState(null);
+    const [status, setStatus] = useState(null);
 
     useEffect(() => {
         axios
@@ -13,12 +13,12 @@ export const useHttpQuery = (url, options) => {
                 ...options,
             })
             .then((res) => {
-                setData(res.data);
+                setAppResponse(res.data);
                 setStatus(res.status);
                 setError(null);
             })
             .catch((err) => {
-                setData(null);
+                setAppResponse(err?.response?.data);
                 setError(err);
                 if (err.response) {
                     setStatus(err.response.status);
@@ -28,5 +28,5 @@ export const useHttpQuery = (url, options) => {
             });
     });
 
-    return { data, error, status };
+    return { appResponse, error, status };
 };
