@@ -63,6 +63,11 @@ public class Controller {
 
                 return gson.toJson(userManager.validateLogin(email, password));
             }));
+
+            get("/me", ((request, response) -> {
+                // TODO: Get alias from session
+                return gson.toJson(userManager.retrieveAccount("TODO"));
+            }));
         });
 
         // AUCTION ENDPOINTS -----------------------------------------------------------------
@@ -112,6 +117,12 @@ public class Controller {
             response.status(400);
             response.type("application/json");
             response.body(gson.toJson(exception.getRequestErrors()));
+        });
+
+        exception(ObjectNotFoundException.class, (e, request, response) -> {
+            response.status(404);
+            response.type("application/json");
+            response.body("not found");
         });
 
         exception(Exception.class, (exception, request, response) -> {
