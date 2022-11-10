@@ -20,6 +20,18 @@ public class PostgresDatabaseManager implements DatabaseManager {
         this.jdbcProperties = jdbcProperties;
     }
 
+    /**
+     * Constructor that loads configuration from properties.
+     * @param properties
+     */
+    public PostgresDatabaseManager(Properties properties) {
+        this.jdbcUrl = properties.getProperty("ricebay.jdbc.url");
+        Properties jdbcProperties = new Properties();
+        jdbcProperties.put("user", properties.getProperty("ricebay.jdbc.user"));
+        jdbcProperties.put("password", properties.getProperty("ricebay.jdbc.password"));
+        this.jdbcProperties = jdbcProperties;
+    }
+
     @Override
     public <T> List<T> loadObjects(Query<T> query, Object... filterBy)
             throws DatabaseException {
