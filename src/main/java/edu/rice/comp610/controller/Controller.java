@@ -75,13 +75,9 @@ public class Controller {
             post("", ((request, response) ->
                     gson.toJson(auctionManager.createAuction(gson.fromJson(request.body(), Auction.class))))
             );
-            get("/search", ((request, response) -> gson.toJson(
-                    auctionManager.search(
-                            new AuctionQuery(
-                                    request.params("query"),
-                                    AuctionSortField.valueOf(request.params("sortField")),
-                                    Boolean.parseBoolean(request.params("sortAscending"))))))
-            );
+            get("/search", ((request, response) -> gson.toJson(auctionManager.search(new AuctionQuery(request.params().getOrDefault("query", ""),
+                    AuctionSortField.valueOf(request.params().getOrDefault("sortField", String.valueOf(AuctionSortField.END_DATE))),
+                    Boolean.parseBoolean(request.params().getOrDefault("sortAscending", "true")))))));
             get("/:id", ((request, response) ->
                     gson.toJson(auctionManager.loadAuction(UUID.fromString(request.params("id")))))
             );
