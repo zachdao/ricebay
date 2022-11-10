@@ -1,7 +1,7 @@
 import React from 'react';
 import { ActionButton, Flex, Grid, SearchField } from '@adobe/react-spectrum';
 import ShowMenu from '@spectrum-icons/workflow/ShowMenu';
-import RealTimeCustomerProfile from '@spectrum-icons/workflow/RealTimeCustomerProfile';
+import { UserProfile } from '../user-profile/UserProfile';
 
 export const Header = ({ menuClicked }) => {
     return (
@@ -41,7 +41,7 @@ export const Header = ({ menuClicked }) => {
                 alignItems="center"
                 justifyContent="center"
             >
-                <RealTimeCustomerProfile width="40px" height="40px" />
+                <UserProfile />
             </ActionButton>
         </Grid>
     );

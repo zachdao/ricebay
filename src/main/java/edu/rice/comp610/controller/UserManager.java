@@ -145,7 +145,14 @@ public class UserManager {
      * @return a response object containing the corresponding user account, or null if the account does not exist.
      */
     public AppResponse<Account> retrieveAccount(String alias) {
-        return new AppResponse<>(true, null, "OK");
+        // TODO: Actual query
+        var dummyAccount = new Account();
+        dummyAccount.setId(UUID.randomUUID());
+        dummyAccount.setGivenName("Test");
+        dummyAccount.setSurname("User");
+        dummyAccount.setAlias("coolguy25");
+        dummyAccount.setEmail("test@rice.edu");
+        return new AppResponse<>(true, dummyAccount, "OK");
     }
 
 
