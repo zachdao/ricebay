@@ -89,11 +89,11 @@ public class UserManagerTest {
     @Test
     void retrieveAccountWithBlankAlias() throws DatabaseException {
         assertNull(userManager.retrieveAccount("   "));
-        verify(queryManager, never()).makeLoadQuery(any(), any());
+        verify(databaseManager, never()).loadObjects(any(), any(), any());
     }
 
     @Test
-    void retrieveAccountWithUnkownAlias() throws DatabaseException {
+    void retrieveAccountWithUnknownAlias() throws DatabaseException {
         assertNull(userManager.retrieveAccount("bobsyourfather"));
         verify(databaseManager).loadObjects(any(Query.class), eq("bobsyourfather"));
     }
