@@ -64,8 +64,23 @@ public class AuctionManager {
      * @return a response with the status of the update; if an error occurred, the response will include an error
      * message.
      */
-    AppResponse<Void> updateAuction(Auction auction) {
-        return new AppResponse<>(true, null, "OK");
+    AppResponse<UUID> updateAuction(Auction auction) {
+        try{
+            Query<Auction> auctionQuery = queryManager.makeLoadQuery(Auction.class, "id");
+            List<Auction> auctions = databaseManager.loadObjects(auctionQuery, auction.getId());
+            if (auctions.isEmpty()) {
+                return new AppResponse<>(false, null, "Auction ID " + auction.getId()
+                        + " does not exist");
+            }
+
+            Query<Auction> updateQuery = queryManager.makeUpdateQuery(Auction.class);
+            databaseManager.saveObjects(updateQuery, auction);
+
+            return new AppResponse<>(true, auction.getId(), "Auction has been updated");
+
+        }catch (DatabaseException e){
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -75,8 +90,19 @@ public class AuctionManager {
      * @return a response containing the auction; or an error message, if an error occurred (e.g., the auction could not
      * be found).
      */
-    AppResponse<Auction> loadAuction(UUID auctionId) {
-        return new AppResponse<>(true, null, "OK");
+    AppResponse<UUID> loadAuction(UUID auctionId) {
+        try {
+            Query<Auction> loadQuery = queryManager.makeLoadQuery(Auction.class, "id");
+            List<Auction> auction = databaseManager.loadObjects(loadQuery, auctionId);
+
+            if (auction.isEmpty()) {
+                return new AppResponse<>(false, null, "Auction ID " + auctionId
+                        + " does not exist");
+            }
+            return new AppResponse<>(true, auctionId, "OK");
+        }catch(DatabaseException e){
+            throw new RuntimeException(e);
+        }
     }
 
     /**
