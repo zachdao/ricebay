@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 
 export const useHttpQuery = (url, options) => {
@@ -6,7 +6,7 @@ export const useHttpQuery = (url, options) => {
     const [error, setError] = useState(null);
     const [status, setStatus] = useState(null);
 
-    useEffect(() => {
+    const refetch = useCallback(() => {
         axios
             .request({
                 url,
@@ -49,5 +49,7 @@ export const useHttpQuery = (url, options) => {
         // });
     }, []);
 
-    return { appResponse, error, status };
+    useEffect(refetch, []);
+
+    return { appResponse, error, status, refetch };
 };

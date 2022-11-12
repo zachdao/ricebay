@@ -32,7 +32,7 @@ export const App = () => {
                 gridColumnEnd="content"
             >
                 <Routes>
-                    <Route path="account" element={<Account />} />
+                    <Route path="account*" element={<Account />} />
                 </Routes>
             </View>
             <View backgroundColor="blue-700" gridArea="footer"></View>
