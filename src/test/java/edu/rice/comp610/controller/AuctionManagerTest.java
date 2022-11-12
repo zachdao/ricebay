@@ -46,7 +46,7 @@ class AuctionManagerTest {
         NEW_AUCTION.setPublished(true);
         NEW_AUCTION.setCategoryIds(List.of(CAT_ELECTRONICS.getId()));
         NEW_AUCTION.setOwnerId(ACCOUNT_BOB.getId());
-        NEW_AUCTION.setId(null);
+        NEW_AUCTION.setId(UUID.randomUUID());
     }
 
     @Test
@@ -88,18 +88,50 @@ class AuctionManagerTest {
     }
 
 
-    @Disabled
     @Test
-    void updateAuction() {
-        // TODO: Implement this test
-        fail();
+    void updateExistingAuction() throws Exception{
+        when(databaseManager.loadObjects(any(Query.class), eq(NEW_AUCTION.getId())))
+                .thenReturn(List.of(NEW_AUCTION));
+
+        AppResponse<UUID> response = auctionManager.updateAuction(NEW_AUCTION);
+        assertTrue(response.isSuccess());
+        assertNotNull(response.getData());
+
+        assertEquals(NEW_AUCTION.getId(), response.getData());
     }
 
-    @Disabled
     @Test
-    void loadAuction() {
-        // TODO: Implement this test
-        fail();
+    void updateNonExistingAuction() throws Exception{
+        when(databaseManager.loadObjects(any(Query.class), eq(NEW_AUCTION.getId())))
+                .thenReturn(List.of());
+
+        AppResponse<UUID> response = auctionManager.updateAuction(NEW_AUCTION);
+        assertFalse(response.isSuccess());
+        assertNull(response.getData());
+        assertEquals("Auction ID " + NEW_AUCTION.getId() + " does not exist", response.getMessage());
+    }
+
+
+    @Test
+    void loadExistingAuction() throws Exception{
+
+        when(databaseManager.loadObjects(any(Query.class), eq(NEW_AUCTION.getId())))
+                .thenReturn(List.of(NEW_AUCTION));
+
+        AppResponse<UUID> response = auctionManager.loadAuction(NEW_AUCTION.getId());
+        assertEquals(NEW_AUCTION.getId(), response.getData());
+    }
+
+    @Test
+    void loadNonExistingAuction() throws Exception{
+
+        when(databaseManager.loadObjects(any(Query.class), eq(NEW_AUCTION.getId())))
+                .thenReturn(List.of());
+
+        AppResponse<UUID> response = auctionManager.loadAuction(NEW_AUCTION.getId());
+        assertFalse(response.isSuccess());
+        assertNull(response.getData());
+        assertEquals("Auction ID " + NEW_AUCTION.getId() + " does not exist", response.getMessage());
     }
 
     @Disabled
