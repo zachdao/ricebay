@@ -56,18 +56,32 @@ public class Controller {
                     userManager.saveAccount(gson.fromJson(request.body(), Account.class)))
             );
 
-            post("/login", ((request, response) -> {
+            post("/login", (request, response) -> {
                 var credentials = util.getJsonParser().parse(request.body());
                 var email = credentials.getAsJsonObject().get("email").getAsString();
                 var password = credentials.getAsJsonObject().get("password").getAsString();
 
                 return gson.toJson(userManager.validateLogin(email, password));
-            }));
+            });
 
-            get("/me", ((request, response) -> {
+            get("/me", (request, response) -> {
                 // TODO: Get alias from session
                 return gson.toJson(userManager.retrieveAccount("TODO"));
-            }));
+            });
+
+            post("/:id", (request, response) -> {
+                // TODO: check :id is the same as the session owner's id
+                return gson.toJson(userManager.saveAccount(gson.fromJson(request.body(), Account.class)));
+            });
+
+            post("/:id/password", (request, response) -> {
+                // TODO: check :id is the same as the session owner's id
+                // TODO: use session email + request.body.currentPassword to validate login
+                var credentials = util.getJsonParser().parse(request.body());
+                var currentPassword = credentials.getAsJsonObject().get("currentPassword").getAsString();
+                var newPassword = credentials.getAsJsonObject().get("newPassword").getAsString();
+                return gson.toJson(userManager.savePassword(null, newPassword));
+            });
         });
 
         // AUCTION ENDPOINTS -----------------------------------------------------------------
@@ -104,6 +118,12 @@ public class Controller {
                 res.status(404);
                 res.type("application/json");
                 return "not supported";
+            }
+        });
+
+        after((request, response) -> {
+            if (response.status() == 200 && response.body() != null && response.body().contains("\"success\":false")) {
+                response.status(500);
             }
         });
 

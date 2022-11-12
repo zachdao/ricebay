@@ -72,6 +72,11 @@ public class UserManager {
         }
     }
 
+    public AppResponse<Account> savePassword(String accountId, String newPassword) throws BadRequestException {
+        // TODO: hash the password and save it in the DB
+        return new AppResponse<>(true, null, "OK");
+    }
+
     /**
      * Given an account, build a map of errors for each field in the account. The keys should match the frontend form.
      * @param account the account to check validity

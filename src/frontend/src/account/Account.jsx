@@ -1,14 +1,19 @@
 import React, { useEffect } from 'react';
-import { Flex, Grid, Heading } from '@adobe/react-spectrum';
+import { ActionButton, Flex, Grid, Heading } from '@adobe/react-spectrum';
 import styled from 'styled-components';
 import { useHttpQuery } from '../http-query/use-http-query';
 import ContentLoader from 'react-content-loader';
 import toast from 'react-hot-toast';
 import { Toast } from '../toast/Toast';
 import { AccountDetail } from './account-detail/AccountDetail';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { AccountEdit } from './account-edit/AccountEdit';
+import Edit from '@spectrum-icons/workflow/Edit';
 
 export const Account = () => {
+    const location = useLocation();
+    const navigate = useNavigate();
+
     // Get the current user from the API (AppResponse<Account>)
     const { appResponse, error, status } = useHttpQuery('/accounts/me');
 
@@ -38,7 +43,10 @@ export const Account = () => {
                 justifyContent="center"
                 direction="column"
             >
-                <Heading level="1">Account Details</Heading>
+                <Heading level="1">
+                    {location.pathname.endsWith('edit') ? 'Edit ' : ''}Account
+                    Details
+                </Heading>
                 <Card>
                     {appResponse && appResponse.success ? (
                         <Routes>
@@ -48,11 +56,28 @@ export const Account = () => {
                                     <AccountDetail account={appResponse.data} />
                                 }
                             />
+                            <Route
+                                path="edit"
+                                element={
+                                    <AccountEdit account={appResponse.data} />
+                                }
+                            />
                         </Routes>
                     ) : (
                         <Flex direction="column" gap="size-400">
                             <ContentLoader foregroundColor="#253267" />
                         </Flex>
+                    )}
+                    {location.pathname.endsWith('edit') || (
+                        <ActionButton
+                            isQuiet
+                            top="20px"
+                            right="20px"
+                            position="absolute"
+                            onPress={() => navigate('/account/edit')}
+                        >
+                            <Edit />
+                        </ActionButton>
                     )}
                 </Card>
             </Flex>
@@ -65,7 +90,7 @@ const ImageDiv = styled.div`
     grid-area: image;
     height: 100%;
     width: 100%;
-    background-image: url('images/account.png');
+    background-image: url('/images/account.png');
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
@@ -76,4 +101,6 @@ const Card = styled.div`
     padding: 20px;
     border-radius: 5px;
     box-shadow: grey 2px 2px 4px;
+    position: relative;
+    border: whitesmoke solid 1px;
 `;
