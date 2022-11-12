@@ -179,12 +179,13 @@ public class QueryManager {
                 .map(entry -> entry.getKey() + " = ?")
                 .collect(Collectors.toList());
         stringBuilder.append(") ON CONFLICT (");
-        List<Map.Entry<String, Accessors>> pkColumns = accessorsMap.entrySet().stream()
-                .filter(entry -> entry.getValue().isPrimaryKey()).collect(Collectors.toList());
+        List<String> pkColumns = accessorsMap.entrySet().stream()
+                .filter(entry -> entry.getValue().isPrimaryKey())
+                .map(Map.Entry::getKey).collect(Collectors.toList());
         if (pkColumns.isEmpty()) {
             throw new IllegalStateException("Model class has no fields marked with @PrimaryKey");
         }
-        stringBuilder.append(String.join(", ", pkColumns.get(0).getKey()));
+        stringBuilder.append(String.join(", ", pkColumns));
         stringBuilder.append(") DO UPDATE SET ");
         stringBuilder.append(String.join(", ", updateColumns));
         String sql = stringBuilder.toString();

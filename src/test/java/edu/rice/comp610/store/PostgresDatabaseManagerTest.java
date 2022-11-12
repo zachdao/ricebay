@@ -3,6 +3,7 @@ package edu.rice.comp610.store;
 import edu.rice.comp610.model.Account;
 import edu.rice.comp610.model.Auction;
 import edu.rice.comp610.model.Category;
+import edu.rice.comp610.model.Rating;
 import edu.rice.comp610.testing.DatabaseSetup;
 import org.junit.jupiter.api.*;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -22,7 +23,7 @@ class PostgresDatabaseManagerTest {
     private static final UUID AUCTION_ID = UUID.randomUUID();
 
     private static final Account NEW_ACCOUNT = new Account();
-    {
+    static {
         NEW_ACCOUNT.setId(UUID.randomUUID());
         NEW_ACCOUNT.setGivenName("Nebojsa");
         NEW_ACCOUNT.setSurname("DIMIC");
@@ -31,8 +32,18 @@ class PostgresDatabaseManagerTest {
         NEW_ACCOUNT.setPassword("password123");
     }
 
+    private static final Account NEW_ACCOUNT2 = new Account();
+    static {
+        NEW_ACCOUNT2.setId(UUID.randomUUID());
+        NEW_ACCOUNT2.setGivenName("Geoff");
+        NEW_ACCOUNT2.setSurname("Hardy");
+        NEW_ACCOUNT2.setEmail("gth1@rice.edu");
+        NEW_ACCOUNT2.setAlias("gth1");
+        NEW_ACCOUNT2.setPassword("password123");
+    }
+
     private static final Auction NEW_AUCTION = new Auction();
-    {
+    static {
         NEW_AUCTION.setTitle("New Auction");
         NEW_AUCTION.setDescription("New Auction Description");
         NEW_AUCTION.setBidIncrement(1.0);
@@ -44,6 +55,8 @@ class PostgresDatabaseManagerTest {
         NEW_AUCTION.setId(UUID.randomUUID());
         NEW_AUCTION.setOwnerId(NEW_ACCOUNT.getId());
     }
+
+
 
     @BeforeAll
     static void setupDatabase() throws IOException, InterruptedException {
@@ -98,5 +111,25 @@ class PostgresDatabaseManagerTest {
         assertEquals(NEW_AUCTION.getId(), auction.getId());
         assertEquals(NEW_ACCOUNT.getId(), auction.getOwnerId());
         assertEquals(NEW_AUCTION.getBidIncrement(), auction.getBidIncrement());
+    }
+
+    @Test
+    void saveAndLoadObjectsCompoundPK() throws Exception {
+        Query<Account> accountQuery = queryManager.makeUpdateQuery(Account.class);
+        databaseManager.saveObjects(accountQuery, NEW_ACCOUNT);
+        databaseManager.saveObjects(accountQuery, NEW_ACCOUNT2);
+
+        Query<Rating> ratingQuery = queryManager.makeUpdateQuery(Rating.class);
+        Rating rating = new Rating();
+        rating.setRating(4);
+        rating.setRaterId(NEW_ACCOUNT.getId());
+        rating.setSellerId(NEW_ACCOUNT2.getId());
+        databaseManager.saveObjects(ratingQuery, rating);
+
+        ratingQuery = queryManager.makeLoadQuery(Rating.class, "seller_id");
+        List<Rating> ratings = databaseManager.loadObjects(ratingQuery, NEW_ACCOUNT2.getId());
+        assertEquals(1, ratings.size());
+        Rating rating0 = ratings.get(0);
+        assertEquals(rating0, rating);
     }
 }
