@@ -21,6 +21,7 @@ public class DatabaseSetup {
         String url = postgresqlContainer.getJdbcUrl();
         URI uri = URI.create(url.substring(5));
 
+        System.out.println("JDBC URL: " + url);
         new Migrator()
                 .withHost(postgresqlContainer.getHost())
                 .withPort(uri.getPort())
