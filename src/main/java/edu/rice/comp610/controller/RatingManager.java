@@ -16,13 +16,7 @@ import java.util.UUID;
  * Updates the sellers rating
  */
 public class RatingManager {
-
-    /**
-     * Retrieves information about a user account.
-     */
-
     private final Rating rating;
-
     private final QueryManager queryManager;
     private final DatabaseManager databaseManager;
 
