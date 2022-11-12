@@ -50,7 +50,7 @@ public class Query<T> {
         return modelClass.getDeclaredConstructor().newInstance();
     }
 
-    public Method setterForColumn(String name) {
-        return accessorsMap.get(name).setter;
+    public QueryManager.Accessors accessorForColumn(String name) {
+        return accessorsMap.get(name);
     }
 }

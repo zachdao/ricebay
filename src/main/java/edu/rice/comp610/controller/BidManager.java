@@ -3,15 +3,11 @@ package edu.rice.comp610.controller;
 import edu.rice.comp610.model.Account;
 import edu.rice.comp610.model.Auction;
 import edu.rice.comp610.model.Bid;
-import edu.rice.comp610.model.Category;
 import edu.rice.comp610.store.DatabaseException;
 import edu.rice.comp610.store.DatabaseManager;
 import edu.rice.comp610.store.Query;
 import edu.rice.comp610.store.QueryManager;
 
-
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.UUID;
@@ -25,7 +21,7 @@ public class BidManager {
      * Bid manager, handles adding new bids to the database and retrieving bids from the database
      */
 
-    private Bid bid;
+    private final Bid bid;
     private final QueryManager queryManager;
     private final DatabaseManager databaseManager;
 
@@ -78,7 +74,7 @@ public class BidManager {
      * This method finds in DB Auction that Bid is part of
      * It returns bid increment for that Auction object
      */
-    public AppResponse<Integer> findBidIncrement(Bid bid) {
+    public AppResponse<Double> findBidIncrement(Bid bid) {
         UUID auctionID = bid.getAuctionId();
         try {
             Query<Auction> loadAuction = queryManager.makeLoadQuery(Auction.class, "id");
@@ -89,9 +85,9 @@ public class BidManager {
                         + " does not exists");
             }
             ListIterator<Auction> iterator = auction.listIterator();
-            int min_increment = iterator.next().getBidIncrement();
+            double minIncrement = iterator.next().getBidIncrement();
 
-            return new AppResponse<>(true, min_increment, "OK");
+            return new AppResponse<>(true, minIncrement, "OK");
         } catch (DatabaseException e) {
             throw new RuntimeException(e);
         }
@@ -127,7 +123,7 @@ public class BidManager {
     public boolean checkBidConformity (Bid bid){
 
         AppResponse<Double> responseCurrentBid = findCurrentBid(bid);
-        AppResponse<Integer> responseBidIncrement = findBidIncrement(bid);
+        AppResponse<Double> responseBidIncrement = findBidIncrement(bid);
         AppResponse<UUID> responseAuctionOwnerUUID = getAuctionOwnerByBid(bid);
 
         System.out.println("Current bid is: " + responseCurrentBid.getData());

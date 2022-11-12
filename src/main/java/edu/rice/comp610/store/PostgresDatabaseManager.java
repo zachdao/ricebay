@@ -1,7 +1,6 @@
 package edu.rice.comp610.store;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,8 +47,14 @@ public class PostgresDatabaseManager implements DatabaseManager {
                     T model = query.newModel();
                     for (int columnIndex = 1; columnIndex <= metadata.getColumnCount(); columnIndex++) {
                         String name = metadata.getColumnName(columnIndex);
-                        Method setter = query.setterForColumn(name);
-                        setter.invoke(model, results.getObject(columnIndex));
+                        QueryManager.Accessors accessors = query.accessorForColumn(name);
+                        Object arg = results.getObject(columnIndex);
+                        try {
+                            accessors.invokeSetter(model, arg);
+                        } catch (IllegalArgumentException e) {
+                            throw new DatabaseException("Could not invoke " + accessors.setter.getName() + " for value "
+                                    + arg + " of type " + typeOf(arg), e);
+                        }
                     }
                     resultList.add(model);
                 }
@@ -59,6 +64,14 @@ public class PostgresDatabaseManager implements DatabaseManager {
             throw new DatabaseException(e);
         }
         return resultList;
+    }
+
+    private String typeOf(Object arg) {
+        if (arg == null) {
+            return "null";
+        } else {
+            return arg.getClass().getSimpleName();
+        }
     }
 
     @Override
@@ -73,7 +86,7 @@ public class PostgresDatabaseManager implements DatabaseManager {
                         if (entry.getValue().isOneToMany() || entry.getValue().isGenerated()) {
                             continue;
                         }
-                        Object param = toSqlType(entry.getValue().getter.invoke(model));
+                        Object param = toSqlType(entry.getValue().invokeGetter(model));
                         statement.setObject(col, param);
                         col++;
                     }
@@ -82,8 +95,8 @@ public class PostgresDatabaseManager implements DatabaseManager {
                         if (entry.getValue().isOneToMany() || entry.getValue().isPrimaryKey()) {
                             continue;
                         }
-                        Object param = toSqlType(entry.getValue().getter.invoke(model));
-                        statement.setObject(col, toSqlType(param));
+                        Object param = toSqlType(entry.getValue().invokeGetter(model));
+                        statement.setObject(col, param);
                         col++;
                     }
 

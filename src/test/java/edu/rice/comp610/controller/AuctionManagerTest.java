@@ -38,8 +38,8 @@ class AuctionManagerTest {
     void setUp() {
         NEW_AUCTION.setTitle("New Auction");
         NEW_AUCTION.setDescription("New Auction Description");
-        NEW_AUCTION.setBidIncrement(1);
-        NEW_AUCTION.setMinimumBid(123);
+        NEW_AUCTION.setBidIncrement(1.0);
+        NEW_AUCTION.setMinimumBid(123.0);
         NEW_AUCTION.setStartDate(parseDate("2022-10-20"));
         NEW_AUCTION.setEndDate(parseDate("2022-10-20"));
         NEW_AUCTION.setTaxPercent(0.06f);
