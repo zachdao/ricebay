@@ -24,10 +24,21 @@ public class PostgresDatabaseManager implements DatabaseManager {
      * @param properties
      */
     public PostgresDatabaseManager(Properties properties) {
-        this.jdbcUrl = properties.getProperty("ricebay.jdbc.url");
+        boolean useEnvVarAsValue = Boolean.parseBoolean(properties.getProperty("ricebay.env", "false"));
+        String jdbcUrl = properties.getProperty("ricebay.jdbc.url");
+        String jdbcUser = properties.getProperty("ricebay.jdbc.user");
+        String jdbcPassword = properties.getProperty("ricebay.jdbc.password");
+
         Properties jdbcProperties = new Properties();
-        jdbcProperties.put("user", properties.getProperty("ricebay.jdbc.user"));
-        jdbcProperties.put("password", properties.getProperty("ricebay.jdbc.password"));
+        if (useEnvVarAsValue) {
+            this.jdbcUrl = System.getenv(jdbcUrl);
+            jdbcProperties.put("user", System.getenv(jdbcUser));
+            jdbcProperties.put("password", System.getenv(jdbcPassword));
+        } else {
+            this.jdbcUrl = jdbcUrl;
+            jdbcProperties.put("user", jdbcUser);
+            jdbcProperties.put("password", jdbcPassword);
+        }
         this.jdbcProperties = jdbcProperties;
     }
 
