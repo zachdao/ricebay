@@ -4,6 +4,7 @@ import { Header } from './header/Header';
 import { Sidebar } from './sidebar/Sidebar';
 import { Route, Routes } from 'react-router-dom';
 import { Account } from './account/Account';
+import { AuctionList } from './auction-list/AuctionList';
 
 export const App = () => {
     const [showSidebar, setShowSidebar] = useState(false);
@@ -30,8 +31,11 @@ export const App = () => {
                 backgroundColor="gray-100"
                 gridColumnStart={showSidebar ? 'content' : 'sidebar'}
                 gridColumnEnd="content"
+                overflow="scroll"
             >
+                {/* Put new routes to views HERE */}
                 <Routes>
+                    <Route index element={<AuctionList />} />
                     <Route path="account*" element={<Account />} />
                 </Routes>
             </View>
