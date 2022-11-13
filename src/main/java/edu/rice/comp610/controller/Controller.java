@@ -75,12 +75,14 @@ public class Controller {
             });
 
             post("/:id/password", (request, response) -> {
-                // TODO: check :id is the same as the session owner's id
-                // TODO: use session email + request.body.currentPassword to validate login
+                Account loggedInAccount = request.session().attribute("user");
+                if (!Objects.equals(loggedInAccount.getId().toString(), request.params("id"))) {
+                    throw new UnauthorizedException();
+                }
                 var credentials = util.getJsonParser().parse(request.body());
                 var currentPassword = credentials.getAsJsonObject().get("currentPassword").getAsString();
                 var newPassword = credentials.getAsJsonObject().get("newPassword").getAsString();
-                return gson.toJson(userManager.savePassword(null, newPassword));
+                return gson.toJson(userManager.savePassword(loggedInAccount.getEmail(), currentPassword, newPassword));
             });
         });
 

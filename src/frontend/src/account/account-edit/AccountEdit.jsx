@@ -43,10 +43,9 @@ export const AccountEdit = ({ account }) => {
             setAlias(appResponse.data.alias);
             setEmail(appResponse.data.email);
             setZelleId(appResponse.data.zelleId);
+            setError({});
         },
-        (axiosError) => {
-            setError(axiosError?.response?.data);
-        },
+        (axiosError) => setError(axiosError?.response?.data || {}),
     );
 
     const save = usePostWithToast(
@@ -70,7 +69,7 @@ export const AccountEdit = ({ account }) => {
         },
         { message: 'Failed to save account' },
         null,
-        (axiosError) => setError(axiosError?.response?.data),
+        (axiosError) => setError(axiosError?.response?.data || {}),
     );
 
     const updatePassword = usePostWithToast(
@@ -79,7 +78,14 @@ export const AccountEdit = ({ account }) => {
         [currentPassword, newPassword],
         { message: 'Password updated!' },
         { message: 'Failed to update password' },
-        () => setChangePassword(false),
+        () => {
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+            setChangePassword(false);
+            setError({});
+        },
+        (axiosError) => setError(axiosError?.response?.data || {}),
     );
 
     const isClean = useCallback(() => {
@@ -197,6 +203,10 @@ export const AccountEdit = ({ account }) => {
                             isRequired
                             value={newPassword}
                             onChange={setNewPassword}
+                            validationState={
+                                error.password ? 'invalid' : undefined
+                            }
+                            errorMessage={error.password}
                             width="100%"
                         />
                         <TextField
@@ -215,6 +225,7 @@ export const AccountEdit = ({ account }) => {
                                     setNewPassword('');
                                     setConfirmPassword('');
                                     setChangePassword(false);
+                                    setError({});
                                 }}
                             >
                                 Cancel
@@ -223,10 +234,6 @@ export const AccountEdit = ({ account }) => {
                                 variant="cta"
                                 onPress={() => {
                                     updatePassword();
-                                    setCurrentPassword('');
-                                    setNewPassword('');
-                                    setConfirmPassword('');
-                                    setChangePassword(false);
                                 }}
                                 isDisabled={
                                     !currentPassword ||
