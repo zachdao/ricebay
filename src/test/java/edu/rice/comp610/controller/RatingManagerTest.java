@@ -7,7 +7,6 @@ import edu.rice.comp610.store.DatabaseManager;
 import edu.rice.comp610.store.Query;
 import edu.rice.comp610.store.QueryManager;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,14 +29,14 @@ public class RatingManagerTest {
 
     private static final Rating RATING1 = new Rating();
     {
-        RATING1.setRating(5.0);
+        RATING1.setRating(5);
         RATING1.setRaterId(UUID.randomUUID());
         RATING1 .setSellerId(UUID.randomUUID());
     }
 
     private static final Rating RATING2 = new Rating();
     {
-        RATING2.setRating(4.0);
+        RATING2.setRating(4);
         RATING2.setRaterId(UUID.randomUUID());
         RATING2 .setSellerId(UUID.randomUUID());
     }
