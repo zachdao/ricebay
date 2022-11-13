@@ -3,20 +3,20 @@ name: Run Database Schema Migrations
 on:
   workflow_dispatch:
     inputs:
-      dbName:
+      db_name:
         description: 'Database Name to connect to'
         required: true
-      dbHost:
+      db_host:
         description: 'Hostname or IP of PostgreSQL instance to connect to'
         required: true
-      dbPort:
+      db_port:
         description: 'Port number of PostgreSQL instance to connect to'
         required: true
         default: '5432'
-      dbUser:
+      db_user:
         description: 'Username to authenticate with'
         required: true
-      dbPassword:
+      db_password:
         description: 'Password to authenticate with'
 
 jobs:
@@ -37,6 +37,6 @@ jobs:
           echo "Available Python migration files"
           python migrator.py list
           echo "Running migrate up"
-          python migrator.py migrate --db-name ${{ github.event.inputs.DB_NAME }} --db-host ${{ github.event.inputs.DB_HOST }} --db-port ${{ github.event.inputs.DB_PORT }} --db-user ${{ github.event.inputs.DB_USER }} --db-password ${{ github.event.inputs.DB_PASSWORD }} up
+          python migrator.py migrate --db-name ${{ github.event.inputs.db_name }} --db-host ${{ github.event.inputs.db_host }} --db-port ${{ github.event.inputs.db_port }} --db-user ${{ github.event.inputs.db_user }} --db-password ${{ github.event.inputs.db_password }} up
           echo "Finished migration, here are the migrations that have been run against the DB"
-          python migrator.py migrate --db-name ${{ github.event.inputs.DB_NAME }} --db-host ${{ github.event.inputs.DB_HOST }} --db-port ${{ github.event.inputs.DB_PORT }} --db-user ${{ github.event.inputs.DB_USER }} --db-password ${{ github.event.inputs.DB_PASSWORD }} list
+          python migrator.py migrate --db-name ${{ github.event.inputs.DB_NAME }} --db-host ${{ github.event.inputs.db_host }} --db-port ${{ github.event.inputs.db_port }} --db-user ${{ github.event.inputs.db_user }} --db-password ${{ github.event.inputs.db_password }} list
