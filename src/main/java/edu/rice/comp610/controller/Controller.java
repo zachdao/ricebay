@@ -5,10 +5,12 @@ import edu.rice.comp610.model.Account;
 import edu.rice.comp610.model.Auction;
 import edu.rice.comp610.store.*;
 import edu.rice.comp610.util.*;
+import spark.Filter;
 import spark.utils.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -48,29 +50,49 @@ public class Controller {
         final UserManager userManager = new UserManager(queryManager, databaseManager);
         final AuctionManager auctionManager = new AuctionManager(queryManager, databaseManager);
 
-        // TODO Set up SparkJava endpoints
+
+        Filter authenticatedMiddleware = (request, response) -> {
+            boolean isUnauthenticatedRoute = Objects.equals(request.requestMethod(), "POST") &&
+                    (Objects.equals(request.pathInfo(), "/accounts") ||
+                            Objects.equals(request.pathInfo(), "/accounts/login"));
+            if (!isUnauthenticatedRoute && request.session().attribute("user") == null) {
+                halt(401, "Unauthenticated");
+            }
+        };
+
+        before("/accounts/*", authenticatedMiddleware);
+        before("/auctions*", authenticatedMiddleware);
 
         // USER/ACCOUNT ENDPOINTS ------------------------------------------------------------
         path("/accounts", () -> {
-            post("", (request, response) -> gson.toJson(
-                    userManager.saveAccount(gson.fromJson(request.body(), Account.class)))
-            );
+            post("", (request, response) -> {
+                AppResponse<Account> appResponse=userManager.saveAccount(gson.fromJson(request.body(), Account.class));
+                request.session(true);
+                request.session().attribute("user", appResponse.getData());
+                return gson.toJson(appResponse);
+            });
 
             post("/login", (request, response) -> {
                 var credentials = util.getJsonParser().parse(request.body());
                 var email = credentials.getAsJsonObject().get("email").getAsString();
                 var password = credentials.getAsJsonObject().get("password").getAsString();
 
-                return gson.toJson(userManager.validateLogin(email, password));
+                AppResponse<Account> appResponse = userManager.validateLogin(email, password);
+                request.session(true);
+                request.session().attribute("user", appResponse.getData());
+                return gson.toJson(appResponse);
             });
 
             get("/me", (request, response) -> {
-                // TODO: Get alias from session
-                return gson.toJson(userManager.retrieveAccount("TODO"));
+                Account loggedInAccount = request.session().attribute("user");
+                return gson.toJson(userManager.retrieveAccount(loggedInAccount.getAlias()));
             });
 
             post("/:id", (request, response) -> {
-                // TODO: check :id is the same as the session owner's id
+                Account loggedInAccount = request.session().attribute("user");
+                if (!Objects.equals(loggedInAccount.getId().toString(), request.params("id"))) {
+                    throw new UnauthorizedException();
+                }
                 return gson.toJson(userManager.saveAccount(gson.fromJson(request.body(), Account.class)));
             });
 
