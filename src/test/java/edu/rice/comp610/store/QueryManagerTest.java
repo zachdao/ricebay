@@ -1,6 +1,7 @@
 package edu.rice.comp610.store;
 
 import edu.rice.comp610.model.Auction;
+import edu.rice.comp610.model.Rating;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -40,6 +41,15 @@ class QueryManagerTest {
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                 "ON CONFLICT (id) DO UPDATE SET bid_increment = ?, description = ?, end_date = ?, " +
                 "minimum_bid = ?, owner_id = ?, published = ?, start_date = ?, tax_percent = ?, title = ?",
+                query.getSql());
+    }
+
+    @Test
+    void makeUpdateQueryCompoundPK() {
+        Query<Rating> query = queryManager.makeUpdateQuery(Rating.class);
+        assertEquals("INSERT INTO rating (rater_id, rating, seller_id) " +
+                        "VALUES (?, ?, ?) " +
+                        "ON CONFLICT (rater_id, seller_id) DO UPDATE SET rating = ?",
                 query.getSql());
     }
 }

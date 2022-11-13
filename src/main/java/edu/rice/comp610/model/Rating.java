@@ -1,5 +1,7 @@
 package edu.rice.comp610.model;
 
+import edu.rice.comp610.store.PrimaryKey;
+
 import java.util.Objects;
 import java.util.UUID;
 
@@ -17,19 +19,11 @@ import java.util.UUID;
  */
 public class Rating {
 
-    private UUID id;
-    private Double rating;
+    private int rating;
     private UUID raterId;
     private UUID sellerId;
 
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
+    @PrimaryKey
     public UUID getRaterId() {
         return raterId;
     }
@@ -38,6 +32,7 @@ public class Rating {
         this.raterId = raterId;
     }
 
+    @PrimaryKey
     public UUID getSellerId() {
         return sellerId;
     }
@@ -46,11 +41,11 @@ public class Rating {
         this.sellerId = sellerId;
     }
 
-    public Double getRating() {
+    public int getRating() {
         return rating;
     }
 
-    public void setRating(Double rating) {
+    public void setRating(int rating) {
         this.rating = rating;
     }
 
@@ -58,8 +53,7 @@ public class Rating {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Rating rating1 = (Rating) o;
-        return Objects.equals(id, rating1.id)
-                && Objects.equals(rating, rating1.rating)
+        return Objects.equals(rating, rating1.rating)
                 && Objects.equals(raterId, rating1.raterId)
                 && Objects.equals(sellerId, rating1.sellerId);
     }
@@ -72,7 +66,6 @@ public class Rating {
     @Override
     public String toString() {
         return "Category{" +
-                "id=" + id +
                 ", rater_id='" + raterId + '\'' +
                 ", seller_id='" + sellerId + '\'' +
                 ", rating=" + rating +
