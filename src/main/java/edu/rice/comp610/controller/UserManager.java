@@ -15,9 +15,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Controller that handles incoming requests for creating, viewing and updating accounts in the RiceBay system.
@@ -67,14 +65,34 @@ public class UserManager {
             databaseManager.saveObjects(accountQuery, account);
 
             return new AppResponse<>(true, account, "OK");
-        } catch (NoSuchAlgorithmException | DatabaseException |InvalidKeySpecException e) {
+        } catch (NoSuchAlgorithmException | DatabaseException | InvalidKeySpecException e) {
+            e.printStackTrace();
             return new AppResponse<>(false, null, "Internal Server Error: failed to create account");
         }
     }
 
-    public AppResponse<Account> savePassword(String accountId, String newPassword) throws BadRequestException {
-        // TODO: hash the password and save it in the DB
-        return new AppResponse<>(true, null, "OK");
+    public AppResponse<Account> savePassword(String email, String currentPassword, String newPassword) throws BadRequestException, UnauthorizedException {
+        try {
+            Account account = validateLogin(email, currentPassword).getData();
+            account.setLastPassword(account.getPassword());
+            account.setPassword(hashPassword(newPassword));
+
+            Map<String, String> validationErrors = validateAccount(account);
+            if (Objects.equals(currentPassword, newPassword)) {
+                validationErrors.put("password", "Invalid Password: new password must be different from last password");
+            }
+            if (!validationErrors.isEmpty()) {
+                throw new BadRequestException("invalid_account_parameters", validationErrors);
+            }
+
+            Query<Account> accountQuery = queryManager.makeUpdateQuery(Account.class);
+            databaseManager.saveObjects(accountQuery, account);
+
+            return new AppResponse<>(true, account, "OK");
+        } catch (NoSuchAlgorithmException | DatabaseException | InvalidKeySpecException e) {
+            e.printStackTrace();
+            return new AppResponse<>(false, null, "Internal Server Error: failed to save password update");
+        }
     }
 
     /**
@@ -82,7 +100,7 @@ public class UserManager {
      * @param account the account to check validity
      * @return a map of frontend key to error message, an empty map implies no errors
      */
-    private Map<String, String> validateAccount(Account account) throws DatabaseException {
+    private Map<String, String> validateAccount(Account account) throws DatabaseException, NoSuchAlgorithmException, InvalidKeySpecException {
         HashMap<String, String> errors = new HashMap<>();
 
         // Validate First Name
@@ -100,7 +118,8 @@ public class UserManager {
 
         // Ensure unique email
         Query<Account> emailQuery = queryManager.makeLoadQuery(Account.class, "email");
-        if (databaseManager.loadObjects(emailQuery, account.getEmail()).size() > 0) {
+        List<Account> accountsByEmail = databaseManager.loadObjects(emailQuery, account.getEmail());
+        if (accountsByEmail.size() > 0 && !accountsByEmail.get(0).getId().equals(account.getId())) {
             errors.put("email", "Invalid Email: email already in use");
         }
 
@@ -111,13 +130,14 @@ public class UserManager {
 
         // Ensure unique alias
         Query<Account> aliasQuery = queryManager.makeLoadQuery(Account.class, "alias");
-        if (databaseManager.loadObjects(aliasQuery, account.getAlias()).size() > 0) {
+        List<Account> accountsByAlias = databaseManager.loadObjects(aliasQuery, account.getAlias());
+        if (accountsByAlias.size() > 0 && !accountsByAlias.get(0).getId().equals(account.getId())) {
             errors.put("alias", "Invalid Alias: alias already in use");
         }
 
-        // Ensure password length (ONLY for NEW accounts)
-        if (account.getId() == null) {
-            errors.putAll(checkPassword(account.getPassword()));
+        // Ensure password length
+        if (!account.getPassword().isEmpty()) {
+            errors.putAll(checkPassword(account.getPassword(), account.getLastPassword()));
         }
 
         return errors;
@@ -132,13 +152,14 @@ public class UserManager {
         return errors;
     }
 
-    private Map<String, String> checkPassword(String password) {
+    private Map<String, String> checkPassword(String password, String lastPassword) throws NoSuchAlgorithmException, InvalidKeySpecException {
         HashMap<String, String> errors = new HashMap<>();
 
         // TODO: Potential expansion to include checking compromised passwords and other requirements
         if (password.length() < 4) {
             errors.put("password", "Invalid Password: password must be at least four characters");
         }
+
 
         return errors;
     }
@@ -182,8 +203,12 @@ public class UserManager {
      * @throws UnauthorizedException if unable to validate credentials
      */
     public AppResponse<Account> validateLogin(String email, String password) throws UnauthorizedException {
-        // Throw out any requests that are automatically invalid
-        if (!checkEmail(email).isEmpty() || !checkPassword(password).isEmpty()) {
+        try {
+            // Throw out any requests that are automatically invalid
+            if (!checkEmail(email).isEmpty() || !checkPassword(password, "").isEmpty()) {
+                throw new UnauthorizedException();
+            }
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             throw new UnauthorizedException();
         }
 
@@ -273,9 +298,9 @@ public class UserManager {
      * @throws InvalidKeySpecException the JDK used to run this is older than Java 8
      */
     private boolean validatePassword(String plaintext, String ciphertext) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        String[] parts = ciphertext.split("\\$");
-        byte[] hash = fromHex(parts[0]);
-        byte[] salt = fromHex(parts[1]);
+        List<byte[]> parts = splitPasswordHash(ciphertext);
+        byte[] hash = parts.get(0);
+        byte[] salt = parts.get(1);
 
         byte[] possibleCiphertext = hashPassword(plaintext, salt);
 
@@ -286,6 +311,14 @@ public class UserManager {
         }
 
         return true;
+    }
+
+    private List<byte[]> splitPasswordHash(String ciphertext) {
+        String[] parts = ciphertext.split("\\$");
+        byte[] hash = fromHex(parts[0]);
+        byte[] salt = fromHex(parts[1]);
+
+        return List.of(hash, salt);
     }
 
     private byte[] fromHex(String hexString) {
