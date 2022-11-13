@@ -72,6 +72,11 @@ public class UserManager {
         }
     }
 
+    public AppResponse<Account> savePassword(String accountId, String newPassword) throws BadRequestException {
+        // TODO: hash the password and save it in the DB
+        return new AppResponse<>(true, null, "OK");
+    }
+
     /**
      * Given an account, build a map of errors for each field in the account. The keys should match the frontend form.
      * @param account the account to check validity
@@ -144,15 +149,26 @@ public class UserManager {
      * @param alias the user's login name
      * @return a response object containing the corresponding user account, or null if the account does not exist.
      */
-    public AppResponse<Account> retrieveAccount(String alias) {
-        // TODO: Actual query
-        var dummyAccount = new Account();
-        dummyAccount.setId(UUID.randomUUID());
-        dummyAccount.setGivenName("Test");
-        dummyAccount.setSurname("User");
-        dummyAccount.setAlias("coolguy25");
-        dummyAccount.setEmail("test@rice.edu");
-        return new AppResponse<>(true, dummyAccount, "OK");
+    public AppResponse<Account> retrieveAccount(String alias) throws DatabaseException {
+        // there must be characters in an alias
+        if (alias.isBlank()) {
+            return null;
+        }
+
+        try {
+            // find account by alias
+            Query<Account> aliasQuery = queryManager.makeLoadQuery(Account.class, "alias");
+            var accounts = databaseManager.loadObjects(aliasQuery, alias);
+            // alias didn't match single account
+            if (accounts.size() != 1) {
+                return null;
+            }
+            return new AppResponse<>(true, accounts.get(0), "OK");
+        } catch (DatabaseException e) {
+            System.err.println("Caught an exception while trying to retrieve a user.");
+            e.printStackTrace();
+            throw e;
+        }
     }
 
 

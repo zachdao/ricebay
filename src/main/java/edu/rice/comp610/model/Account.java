@@ -32,6 +32,7 @@ public class Account {
     private String password;
     private String lastPassword;
     private byte[] image;
+    private String zelleId;
 
     @PrimaryKey
     public UUID getId() {
@@ -98,6 +99,13 @@ public class Account {
         this.image = image;
     }
 
+    public String getZelleId() {
+        return zelleId;
+    }
+    public void setZelleId(String zelleId) {
+        this.zelleId = zelleId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -110,12 +118,13 @@ public class Account {
                 && Objects.equals(surname, account.surname)
                 && Objects.equals(password, account.password)
                 && Objects.equals(lastPassword, account.lastPassword)
-                && Arrays.equals(image, account.image);
+                && Arrays.equals(image, account.image)
+                && Objects.equals(zelleId, account.zelleId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(alias, email, givenName, surname, password, lastPassword, Arrays.hashCode(image));
+        return Objects.hash(alias, email, givenName, surname, password, lastPassword, Arrays.hashCode(image), zelleId);
     }
 
     @Override
@@ -129,6 +138,7 @@ public class Account {
                 ", password='" + password + '\'' +
                 ", lastPassword='" + lastPassword + '\'' +
                 ", image=" + Arrays.toString(image) +
+                ", zelleId='" + zelleId + '\'' +
                 '}';
     }
 }

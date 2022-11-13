@@ -30,6 +30,7 @@ module.exports = {
     plugins: [
         new HtmlWebpackPlugin({
             template: 'index.html',
+            publicPath: '/',
         }),
     ],
 };

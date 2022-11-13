@@ -87,6 +87,26 @@ public class UserManagerTest {
     }
 
     @Test
+    void retrieveAccountWithBlankAlias() throws DatabaseException {
+        assertNull(userManager.retrieveAccount("   "));
+        verify(databaseManager, never()).loadObjects(any(), any(), any());
+    }
+
+    @Test
+    void retrieveAccountWithUnknownAlias() throws DatabaseException {
+        assertNull(userManager.retrieveAccount("bobsyourfather"));
+        verify(databaseManager).loadObjects(any(Query.class), eq("bobsyourfather"));
+    }
+
+    @Test
+    void retrieveAccountWithKnownAlias() throws DatabaseException {
+        AppResponse<Account> response = userManager.retrieveAccount("bobsyouruncle");
+        assertTrue(response.isSuccess());
+        assertNotNull(response.getData());
+        verify(databaseManager).loadObjects(any(Query.class), eq(BOBS_ACCOUNT.getAlias()));
+    }
+
+    @Test
     void createsANewAccount() {
         try {
             AppResponse<Account> response = userManager.saveAccount(NEW_ACCOUNT);

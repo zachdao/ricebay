@@ -35,8 +35,8 @@ export const App = () => {
             >
                 {/* Put new routes to views HERE */}
                 <Routes>
-                    <Route path="account" element={<Account />} />
                     <Route index element={<AuctionList />} />
+                    <Route path="account*" element={<Account />} />
                 </Routes>
             </View>
             <View backgroundColor="blue-700" gridArea="footer"></View>

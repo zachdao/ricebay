@@ -1,5 +1,8 @@
 package edu.rice.comp610.store;
 
+import org.postgresql.util.PGmoney;
+
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,6 +29,46 @@ public class QueryManager {
         boolean isGenerated() {
             return (getter.isAnnotationPresent(PrimaryKey.class) && getter.getAnnotation(PrimaryKey.class).generated())
                     || (setter.isAnnotationPresent(PrimaryKey.class) && setter.getAnnotation(PrimaryKey.class).generated());
+        }
+
+        /**
+         * Invoke the getter method on a model, converting to SQL type of the result as necessary.
+         * @param model the model
+         * @return the result of the getter, converted if necessary
+         * @throws InvocationTargetException if there is an exception thrown by the getter
+         * @throws IllegalAccessException if the caller does not have access to the getter
+         */
+        Object invokeGetter(Object model) throws InvocationTargetException, IllegalAccessException {
+            Object result = getter.invoke(model);
+            if (getter.isAnnotationPresent(SqlType.class)) {
+                return toSqlType(result, getter.getAnnotation(SqlType.class).value());
+            } else {
+                return result;
+            }
+        }
+
+        /**
+         * Invoke the setter method on a model, converting to SQL type of the parameter as necessary.
+         * @param model the model
+         * @param value the parameter to the setter method
+         * @throws InvocationTargetException if there is an exception thrown by the setter
+         * @throws IllegalAccessException if the caller does not have access to the setter
+         */
+        void invokeSetter(Object model, Object value) throws InvocationTargetException, IllegalAccessException {
+            if (setter.isAnnotationPresent(SqlType.class)) {
+                value = toSqlType(value, setter.getAnnotation(SqlType.class).value());
+            }
+            setter.invoke(model, value);
+        }
+
+        private Object toSqlType(Object from, Class<?> toType) {
+            if (from.getClass() == toType) {
+                return from;
+            } else if (from instanceof Double && toType == PGmoney.class) {
+                return new PGmoney((Double) from);
+            } else {
+                throw new IllegalArgumentException("Cannot convert type " + from.getClass() + " to SQL type " + toType);
+            }
         }
     }
 
