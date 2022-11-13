@@ -2,6 +2,8 @@ package edu.rice.comp610.model;
 
 import edu.rice.comp610.store.OneToMany;
 import edu.rice.comp610.store.PrimaryKey;
+import edu.rice.comp610.store.SqlType;
+import org.postgresql.util.PGmoney;
 
 import java.util.*;
 
@@ -16,11 +18,11 @@ public class Auction {
     private List<Integer> categoryIds;
     private String title;
     private String description;
-    private int minimumBid;
-    private int bidIncrement;
+    private double minimumBid;
+    private double bidIncrement;
     private Date startDate;
     private Date endDate;
-    private float taxPercent;
+    private double taxPercent;
     private boolean published;
 
     @PrimaryKey
@@ -65,19 +67,21 @@ public class Auction {
         this.description = description;
     }
 
-    public int getMinimumBid() {
+    @SqlType(PGmoney.class)
+    public double getMinimumBid() {
         return minimumBid;
     }
 
-    public void setMinimumBid(int minimumBid) {
+    public void setMinimumBid(double minimumBid) {
         this.minimumBid = minimumBid;
     }
 
-    public int getBidIncrement() {
+    @SqlType(PGmoney.class)
+    public double getBidIncrement() {
         return bidIncrement;
     }
 
-    public void setBidIncrement(int bidIncrement) {
+    public void setBidIncrement(double bidIncrement) {
         this.bidIncrement = bidIncrement;
     }
 
@@ -97,11 +101,11 @@ public class Auction {
         this.endDate = endDate;
     }
 
-    public float getTaxPercent() {
+    public double getTaxPercent() {
         return taxPercent;
     }
 
-    public void setTaxPercent(float taxPercent) {
+    public void setTaxPercent(double taxPercent) {
         this.taxPercent = taxPercent;
     }
 
@@ -120,7 +124,7 @@ public class Auction {
         return Objects.equals(categoryIds, auction.categoryIds)
                 && minimumBid == auction.minimumBid
                 && bidIncrement == auction.bidIncrement
-                && Float.compare(auction.taxPercent, taxPercent) == 0
+                && Double.compare(auction.taxPercent, taxPercent) == 0
                 && Objects.equals(id, auction.id)
                 && Objects.equals(ownerId, auction.ownerId)
                 && Objects.equals(title, auction.title)

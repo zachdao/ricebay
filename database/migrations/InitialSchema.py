@@ -53,7 +53,7 @@ CREATE TABLE IF NOT EXISTS auction (
             REFERENCES account
             ON DELETE CASCADE,
     CONSTRAINT end_after_start
-        CHECK (start_date > end_date)
+        CHECK (start_date < end_date)
 );
         """)
         db_cursor.execute("""

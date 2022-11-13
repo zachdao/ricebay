@@ -104,7 +104,7 @@ public class BidManagerTest {
         when(databaseManager.loadObjects(any(Query.class), eq(NEW_BID.getAuctionId())))
                 .thenReturn(List.of(NEW_AUCTION));
 
-        AppResponse<Integer> response = bidManagerTest.findBidIncrement(NEW_BID);
+        AppResponse<Double> response = bidManagerTest.findBidIncrement(NEW_BID);
         assertEquals(7, response.getData());
     }
 
