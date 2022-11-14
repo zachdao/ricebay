@@ -4,6 +4,7 @@ import { Header } from './header/Header';
 import { Sidebar } from './sidebar/Sidebar';
 import { Route, Routes } from 'react-router-dom';
 import { Account } from './account/Account';
+import { AuctionBid } from './auction-bid/AuctionBid';
 import { AuctionList } from './auction-list/AuctionList';
 
 export const App = () => {
@@ -35,6 +36,7 @@ export const App = () => {
             >
                 {/* Put new routes to views HERE */}
                 <Routes>
+                    <Route path="auction/:auctionId" element={<AuctionBid />} />
                     <Route index element={<AuctionList />} />
                     <Route path="account*" element={<Account />} />
                 </Routes>
