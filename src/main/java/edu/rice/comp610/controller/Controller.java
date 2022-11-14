@@ -83,6 +83,11 @@ public class Controller {
                 return gson.toJson(appResponse);
             });
 
+            post("/logout", (request, response) -> {
+                request.session().invalidate();
+                return gson.toJson(new AppResponse<Object>(true, null, "logout"));
+            });
+
             get("/me", (request, response) -> {
                 Account loggedInAccount = request.session().attribute("user");
                 return gson.toJson(userManager.retrieveAccount(loggedInAccount.getAlias()));
