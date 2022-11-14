@@ -54,19 +54,6 @@ export const Header = ({ menuClicked }) => {
                 <SearchField width="size-6000"></SearchField>
             </Flex>
 
-
-            <ActionButton
-                height="100%"
-                width="100%"
-                isQuiet
-                gridArea="profile"
-                data-testid="profile-area"
-                alignItems="center"
-                justifyContent="center"
-            >
-                <UserProfile />
-            </ActionButton>
-
             <DialogTrigger type="popover">
                 <ActionButton
                     height="100%"
