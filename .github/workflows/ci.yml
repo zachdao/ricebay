@@ -41,7 +41,7 @@ jobs:
           coverage-files: ${{ github.workspace }}/target/site/coverage-jest/lcov.info
           artifact-name: frontend-coverage-report
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          working-directory: ${{ github.workspace }}/src/frontend/src
+          working-directory: ${{ github.workspace }}/src/frontend
       - name: Backend Coverage Report
         id: jacoco
         uses: madrapps/jacoco-report@v1.3
