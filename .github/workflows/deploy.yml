@@ -25,15 +25,15 @@ jobs:
       - name: Install psycopg2
         run: pip install psycopg2
       - name: Clean and Install Maven
-        run: mvn clean install
+        run: mvn -DskipTests clean install
       - name: Build with Maven
-        run: mvn compile
+        run: mvn -DskipTests compile
       - name: Test
         run: mvn test
       - name: JavaDoc
-        run: mvn javadoc:javadoc
+        run: mvn -DskipTests javadoc:javadoc
       - name: Deploy
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: mvn heroku:deploy
+        run: mvn -DskipTests heroku:deploy
 
