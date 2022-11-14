@@ -35,5 +35,18 @@ jobs:
         run: mvn -DskipTests compile
       - name: Test
         run: mvn test
+      - name: Frontend Coverage Report
+        uses: zgosalvez/github-actions-report-lcov@v1
+        with:
+          coverage-files: ${{ github.workspace }}/target/site/coverage-jest/lcov.info
+          artifact-name: frontend-coverage-report
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          working-directory: ${{ github.workspace }}/src/frontend/src
+      - name: Backend Coverage Report
+        id: jacoco
+        uses: madrapps/jacoco-report@v1.3
+        with:
+          paths: ${{ github.workspace }}/target/site/jacoco/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: JavaDoc
         run: mvn -DskipTests javadoc:javadoc
