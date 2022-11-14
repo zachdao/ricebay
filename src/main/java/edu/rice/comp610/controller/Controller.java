@@ -119,10 +119,17 @@ public class Controller {
             get("/:id", ((request, response) ->
                     gson.toJson(auctionManager.loadAuction(UUID.fromString(request.params("id")))))
             );
+            // TODO: Only allow owner's to update their auctions
             put("/:id", ((request, response) ->
                     gson.toJson(auctionManager.updateAuction(gson.fromJson(request.body(), Auction.class))))
             );
         });
+
+        // BID ENDPOINTS -----------------------------------------------------------------
+        // TODO: create and implement the bid endpoints
+
+        // CATEGORY ENDPOINT
+        // TODO: add an endpoint to get a list of all available categories and their ids
 
         // A redirect to our SPA if it isn't a route we recognize
         get("*", (req, res) -> {

@@ -35,5 +35,5 @@ jobs:
       - name: Deploy
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-        run: mvn -DskipTests heroku:deploy
+        run: mvn heroku:deploy
 
