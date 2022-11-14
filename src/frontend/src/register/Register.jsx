@@ -1,11 +1,18 @@
-import React, {useCallback, useEffect, useState} from "react";
-import {useNavigate} from "react-router-dom";
-import {Checkbox, Flex, Heading, TextField, Link, Button} from "@adobe/react-spectrum";
-import styled from "styled-components";
-import {AppName} from "../app-name/AppName";
-import axios from "axios";
-import toast from "react-hot-toast";
-import {Toast} from "../toast/Toast";
+import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+    Checkbox,
+    Flex,
+    Heading,
+    TextField,
+    Link,
+    Button,
+} from '@adobe/react-spectrum';
+import styled from 'styled-components';
+import { AppName } from '../app-name/AppName';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { Toast } from '../toast/Toast';
 
 export const Register = () => {
     const [givenName, setGivenName] = useState('');
@@ -26,11 +33,11 @@ export const Register = () => {
                 surname,
                 alias,
                 email,
-                password
+                password,
             });
             navigate('/login');
-        } catch (e) {
-            setError('Invalid input!');
+        } catch (error) {
+            setError(error.response.data);
         }
     }, [givenName, surname, alias, email, password]);
 
@@ -39,7 +46,7 @@ export const Register = () => {
             toast.custom((t) => {
                 return (
                     <Toast
-                        message={error}
+                        message={'Invalid input!'}
                         type="negative"
                         dismissFn={() => toast.remove(t.id)}
                     />
@@ -49,86 +56,106 @@ export const Register = () => {
     }, [error]);
 
     const isValid = useCallback(() => {
-        return email.endsWith('@rice.edu') && password.length > 1 && password === confirmPassword && agree && alias.length > 1;
+        return (
+            email.endsWith('@rice.edu') &&
+            password.length > 1 &&
+            password === confirmPassword &&
+            agree &&
+            alias.length > 1
+        );
     }, [email, password, confirmPassword, agree, alias]);
 
-    return (<Flex direction="row" height="100vh" width="100vw" >
-        <Flex direction="column" width="600px" gap="size-100" alignItems="center" justifyContent="center">
-            <Heading level="1">
-                <AppName />
-            </Heading>
-            <Heading level="3">
-                Register
-            </Heading>
-            <TextField
-                validationState={error ? 'invalid' : undefined}
-                label="First Name"
-                value={givenName}
-                onChange={setGivenName}
-                type="text"
-                onBlur={() => setError('')}
-                isRequired
-            />
-            <TextField
-                validationState={error ? 'invalid' : undefined}
-                label="Last Name"
-                value={surname}
-                onChange={setSurname}
-                type="text"
-                onBlur={() => setError('')}
-                isRequired
-            />
-            <TextField
-                validationState={error ? 'invalid' : undefined}
-                label="Alias"
-                value={alias}
-                onChange={setAlias}
-                type="text"
-                onBlur={() => setError('')}
-                isRequired
-            />
-            <TextField
-                validationState={error ? 'invalid' : undefined}
-                label="Email"
-                value={email}
-                onChange={setEmail}
-                type="email"
-                onBlur={() => setError('')}
-                isRequired
-            />
-            <TextField
-                validationState={error ? 'invalid' : undefined}
-                label="Password"
-                value={password}
-                onChange={setPassword}
-                type="password"
-                onBlur={() => setError('')}
-                isRequired
-            />
-            <TextField
-                validationState={error ? 'invalid' : undefined}
-                label="Confirm Password"
-                value={confirmPassword}
-                onChange={setConfirmPassword}
-                type="password"
-                onBlur={() => setError('')}
-                isRequired
-            />
-            <Link isQuiet>Terms, Conditions, and Privacy Policy</Link>
-            <Checkbox isSelected={agree} onChange={setAgree}>
-                I Agree to the Above
-            </Checkbox>
-            <Button
-                variant="cta"
-                onPress={register}
-                isDisabled={!isValid()}
+    return (
+        <Flex direction="row" height="100vh" width="100vw">
+            <Flex
+                direction="column"
+                width="600px"
+                gap="size-100"
+                alignItems="center"
+                justifyContent="center"
             >
-                Register
-            </Button>
+                <Heading level="1">
+                    <AppName />
+                </Heading>
+                <Heading level="3">Register</Heading>
+                <TextField
+                    validationState={error.givenName ? 'invalid' : undefined}
+                    label="First Name"
+                    value={givenName}
+                    onChange={setGivenName}
+                    type="text"
+                    onBlur={() => setError('')}
+                    isRequired
+                    errorMessage={error.givenName}
+                />
+                <TextField
+                    validationState={error.surname ? 'invalid' : undefined}
+                    label="Last Name"
+                    value={surname}
+                    onChange={setSurname}
+                    type="text"
+                    onBlur={() => setError('')}
+                    isRequired
+                    errorMessage={error.surname}
+                />
+                <TextField
+                    validationState={error.alias ? 'invalid' : undefined}
+                    label="Alias"
+                    value={alias}
+                    onChange={setAlias}
+                    type="text"
+                    onBlur={() => setError('')}
+                    isRequired
+                    errorMessage={error.alias}
+                />
+                <TextField
+                    validationState={error.email ? 'invalid' : undefined}
+                    label="Email"
+                    value={email}
+                    onChange={setEmail}
+                    type="email"
+                    onBlur={() => setError('')}
+                    isRequired
+                    errorMessage={error.email}
+                />
+                <TextField
+                    validationState={error.password ? 'invalid' : undefined}
+                    label="Password"
+                    value={password}
+                    onChange={setPassword}
+                    type="password"
+                    onBlur={() => setError('')}
+                    isRequired
+                    errorMessage={error.password}
+                />
+                <TextField
+                    validationState={
+                        password !== confirmPassword ? 'invalid' : undefined
+                    }
+                    label="Confirm Password"
+                    value={confirmPassword}
+                    onChange={setConfirmPassword}
+                    type="password"
+                    onBlur={() => setError('')}
+                    isRequired
+                    errorMessage={'Passwords do not match'}
+                />
+                <Link isQuiet>Terms, Conditions, and Privacy Policy</Link>
+                <Checkbox isSelected={agree} onChange={setAgree}>
+                    I Agree to the Above
+                </Checkbox>
+                <Button
+                    variant="cta"
+                    onPress={register}
+                    isDisabled={!isValid()}
+                >
+                    Register
+                </Button>
+            </Flex>
+            <BackgroundDiv />
         </Flex>
-        <BackgroundDiv />
-    </Flex>)
-}
+    );
+};
 
 const BackgroundDiv = styled.div`
     background-image: url('/images/register.png');
@@ -136,4 +163,4 @@ const BackgroundDiv = styled.div`
     background-position: center;
     background-repeat: no-repeat;
     width: calc(100% - 600px);
-    `
+`;
