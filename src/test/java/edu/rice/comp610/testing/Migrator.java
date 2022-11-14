@@ -49,7 +49,6 @@ public class Migrator {
                         "--db-password", password,
                         "--db-name", databaseName,
                         "up")
-                .inheritIO()
                 .start();
 
         if (process.waitFor() != 0) {
