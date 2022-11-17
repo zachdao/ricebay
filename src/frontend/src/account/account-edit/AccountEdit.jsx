@@ -18,6 +18,7 @@ import { Popover } from '../../popover/Popover';
 import { usePostWithToast } from '../../http-query/use-post-with-toast';
 import JumpToTop from '@spectrum-icons/workflow/JumpToTop';
 import axios from "axios";
+import ArrowLeft from "@spectrum-icons/workflow/ArrowLeft";
 
 export const AccountEdit = ({ account }) => {
     const [givenName, setGivenName] = useState(account.givenName || '');
@@ -287,7 +288,8 @@ export const AccountEdit = ({ account }) => {
                         minWidth="100px"
                         onPress={accountOverview}
                     >
-                        Account Overview
+                        <ArrowLeft />
+                        <Text>Account Details</Text>
                     </Button>
                 </ButtonGroup>
             </Flex>
