@@ -38,6 +38,7 @@
     },
     "dependencies": {
         "@adobe/react-spectrum": "^3.22.0",
+        "@internationalized/date": "^3.0.1",
         "@spectrum-icons/illustrations": "^3.5.0",
         "axios": "^1.1.3",
         "react": "^18.2.0",

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     Flex,
     Grid,
@@ -11,27 +11,29 @@ import {
     Content,
     TextField,
 } from '@adobe/react-spectrum';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useHttpQuery } from '../http-query/use-http-query';
+import axios from 'axios';
 
-export const AuctionBid = () => {
-    const auction = {
-        title: 'Obnoxiously Long Title Blah Blah Blah',
-        minimumBid: 20.0,
-        published: 'Published',
-        ownerId: 12345,
-        categoryIds: [1, 2, 3],
-        description:
-            'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut ' +
-            'labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut ' +
-            'aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore ' +
-            'eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt ' +
-            'mollit anim id est laborum.',
-        seller: 'coolguy25',
-        images: [],
-        maxBid: 500.0,
-    };
+const auction = {
+    title: 'Obnoxiously Long Title Blah Blah Blah',
+    minimumBid: 20.0,
+    published: 'Published',
+    ownerId: 12345,
+    categoryIds: [1, 2, 3],
+    description:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut ' +
+        'labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut ' +
+        'aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore ' +
+        'eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt ' +
+        'mollit anim id est laborum.',
+    seller: 'coolguy25',
+    images: [],
+    maxBid: 500.0,
+    bidIncrement: 2.0,
+};
 
+export const AuctionView = ({ auction }) => {
     // Get our single auction listing, where appResponse is AppResponse<Auction>
     // const { auctionId } = useParams();
     // const { appResponse, error, status } = useHttpQuery(
@@ -60,13 +62,40 @@ export const AuctionBid = () => {
     // }, [appResponse, error, status]);
 
     // Set up text field data
-    const [yourBid, makeBid] = useState('');
-    const [maxBid, changeMaxBid] = useState('');
+    const [yourBid, setBid] = useState('');
+    const [maxBid, setMaxBid] = useState('');
     const [error, setError] = useState('');
 
+    // const { appResponse, error1, status } = useHttpQuery('/accounts/me')
+    // const userID = appResponse.data;
+
     // TODO Once the backend sends all the necessary data, map the fields to the (currently) missing variables
-    // TODO Handle bad calls to make the bid
-    // TODO Handle bad calls to increase max bid
+
+    // Handle bad calls to make the bid, Handle bad calls to increase max bid
+    const makeBid = useCallback(async () => {
+        try {
+            setError('');
+            await axios.put('/auction/:id', {
+                // userID,
+                yourBid,
+                maxBid,
+            });
+        } catch (e) {
+            setError('Error occurred while placing bid!');
+        }
+    }, [
+        // userID
+        yourBid,
+        maxBid,
+    ]);
+
+    const isValid = useCallback(() => {
+        return (
+            yourBid >= auction.minimumBid + auction.bidIncrement &&
+            yourBid <= maxBid
+        );
+    }, [yourBid, maxBid]);
+
     // TODO Disable button if user currently has highest bid
     // TODO re-enable button and give notification if they have been outbid
 
@@ -101,18 +130,21 @@ export const AuctionBid = () => {
                 <Grid
                     areas={[
                         'currentbid bidvar',
+                        'bidincrement incrementvar',
                         'status statusvar',
                         'seller sellervar',
                         'sellerrating ratingvar',
                         'categories catvar',
                     ]}
-                    columns={['2fr', '3fr']}
-                    rows={['1fr', '1fr', '1fr', '1fr', '1fr']}
+                    columns={['3fr', '2fr']}
+                    rows={['1fr', '1fr', '1fr', '1fr', '1fr', '1fr']}
                     height="100%"
                     justifyContent="space-evenly"
                 >
-                    <Text gridArea="currentbid"> Current Bid:</Text>
+                    <Text gridArea="currentbid">Current Bid:</Text>
                     <Text gridArea="bidvar">{auction.minimumBid}</Text>
+                    <Text gridArea="bidincrement">Minimum Bid Increment:</Text>
+                    <Text gridArea="incrementvar">{auction.bidIncrement}</Text>
                     <Text gridArea="status">Status:</Text>
                     <Text gridArea="statusvar">{auction.published}</Text>
                     <Text gridArea="seller">Seller:</Text>
@@ -144,7 +176,7 @@ export const AuctionBid = () => {
                                     }
                                     label="Your bid"
                                     value={yourBid}
-                                    onChange={makeBid}
+                                    onChange={setBid}
                                     type="double"
                                     onBlur={() => setError('')}
                                 />
@@ -154,11 +186,16 @@ export const AuctionBid = () => {
                                     }
                                     label="Max bid"
                                     value={maxBid}
-                                    onChange={changeMaxBid}
+                                    onChange={setMaxBid}
                                     type="double"
                                     onBlur={() => setError('')}
                                 />
-                                <Button alignSelf="center" variant="cta">
+                                <Button
+                                    alignSelf="center"
+                                    variant="cta"
+                                    isDisabled={!isValid()}
+                                    onPress={makeBid}
+                                >
                                     Make bid
                                 </Button>
                             </Flex>
