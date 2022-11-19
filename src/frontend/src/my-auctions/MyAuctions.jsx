@@ -86,6 +86,7 @@ export const MyAuctions = () => {
             width="60%"
             direction="column"
             gap="size-200"
+            data-testid="auctions-area"
         >
             <Heading level={1} alignSelf="center">
                 Your Auctions
