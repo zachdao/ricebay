@@ -4,9 +4,15 @@ import Close from '@spectrum-icons/workflow/Close';
 
 export const CategoryTagGroup = ({ categories, onRemove }) => {
     return (
-        <Flex direction="row" alignItems="start" gap="size-100" maxWidth="100%">
+        <Flex
+            direction="row"
+            alignItems="start"
+            gap="size-100"
+            maxWidth="100%"
+            wrap="wrap"
+        >
             {Array.from(categories).map((category) => (
-                <Badge variant="indigo" align>
+                <Badge variant="indigo" align key={category}>
                     <Flex
                         direction="row"
                         gap="size-100"

@@ -3,14 +3,11 @@ import {
     ActionButton,
     Content,
     Dialog,
-    Divider,
     Flex,
     Grid,
-    Heading,
     SearchField,
     Text,
     DialogTrigger,
-    ButtonGroup,
     Button,
 } from '@adobe/react-spectrum';
 import ShowMenu from '@spectrum-icons/workflow/ShowMenu';
@@ -19,6 +16,7 @@ import LogOut from '@spectrum-icons/workflow/LogOut';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { UserContext } from '../user.context';
+import styled from 'styled-components';
 
 export const Header = ({ menuClicked }) => {
     const navigate = useNavigate();
@@ -79,16 +77,29 @@ export const Header = ({ menuClicked }) => {
                 >
                     <UserProfile />
                 </ActionButton>
-                <Dialog width="max-content">
+                <Dialog size="M">
                     <Content>
                         <Flex
                             direction="column"
-                            alignItems="center"
-                            justifyContent="center"
+                            alignItems="start"
+                            justifyContent="tart"
                             gap="size-100"
                         >
-                            <Heading>{user?.alias}</Heading>
-                            <Text>{user?.email}</Text>
+                            <Flex
+                                direction="row"
+                                justifyContent="start"
+                                alignItems="center"
+                                height="size-1000"
+                            >
+                                <UserProfile width="80px" height="80px" />
+                                <Flex direction="column" alignItems="start">
+                                    <FancyName>
+                                        {`${user?.givenName} ${user?.surname}`}{' '}
+                                        ({user?.alias})
+                                    </FancyName>
+                                    <Text>{user?.email}</Text>
+                                </Flex>
+                            </Flex>
                             <Button variant="primary" isQuiet onPress={logout}>
                                 <LogOut />
                                 <Text>Sign Out</Text>
@@ -100,3 +111,8 @@ export const Header = ({ menuClicked }) => {
         </Grid>
     );
 };
+
+const FancyName = styled.div`
+    font-size: 125%;
+    font-weight: bolder;
+`;

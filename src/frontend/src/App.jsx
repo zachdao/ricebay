@@ -1,22 +1,23 @@
 import React, { useState } from 'react';
-import { Grid, View } from '@adobe/react-spectrum';
+import { Flex, Grid, View } from '@adobe/react-spectrum';
 import { Header } from './header/Header';
 import { Sidebar } from './sidebar/Sidebar';
 import { Route, Routes } from 'react-router-dom';
 import { Account } from './account/Account';
-import { AuctionView } from './auction-view/AuctionView';
 import { AuctionList } from './auction-list/AuctionList';
 import { MyAuctions } from './my-auctions/MyAuctions';
 import { PurchaseHistory } from './purchase-history/PurchaseHistory';
-import { CreateAuction } from './create-auction/CreateAuction';
+import { EditAuction } from './auction/edit-auction/EditAuction';
 import { UserContext } from './user.context';
 import { useHttpQuery } from './http-query/use-http-query';
+import { Auction } from './auction/Auction';
 
 export const App = () => {
     const [showSidebar, setShowSidebar] = useState(false);
-    const { appResponse, error, status } = useHttpQuery('/accounts/me');
+    const { appResponse } = useHttpQuery('/accounts/me');
 
     return (
+        // The UserContext.Provider allows sub-components to easily access the logged in user
         <UserContext.Provider value={appResponse?.data}>
             <Grid
                 areas={['header header', 'sidebar content', 'footer footer']}
@@ -43,15 +44,28 @@ export const App = () => {
                 >
                     {/* Put new routes to views HERE */}
                     <Routes>
-                        <Route
-                            path="auction/:auctionId"
-                            element={<AuctionView />}
-                        />
                         <Route index element={<AuctionList />} />
                         <Route path="account*" element={<Account />} />
+                        <Route
+                            path="auction/:auctionId*"
+                            element={<Auction />}
+                        />
                         <Route path="myauctions" element={<MyAuctions />} />
                         <Route path="purchases" element={<PurchaseHistory />} />
-                        <Route path="create" element={<CreateAuction />} />
+                        <Route
+                            path="create"
+                            element={
+                                <Flex
+                                    direction="row"
+                                    alignItems="start"
+                                    justifyContent="center"
+                                    margin="size-400"
+                                    height="calc(100% - 80px)"
+                                >
+                                    <EditAuction />
+                                </Flex>
+                            }
+                        />
                     </Routes>
                 </View>
                 <View backgroundColor="blue-700" gridArea="footer"></View>

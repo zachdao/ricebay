@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { CreateAuction } from './CreateAuction';
+import { EditAuction } from './EditAuction';
 import { MemoryRouter } from 'react-router-dom';
 import { defaultTheme, Provider } from '@adobe/react-spectrum';
 import userEvent from '@testing-library/user-event';
@@ -10,7 +10,7 @@ const renderComponent = async () => {
     await render(
         <Provider theme={defaultTheme}>
             <MemoryRouter>
-                <CreateAuction />
+                <EditAuction />
             </MemoryRouter>
         </Provider>,
     );

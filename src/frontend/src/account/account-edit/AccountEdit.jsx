@@ -270,7 +270,7 @@ export const AccountEdit = ({ account }) => {
                     <Button
                         variant="cta"
                         minWidth="100px"
-                        onPress={save}
+                        onPress={() => save()}
                         isDisabled={isClean() || changePassword}
                     >
                         <SaveFloppy />

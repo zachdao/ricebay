@@ -1,12 +1,19 @@
 import React from 'react';
 import { View } from '@adobe/react-spectrum';
 
-export const UserProfile = ({ src }) => {
+export const UserProfile = ({ src, width, height }) => {
     if (src) {
-        return <img src={src} alt="user profile" width="80%" height="80%" />;
+        return (
+            <img
+                src={src}
+                alt="user profile"
+                width={width || '80%'}
+                height={height || '80%'}
+            />
+        );
     } else {
         return (
-            <View width="80%" height="80%">
+            <View width={width || '80%'} height={height || '80%'}>
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="100%"
