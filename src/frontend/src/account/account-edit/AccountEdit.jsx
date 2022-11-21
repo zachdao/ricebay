@@ -101,7 +101,6 @@ export const AccountEdit = ({ account }) => {
     }, [givenName, surname, alias, email, zelleId]);
 
     const accountOverview = useCallback(async () => {
-        await axios.post('/accounts/edit');
         navigate('/account');
     }, []);
 
