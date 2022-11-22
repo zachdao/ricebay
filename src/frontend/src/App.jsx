@@ -5,6 +5,7 @@ import { Sidebar } from './sidebar/Sidebar';
 import { Route, Routes } from 'react-router-dom';
 import { Account } from './account/Account';
 import { AuctionList } from './auction-list/AuctionList';
+import {RecentlyViewed} from "./recently-viewed/RecentlyViewed";
 
 export const App = () => {
     const [showSidebar, setShowSidebar] = useState(false);
@@ -37,6 +38,7 @@ export const App = () => {
                 <Routes>
                     <Route index element={<AuctionList />} />
                     <Route path="account*" element={<Account />} />
+                    <Route path="recentlyViewed*" element={<RecentlyViewed />} />
                 </Routes>
             </View>
             <View backgroundColor="blue-700" gridArea="footer"></View>
