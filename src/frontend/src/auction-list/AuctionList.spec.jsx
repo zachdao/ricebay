@@ -3,11 +3,14 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import { AuctionList } from './AuctionList';
 import mockAxios from 'jest-mock-axios';
 import { defaultTheme, Provider } from '@adobe/react-spectrum';
+import { MemoryRouter } from 'react-router-dom';
 
 const renderComponent = async () => {
     await render(
         <Provider theme={defaultTheme}>
-            <AuctionList />
+            <MemoryRouter>
+                <AuctionList />
+            </MemoryRouter>
         </Provider>,
     );
 };
