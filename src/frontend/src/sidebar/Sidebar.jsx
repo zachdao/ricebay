@@ -26,6 +26,9 @@ export const Sidebar = ({ dismiss }) => {
                 <MenuItem onClick={() => navigateAndDismiss('/recentlyViewed')}>
                     <Heading level={3}>Recently Viewed</Heading>
                 </MenuItem>
+                <MenuItem onClick={() => navigateAndDismiss('/search')}>
+                    <Heading level={3}>Search</Heading>
+                </MenuItem>
             </Flex>
         </Wrapper>
     );
