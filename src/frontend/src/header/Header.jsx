@@ -18,7 +18,7 @@ import axios from 'axios';
 import { UserContext } from '../user.context';
 import styled from 'styled-components';
 
-export const Header = ({ menuClicked }) => {
+export const Header = ({ menuClicked, searchValue, searchValueUpdated }) => {
     const navigate = useNavigate();
     const user = useContext(UserContext);
     const logout = useCallback(async () => {
@@ -54,7 +54,11 @@ export const Header = ({ menuClicked }) => {
                 justifyContent="center"
                 data-testid="search-area"
             >
-                <SearchField width="size-6000"></SearchField>
+                <SearchField
+                    width="size-6000"
+                    value={searchValue}
+                    onChange={searchValueUpdated}
+                ></SearchField>
             </Flex>
             <Button
                 variant="cta"

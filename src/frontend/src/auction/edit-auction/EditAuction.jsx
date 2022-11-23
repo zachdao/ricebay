@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import {
     Flex,
     Grid,
@@ -24,11 +24,14 @@ import {
 import { usePostWithToast } from '../../http-query/use-post-with-toast';
 import Alert from '@spectrum-icons/workflow/Alert';
 import { useNavigate } from 'react-router-dom';
+import { SearchContext } from '../../search.context';
+import { CategoriesContext } from '../../categories.context';
 
 export const EditAuction = ({ auction }) => {
     // Set up text field data
     const [image, setImage] = useState(auction?.images?.[0] || '');
     const [title, setTitle] = useState(auction?.title || '');
+    const categoryOptions = useContext(CategoriesContext);
     const [startingBid, setStartingBid] = useState(auction?.minimumBid || 1);
     const [bidIncrement, setBidIncrement] = useState(
         auction?.bidIncrement || undefined,
@@ -169,16 +172,12 @@ export const EditAuction = ({ auction }) => {
                 />
                 <ComboBox
                     label="Add Category"
+                    items={categoryOptions.map((opt) => ({ name: opt }))}
                     onSelectionChange={(selected) =>
                         setCategories((prev) => new Set([...prev, selected]))
                     }
                 >
-                    <Item key="red panda">Red Panda</Item>
-                    <Item key="cat">Cat</Item>
-                    <Item key="dog">Dog</Item>
-                    <Item key="aardvark">Aardvark</Item>
-                    <Item key="kangaroo">Kangaroo</Item>
-                    <Item key="snake">Snake</Item>
+                    {(item) => <Item key={item.name}>{item.name}</Item>}
                 </ComboBox>
                 <Flex
                     direction="column"
