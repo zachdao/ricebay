@@ -13,14 +13,20 @@ import { useHttpQuery } from './http-query/use-http-query';
 import { Auction } from './auction/Auction';
 import { RecentlyViewed } from './recently-viewed/RecentlyViewed';
 import { CategoriesContext } from './categories.context';
-import Search from '@spectrum-icons/workflow/Search';
 import { SearchContext } from './search.context';
+import { Search } from './search/Search';
 
 export const App = () => {
     const [showSidebar, setShowSidebar] = useState(false);
     const [searchText, setSearchText] = useState();
     const { appResponse } = useHttpQuery('/accounts/me');
-    const categories = ['Furniture', 'Lawn', 'Electronics', 'Vehicles'];
+    const categories = [
+        'Furniture',
+        'Lawn',
+        'Electronics',
+        'Vehicles',
+        'Books',
+    ];
 
     return (
         // The UserContext.Provider allows sub-components to easily access the logged in user
