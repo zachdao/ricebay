@@ -22,7 +22,7 @@ export const Search = () => {
         { name: 'Least Time Remaining' },
         { name: 'Most Time Remaining' },
     ];
-    console.log(searchText);
+
     return (
         <Flex direction="row" alignItems="start" justifyContent="start">
             <Flex direction="column">
