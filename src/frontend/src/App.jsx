@@ -11,6 +11,7 @@ import { EditAuction } from './auction/edit-auction/EditAuction';
 import { UserContext } from './user.context';
 import { useHttpQuery } from './http-query/use-http-query';
 import { Auction } from './auction/Auction';
+import {RecentlyViewed} from "./recently-viewed/RecentlyViewed";
 
 export const App = () => {
     const [showSidebar, setShowSidebar] = useState(false);
@@ -52,6 +53,7 @@ export const App = () => {
                         />
                         <Route path="myauctions" element={<MyAuctions />} />
                         <Route path="purchases" element={<PurchaseHistory />} />
+                        <Route path="recentlyViewed*" element={<RecentlyViewed />} />
                         <Route
                             path="create"
                             element={

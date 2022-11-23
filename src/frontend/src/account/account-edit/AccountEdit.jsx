@@ -17,6 +17,8 @@ import { useNavigate } from 'react-router-dom';
 import { Popover } from '../../popover/Popover';
 import { usePostWithToast } from '../../http-query/use-post-with-toast';
 import JumpToTop from '@spectrum-icons/workflow/JumpToTop';
+import axios from "axios";
+import ArrowLeft from "@spectrum-icons/workflow/ArrowLeft";
 
 export const AccountEdit = ({ account }) => {
     const [givenName, setGivenName] = useState(account.givenName || '');
@@ -97,6 +99,10 @@ export const AccountEdit = ({ account }) => {
             zelleId === account.zelleId
         );
     }, [givenName, surname, alias, email, zelleId]);
+
+    const accountOverview = useCallback(async () => {
+        navigate('/account');
+    }, []);
 
     return (
         <Grid
@@ -275,6 +281,14 @@ export const AccountEdit = ({ account }) => {
                     >
                         <SaveFloppy />
                         <Text>Save</Text>
+                    </Button>
+                    <Button
+                        variant="cta"
+                        minWidth="100px"
+                        onPress={accountOverview}
+                    >
+                        <ArrowLeft />
+                        <Text>Account Details</Text>
                     </Button>
                 </ButtonGroup>
             </Flex>

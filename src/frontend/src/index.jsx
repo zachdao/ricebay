@@ -8,6 +8,7 @@ import { Login } from './login/Login';
 import { Toaster } from 'react-hot-toast';
 import { Register } from './register/Register';
 import axios from 'axios';
+import {RecentlyViewed} from "./recently-viewed/RecentlyViewed";
 
 const container = document.getElementById('root');
 const root = createRoot(container);
