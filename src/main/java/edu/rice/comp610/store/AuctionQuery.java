@@ -2,6 +2,7 @@ package edu.rice.comp610.store;
 
 import edu.rice.comp610.model.Auction;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -9,18 +10,18 @@ import java.util.Objects;
  */
 public class AuctionQuery {
 
-    private final String queryText;
+    private final Map<String, String[]> queryMap;
     private final AuctionSortField sortField;
     private final boolean sortAscending;
 
-    public AuctionQuery(String queryText, AuctionSortField sortField, boolean sortAscending) {
-        this.queryText = queryText;
+    public AuctionQuery(Map<String, String[]> queryMap, AuctionSortField sortField, boolean sortAscending) {
+        this.queryMap = queryMap;
         this.sortField = sortField;
         this.sortAscending = sortAscending;
     }
 
-    public String getQueryText() {
-        return queryText;
+    public Map<String, String[]> getQueryMap() {
+        return queryMap;
     }
 
     public AuctionSortField getSortField() {
@@ -36,18 +37,18 @@ public class AuctionQuery {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AuctionQuery that = (AuctionQuery) o;
-        return sortAscending == that.sortAscending && queryText.equals(that.queryText) && sortField == that.sortField;
+        return sortAscending == that.sortAscending && queryMap.equals(that.queryMap) && sortField == that.sortField;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(queryText, sortField, sortAscending);
+        return Objects.hash(queryMap, sortField, sortAscending);
     }
 
     @Override
     public String toString() {
         return "AuctionSearch{" +
-                "queryText='" + queryText + '\'' +
+                "queryText='" + queryMap + '\'' +
                 ", sortField=" + sortField +
                 ", sortAscending=" + sortAscending +
                 '}';

@@ -93,8 +93,7 @@ def main():
     elif args.command == 'generate':
         generate(migrations_path)
     elif args.command == 'migrate':
-        the_connection = psycopg2.connect(
-            f'host={args.db_host} port={args.db_port} user={args.db_user} password={args.db_password} dbname={"" if args.db_name == "" else args.db_name}')
+        the_connection = psycopg2.connect(f'host={args.db_host} port={args.db_port} user={args.db_user} password={args.db_password} dbname={"" if args.db_name == "" else args.db_name}')
         if args.migrate_command == 'up':
             migrations.run_migrations_up(the_connection, args.migration_table_override)
         elif args.migrate_command == 'down':

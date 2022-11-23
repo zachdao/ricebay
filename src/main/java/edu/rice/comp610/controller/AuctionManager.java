@@ -4,6 +4,7 @@ import edu.rice.comp610.model.Account;
 import edu.rice.comp610.model.Auction;
 import edu.rice.comp610.model.Category;
 import edu.rice.comp610.store.*;
+import net.bytebuddy.dynamic.scaffold.TypeInitializer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,21 +115,15 @@ public class AuctionManager {
      * otherwise.
      */
     AppResponse<List<Auction>> search(AuctionQuery query) {
-        // TODO: Replace with real query, this is dummy data for getting frontend working
-        ArrayList<Auction> dummyAuctions = new ArrayList<>();
-        for (int i = 0; i < 90; i++) {
-            var auction = new Auction();
-            auction.setId(UUID.randomUUID());
-            auction.setTitle(String.format("Foo %d", i));
-            auction.setMinimumBid(((int) Math.floor(Math.random() * 150 + 1)));
-            if (i % 5 == 0) {
-                auction.setDescription("some longer foo stuff aba abawsdbg abasdfasd asdfasdfasdd asdfasdfas dfasdfasd fasdf asd fasdf asd fas df asdf asdf asdf asd f asdf asdf asd f asd fa sdf asd fasdklfj;lkjasd f asdfjasdfkasdf");
-            } else {
-                auction.setDescription("some longer foo stuff");
-            }
-            dummyAuctions.add(auction);
-        }
+        try {
 
-        return new AppResponse<>(true, dummyAuctions, "OK");
+            // find auction by category and text
+            Query<Auction> auctionQuery = queryManager.makeLoadQuery(Auction.class, query.getQueryMap().getOrDefault("filterBy", new String[]{}));
+            List<Auction> auctions = databaseManager.loadObjects(auctionQuery, query.getQueryMap().getOrDefault("filterByValues", new String[]{}));
+            return new AppResponse<>(true, auctions, "OK");
+
+        } catch (DatabaseException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

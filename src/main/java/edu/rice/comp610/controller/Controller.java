@@ -3,6 +3,7 @@ package edu.rice.comp610.controller;
 import com.google.gson.Gson;
 import edu.rice.comp610.model.Account;
 import edu.rice.comp610.model.Auction;
+import edu.rice.comp610.model.Category;
 import edu.rice.comp610.store.*;
 import edu.rice.comp610.util.*;
 import spark.Filter;
@@ -118,7 +119,7 @@ public class Controller {
             post("", ((request, response) ->
                     gson.toJson(auctionManager.createAuction(gson.fromJson(request.body(), Auction.class))))
             );
-            get("/search", ((request, response) -> gson.toJson(auctionManager.search(new AuctionQuery(request.params().getOrDefault("query", ""),
+            get("/search", ((request, response) -> gson.toJson(auctionManager.search(new AuctionQuery(request.queryMap().toMap(),
                     AuctionSortField.valueOf(request.params().getOrDefault("sortField", String.valueOf(AuctionSortField.END_DATE))),
                     Boolean.parseBoolean(request.params().getOrDefault("sortAscending", "true")))))));
             get("/:id", ((request, response) ->
@@ -135,6 +136,13 @@ public class Controller {
 
         // CATEGORY ENDPOINT
         // TODO: add an endpoint to get a list of all available categories and their ids
+        // Have this reside in the auction manager
+ //       path("/categories", () -> {
+ //           post("", ((request, response) ->
+ //                   gson.toJson(CategoryManager.createCategory(gson.fromJson(request.body(), Category.class))))
+ //           );
+ //           get("/list", ((request, response) -> gson.toJson(CategoryManager.load(new Query(request.params().getOrDefault("query", ""))))));
+ //       });
 
         // A redirect to our SPA if it isn't a route we recognize
         get("*", (req, res) -> {

@@ -2,10 +2,13 @@ import React from 'react';
 import { Flex, Text, View } from '@adobe/react-spectrum';
 import styled from 'styled-components';
 import Image from '@spectrum-icons/workflow/Image';
+import {useNavigate} from "react-router-dom";
 
 export const AuctionListItem = ({ auction }) => {
+    const navigate = useNavigate()
     return (
-        <AuctionItemGrid>
+        <AuctionItemGrid onClick={()=>navigate(`/auction/${auction.id}`)} >
+
             <View gridArea="image">
                 {auction.images && auction.images.length ? (
                     <img src={auction.images[0]} alt="image of auction item" />
