@@ -1,34 +1,37 @@
-import React, {useCallback} from 'react';
+import React, { useCallback, useContext } from 'react';
 import {
     ActionButton,
     Content,
     Dialog,
-    Divider,
     Flex,
     Grid,
-    Heading,
     SearchField,
     Text,
     DialogTrigger,
-    ButtonGroup,
-    Button
+    Button,
 } from '@adobe/react-spectrum';
 import ShowMenu from '@spectrum-icons/workflow/ShowMenu';
 import { UserProfile } from '../user-profile/UserProfile';
-import LogOut from "@spectrum-icons/workflow/LogOut";
-import {useNavigate} from "react-router-dom";
-import axios from "axios";
+import LogOut from '@spectrum-icons/workflow/LogOut';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { UserContext } from '../user.context';
+import styled from 'styled-components';
 
 export const Header = ({ menuClicked }) => {
     const navigate = useNavigate();
+    const user = useContext(UserContext);
     const logout = useCallback(async () => {
         await axios.post('/accounts/logout');
         navigate('/login');
     }, []);
+    const create = useCallback(async () => {
+        navigate('/create');
+    }, []);
     return (
         <Grid
-            areas={['menu search profile']}
-            columns={['80px auto 80px']}
+            areas={['menu search create profile']}
+            columns={['80px auto  130px 80px']}
             rows={['auto']}
             height="100%"
             width="100%"
@@ -53,6 +56,14 @@ export const Header = ({ menuClicked }) => {
             >
                 <SearchField width="size-6000"></SearchField>
             </Flex>
+            <Button
+                variant="cta"
+                gridArea="create"
+                onPress={create}
+                data-testid="create-area"
+            >
+                Create Auction
+            </Button>
 
             <DialogTrigger type="popover">
                 <ActionButton
@@ -66,16 +77,42 @@ export const Header = ({ menuClicked }) => {
                 >
                     <UserProfile />
                 </ActionButton>
-                <Dialog width="max-content">
+                <Dialog size="M">
                     <Content>
-                        <Button
-                            variant="primary"
-                            isQuiet
-                            onPress={logout}
-                        ><LogOut/><Text>Sign Out</Text></Button>
+                        <Flex
+                            direction="column"
+                            alignItems="start"
+                            justifyContent="tart"
+                            gap="size-100"
+                        >
+                            <Flex
+                                direction="row"
+                                justifyContent="start"
+                                alignItems="center"
+                                height="size-1000"
+                            >
+                                <UserProfile width="80px" height="80px" />
+                                <Flex direction="column" alignItems="start">
+                                    <FancyName>
+                                        {`${user?.givenName} ${user?.surname}`}{' '}
+                                        ({user?.alias})
+                                    </FancyName>
+                                    <Text>{user?.email}</Text>
+                                </Flex>
+                            </Flex>
+                            <Button variant="primary" isQuiet onPress={logout}>
+                                <LogOut />
+                                <Text>Sign Out</Text>
+                            </Button>
+                        </Flex>
                     </Content>
                 </Dialog>
             </DialogTrigger>
         </Grid>
     );
 };
+
+const FancyName = styled.div`
+    font-size: 125%;
+    font-weight: bolder;
+`;

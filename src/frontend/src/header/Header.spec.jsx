@@ -2,26 +2,32 @@ import React from 'react';
 import { Header } from './Header';
 import { screen, render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {defaultTheme, Provider} from "@adobe/react-spectrum";
-import {MemoryRouter} from "react-router-dom";
-import mockAxios from "jest-mock-axios";
+import { defaultTheme, Provider } from '@adobe/react-spectrum';
+import { MemoryRouter } from 'react-router-dom';
+import mockAxios from 'jest-mock-axios';
+import { UserContext } from '../user.context';
 
 const renderComponent = async (menuClicked) => {
     await render(
         <Provider theme={defaultTheme}>
             <MemoryRouter>
-                <Header menuClicked={menuClicked}/>
+                <UserContext.Provider
+                    value={{ alias: 'test', email: 'test@rice.edu' }}
+                >
+                    <Header menuClicked={menuClicked} />
+                </UserContext.Provider>
             </MemoryRouter>
         </Provider>,
     );
 };
 
 describe('Header', () => {
-    it('should render with three grid areas', async () => {
+    it('should render with four grid areas', async () => {
         await renderComponent();
         expect(screen.queryByTestId('menu-area')).toBeInTheDocument();
         expect(screen.queryByTestId('search-area')).toBeInTheDocument();
         expect(screen.queryByTestId('profile-area')).toBeInTheDocument();
+        expect(screen.queryByTestId('create-area')).toBeInTheDocument();
     });
 
     it('should call "menuClicked" when the menu-area is clicked', async () => {
@@ -41,13 +47,12 @@ describe('Header', () => {
         const profile = screen.getByTestId('profile-area');
 
         await user.click(profile);
-        await user.click(screen.getByText("Sign Out"));
+        await user.click(screen.getByText('Sign Out'));
 
-        expect(mockAxios.post).toHaveBeenCalledWith("/accounts/logout");
+        expect(mockAxios.post).toHaveBeenCalledWith('/accounts/logout');
     });
 
     afterEach(() => {
         mockAxios.reset();
     });
-
 });

@@ -12,9 +12,13 @@ export const usePostWithToast = (
     onSuccess,
     onFailure,
 ) => {
-    return useCallback(() => {
+    return useCallback((optionalBodyOverride) => {
+        let postBody = body || {};
+        if (optionalBodyOverride) {
+            postBody = { ...postBody, ...optionalBodyOverride };
+        }
         axios
-            .post(url, body)
+            .post(url, postBody)
             .then(() => {
                 toast.custom((t) => (
                     <Toast
@@ -25,9 +29,7 @@ export const usePostWithToast = (
                         dismissFn={() => toast.remove(t.id)}
                     />
                 ));
-                if (onSuccess !== null) {
-                    onSuccess(body.data);
-                }
+                onSuccess && onSuccess(body.data);
             })
             .catch((axiosError) => {
                 toast.custom((t) => (
@@ -39,9 +41,7 @@ export const usePostWithToast = (
                         dismissFn={() => toast.remove(t.id)}
                     />
                 ));
-                if (onFailure !== null) {
-                    onFailure(axiosError);
-                }
+                onFailure && onFailure(axiosError);
             });
     }, deps);
 };
