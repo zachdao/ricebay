@@ -134,6 +134,7 @@ public class QueryManager {
                 .map(Map.Entry::getKey)
                 .collect(Collectors.joining(", ")));
         stringBuilder.append(" FROM ").append(primaryTable);
+        if (filterBy.length > 0 ) {
         stringBuilder.append(" WHERE ");
         boolean first = true;
         for (String column : filterBy) {
@@ -142,7 +143,8 @@ public class QueryManager {
             else
                 stringBuilder.append(" AND ");
             stringBuilder.append(column).append(" = ?");
-        }
+        }}
+
         String sql = stringBuilder.toString();
         return new Query<>(modelClass, sql, filterBy, accessorsMap);
     }

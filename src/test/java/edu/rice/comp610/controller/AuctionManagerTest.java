@@ -137,7 +137,19 @@ class AuctionManagerTest {
     @Disabled
     @Test
     void search() {
-        // TODO: Implement this test
         fail();
+
     }
+
+    /*throws
+    } Exception{
+
+        when(databaseManager.loadObjects(any(Query.class), eq(NEW_AUCTION.getId())))
+                .thenReturn(List.of());
+
+        AppResponse<List<Auction>> response = auctionManager.search(NEW_AUCTION.getId());
+        assertFalse(response.isSuccess());
+        assertNull(response.getData());
+        assertEquals("Auction ID " + NEW_AUCTION.getId() + " does not exist", response.getMessage());
+    } */
 }
