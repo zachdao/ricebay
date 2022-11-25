@@ -1,7 +1,6 @@
-package edu.rice.comp610.controller;
+package edu.rice.comp610.model;
 
-import edu.rice.comp610.model.Bid;
-import edu.rice.comp610.model.Account;
+import edu.rice.comp610.controller.AppResponse;
 
 /**
  * Controller that handles incoming requests for creating and viewing bids in the RiceBay system.

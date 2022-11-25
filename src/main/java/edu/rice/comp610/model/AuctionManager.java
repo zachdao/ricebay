@@ -1,5 +1,6 @@
-package edu.rice.comp610.controller;
+package edu.rice.comp610.model;
 
+import edu.rice.comp610.controller.AppResponse;
 import edu.rice.comp610.model.Account;
 import edu.rice.comp610.model.Auction;
 import edu.rice.comp610.model.Category;
@@ -30,7 +31,7 @@ public class AuctionManager {
      * @return a response containing a new auction with its id field filled in, or an error message if an error
      * occurred.
      */
-    AppResponse<UUID> createAuction(Auction auction) {
+    public AppResponse<UUID> createAuction(Auction auction) {
         try {
             // TODO: use the QueryManager to construct queries.
             Query<Account> accountQuery = queryManager.makeLoadQuery(Account.class, "id");
@@ -66,7 +67,7 @@ public class AuctionManager {
      * @return a response with the status of the update; if an error occurred, the response will include an error
      * message.
      */
-    AppResponse<UUID> updateAuction(Auction auction) {
+    public AppResponse<UUID> updateAuction(Auction auction) {
         try{
             Query<Auction> auctionQuery = queryManager.makeLoadQuery(Auction.class, "id");
             List<Auction> auctions = databaseManager.loadObjects(auctionQuery, auction.getId());
@@ -92,7 +93,7 @@ public class AuctionManager {
      * @return a response containing the auction; or an error message, if an error occurred (e.g., the auction could not
      * be found).
      */
-    AppResponse<UUID> loadAuction(UUID auctionId) {
+    public AppResponse<UUID> loadAuction(UUID auctionId) {
         try {
             Query<Auction> loadQuery = queryManager.makeLoadQuery(Auction.class, "id");
             List<Auction> auction = databaseManager.loadObjects(loadQuery, auctionId);
@@ -114,7 +115,7 @@ public class AuctionManager {
      * @return result of the search, which contains a list of auction objects if successful, or an error message
      * otherwise.
      */
-    AppResponse<List<Auction>> search(AuctionQuery query) {
+    public AppResponse<List<Auction>> search(AuctionQuery query) {
         try {
 
             // find auction by category and text

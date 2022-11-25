@@ -1,5 +1,6 @@
-package edu.rice.comp610.controller;
+package edu.rice.comp610.model;
 
+import edu.rice.comp610.controller.AppResponse;
 import edu.rice.comp610.model.Account;
 import edu.rice.comp610.store.DatabaseException;
 import edu.rice.comp610.store.DatabaseManager;

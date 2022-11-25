@@ -3,6 +3,7 @@ package edu.rice.comp610.controller;
 import edu.rice.comp610.model.Account;
 import edu.rice.comp610.model.Auction;
 import edu.rice.comp610.model.Bid;
+import edu.rice.comp610.model.BidManager;
 import edu.rice.comp610.store.DatabaseManager;
 import edu.rice.comp610.store.Query;
 import edu.rice.comp610.store.QueryManager;

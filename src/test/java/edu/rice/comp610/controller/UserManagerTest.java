@@ -1,6 +1,7 @@
 package edu.rice.comp610.controller;
 
 import edu.rice.comp610.model.Account;
+import edu.rice.comp610.model.UserManager;
 import edu.rice.comp610.store.DatabaseException;
 import edu.rice.comp610.store.DatabaseManager;
 import edu.rice.comp610.store.Query;
