@@ -1,4 +1,4 @@
-package edu.rice.comp610.store;
+package edu.rice.comp610.util;
 
 /**
  * Thrown when the requested user account is not found.

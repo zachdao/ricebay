@@ -1,5 +1,7 @@
 package edu.rice.comp610.store;
 
+import edu.rice.comp610.model.DatabaseManager;
+import edu.rice.comp610.model.QueryManager;
 import org.postgresql.util.PGmoney;
 
 import java.lang.reflect.InvocationTargetException;
@@ -12,7 +14,7 @@ import java.util.stream.Stream;
  * Generates SQL queries for use with the {@link DatabaseManager}.
  *
  */
-public class QueryManager {
+public class PostgresQueryManager implements QueryManager {
 
     private static final Set<String> IGNORE = Set.of("getClass");
 
@@ -109,7 +111,7 @@ public class QueryManager {
         return methodName.replaceAll("([A-Z])", "_$1").toLowerCase().substring(1);
     }
 
-    public QueryManager() {
+    public PostgresQueryManager() {
 
     }
 

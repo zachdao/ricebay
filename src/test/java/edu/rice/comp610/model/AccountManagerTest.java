@@ -1,13 +1,15 @@
-package edu.rice.comp610.controller;
+package edu.rice.comp610.model;
 
+import edu.rice.comp610.controller.Credentials;
 import edu.rice.comp610.model.Account;
-import edu.rice.comp610.model.UserManager;
-import edu.rice.comp610.store.DatabaseException;
-import edu.rice.comp610.store.DatabaseManager;
+import edu.rice.comp610.model.LocalAccountManager;
+import edu.rice.comp610.model.QueryManager;
+import edu.rice.comp610.store.PostgresQueryManager;
+import edu.rice.comp610.util.DatabaseException;
+import edu.rice.comp610.model.DatabaseManager;
 import edu.rice.comp610.store.Query;
-import edu.rice.comp610.store.QueryManager;
 import edu.rice.comp610.util.BadRequestException;
-import edu.rice.comp610.util.UnauthorizedException;
+import edu.rice.comp610.util.ObjectNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,18 +20,20 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class UserManagerTest {
+public class AccountManagerTest {
 
     Account BOBS_ACCOUNT = new Account();
     Account NEW_ACCOUNT = new Account();
 
-    QueryManager queryManager = new QueryManager();
+    QueryManager queryManager = mock(QueryManager.class);
     DatabaseManager databaseManager = mock(DatabaseManager.class);
 
-    UserManager userManager = new UserManager(queryManager, databaseManager);
+    LocalAccountManager accountManager = new LocalAccountManager(queryManager, databaseManager);
 
     @BeforeEach
     void setUp() throws DatabaseException {
+        when(queryManager.makeLoadQuery(any(), any()))
+                .thenReturn(new Query<>());
         // Default to returning an empty list
         when(databaseManager.loadObjects(any(Query.class), any(Object[].class)))
                 .thenReturn(List.of());
@@ -42,6 +46,8 @@ public class UserManagerTest {
 
         // password = "password'
         BOBS_ACCOUNT.setPassword("d5771df6c7dcd34d64717fa22158b161857195f46e3704df76f6045839aaccabed7cbc8ee824c4eef6c2012e4e9e2f5db4e29241de5eb928cd0ce14560c315bc$46db9e126d858b68392159a6beb4ac57");
+        when(databaseManager.loadObjects(any(Query.class), eq(BOBS_ACCOUNT.getId())))
+                .thenReturn(List.of(BOBS_ACCOUNT));
         when(databaseManager.loadObjects(any(Query.class), eq(BOBS_ACCOUNT.getEmail())))
                 .thenReturn(List.of(BOBS_ACCOUNT));
         when(databaseManager.loadObjects(any(Query.class), eq(BOBS_ACCOUNT.getAlias())))
@@ -57,63 +63,71 @@ public class UserManagerTest {
 
     @Test
     void validateLoginWithValidCredentials() throws DatabaseException {
-        try {
-            AppResponse<Account> response = userManager.validateLogin("bob123@rice.edu", "password");
-            assertTrue(response.isSuccess());
-            assertNotNull(response.getData());
-            verify(databaseManager).loadObjects(any(Query.class), eq(BOBS_ACCOUNT.getEmail()));
-        } catch (UnauthorizedException e) {
-            e.printStackTrace(System.err);
-            fail("validateLogin threw an exception when it shouldn't have");
-        }
+        Credentials creds = new Credentials();
+        creds.setEmail("bob123@rice.edu");
+        creds.setPassword("password");
+        boolean success = accountManager.validateLogin(creds);
+        assertTrue(success);
+        verify(databaseManager).loadObjects(any(Query.class), eq(BOBS_ACCOUNT.getEmail()));
     }
 
     @Test
     void validateLoginWithAutomaticFail() throws DatabaseException {
-        assertThrows(UnauthorizedException.class, () -> userManager.validateLogin("bob123@gmail.com", "password"));
+        Credentials creds = new Credentials();
+        creds.setEmail("bob123@gmail.edu");
+        creds.setPassword("password");
+        boolean success = accountManager.validateLogin(creds);
+        assertFalse(success);
         verify(databaseManager, never()).loadObjects(any(), any(), any());
     }
 
     @Test
     void validateLoginWithBadPasswordFails() throws DatabaseException {
-        assertThrows(UnauthorizedException.class, () -> userManager.validateLogin("bob123@rice.edu", "not bob's password"));
+        Credentials creds = new Credentials();
+        creds.setEmail("bob123@rice.edu");
+        creds.setPassword("not bob's password");
+        boolean success = accountManager.validateLogin(creds);
+        assertFalse(success);
         verify(databaseManager).loadObjects(any(Query.class), eq(BOBS_ACCOUNT.getEmail()));
     }
 
     @Test
     void validateLoginWithBadEmailFails() throws DatabaseException {
-
-        assertThrows(UnauthorizedException.class, () -> userManager.validateLogin("foobar@rice.edu", "password"));
+        Credentials creds = new Credentials();
+        creds.setEmail("foobar@rice.edu");
+        creds.setPassword("password");
+        boolean success = accountManager.validateLogin(creds);
+        assertFalse(success);
         verify(databaseManager).loadObjects(any(Query.class), eq("foobar@rice.edu"));
     }
 
     @Test
-    void retrieveAccountWithBlankAlias() throws DatabaseException {
-        assertNull(userManager.retrieveAccount("   "));
-        verify(databaseManager, never()).loadObjects(any(), any(), any());
+    void retrieveAccountWithUnknownUUID() throws DatabaseException {
+        UUID uuid = UUID.randomUUID();
+        assertThrows(ObjectNotFoundException.class, () -> accountManager.get(uuid));
+        verify(databaseManager).loadObjects(any(Query.class), eq(uuid));
     }
 
     @Test
-    void retrieveAccountWithUnknownAlias() throws DatabaseException {
-        assertNull(userManager.retrieveAccount("bobsyourfather"));
-        verify(databaseManager).loadObjects(any(Query.class), eq("bobsyourfather"));
+    void retrieveAccountWithKnownID() throws DatabaseException, ObjectNotFoundException {
+        Account account = accountManager.get(BOBS_ACCOUNT.getId());
+        assertNotNull(account);
+        verify(databaseManager).loadObjects(any(Query.class), eq(BOBS_ACCOUNT.getId()));
     }
 
     @Test
-    void retrieveAccountWithKnownAlias() throws DatabaseException {
-        AppResponse<Account> response = userManager.retrieveAccount("bobsyouruncle");
-        assertTrue(response.isSuccess());
-        assertNotNull(response.getData());
-        verify(databaseManager).loadObjects(any(Query.class), eq(BOBS_ACCOUNT.getAlias()));
+    void retrieveAccountWithKnownEmail() throws DatabaseException, ObjectNotFoundException {
+        Account account = accountManager.get(BOBS_ACCOUNT.getEmail());
+        assertNotNull(account);
+        verify(databaseManager).loadObjects(any(Query.class), eq(BOBS_ACCOUNT.getEmail()));
     }
 
     @Test
     void createsANewAccount() {
         try {
-            AppResponse<Account> response = userManager.saveAccount(NEW_ACCOUNT);
-            assertTrue(response.isSuccess());
-            assertNotNull(response.getData());
-        } catch (BadRequestException e) {
+            Account response = accountManager.save(NEW_ACCOUNT);
+            assertNotNull(response);
+        } catch (BadRequestException | DatabaseException e) {
             e.printStackTrace(System.err);
             fail("saveAccount failed validation when it shouldn't have");
         }
@@ -124,11 +138,14 @@ public class UserManagerTest {
         NEW_ACCOUNT.setGivenName("");
 
         try {
-            userManager.saveAccount(NEW_ACCOUNT);
+            accountManager.save(NEW_ACCOUNT);
             fail("saveAccount should have thrown an exception for an first name");
         } catch (BadRequestException badRequestException) {
             assertTrue(badRequestException.getRequestErrors().containsKey("firstName"));
             assertTrue(badRequestException.getRequestErrors().get("firstName").startsWith("Invalid Name:"));
+        } catch (DatabaseException e) {
+            e.printStackTrace(System.err);
+            fail("saveAccount failed validation in an unexpected way");
         }
     }
 
@@ -137,11 +154,14 @@ public class UserManagerTest {
         NEW_ACCOUNT.setSurname("");
 
         try {
-            userManager.saveAccount(NEW_ACCOUNT);
+            accountManager.save(NEW_ACCOUNT);
             fail("saveAccount should have thrown an exception for an invalid last name");
         } catch (BadRequestException badRequestException) {
             assertTrue(badRequestException.getRequestErrors().containsKey("lastName"));
             assertTrue(badRequestException.getRequestErrors().get("lastName").startsWith("Invalid Name:"));
+        } catch (DatabaseException e) {
+            e.printStackTrace(System.err);
+            fail("saveAccount failed validation in an unexpected way");
         }
     }
 
@@ -150,11 +170,14 @@ public class UserManagerTest {
         NEW_ACCOUNT.setEmail("foo@gmail.com");
 
         try {
-            userManager.saveAccount(NEW_ACCOUNT);
+            accountManager.save(NEW_ACCOUNT);
             fail("saveAccount should have thrown an exception for an invalid email");
         } catch (BadRequestException badRequestException) {
             assertTrue(badRequestException.getRequestErrors().containsKey("email"));
             assertTrue(badRequestException.getRequestErrors().get("email").startsWith("Invalid Email:"));
+        } catch (DatabaseException e) {
+            e.printStackTrace(System.err);
+            fail("saveAccount failed validation in an unexpected way");
         }
     }
 
@@ -163,11 +186,14 @@ public class UserManagerTest {
         NEW_ACCOUNT.setEmail(BOBS_ACCOUNT.getEmail());
 
         try {
-            userManager.saveAccount(NEW_ACCOUNT);
+            accountManager.save(NEW_ACCOUNT);
             fail("saveAccount should have thrown an exception for a duplicate email");
         } catch (BadRequestException badRequestException) {
             assertTrue(badRequestException.getRequestErrors().containsKey("email"));
             assertTrue(badRequestException.getRequestErrors().get("email").startsWith("Invalid Email:"));
+        } catch (DatabaseException e) {
+            e.printStackTrace(System.err);
+            fail("saveAccount failed validation in an unexpected way");
         }
     }
 
@@ -176,11 +202,14 @@ public class UserManagerTest {
         NEW_ACCOUNT.setAlias("a");
 
         try {
-            userManager.saveAccount(NEW_ACCOUNT);
+            accountManager.save(NEW_ACCOUNT);
             fail("saveAccount should have thrown an exception for an invalid alias");
         } catch (BadRequestException badRequestException) {
             assertTrue(badRequestException.getRequestErrors().containsKey("alias"));
             assertTrue(badRequestException.getRequestErrors().get("alias").startsWith("Invalid Alias:"));
+        } catch (DatabaseException e) {
+            e.printStackTrace(System.err);
+            fail("saveAccount failed validation in an unexpected way");
         }
     }
 
@@ -189,11 +218,14 @@ public class UserManagerTest {
         NEW_ACCOUNT.setAlias(BOBS_ACCOUNT.getAlias());
 
         try {
-            userManager.saveAccount(NEW_ACCOUNT);
+            accountManager.save(NEW_ACCOUNT);
             fail("saveAccount should have thrown an exception for a duplicate alias");
         } catch (BadRequestException badRequestException) {
             assertTrue(badRequestException.getRequestErrors().containsKey("alias"));
             assertTrue(badRequestException.getRequestErrors().get("alias").startsWith("Invalid Alias:"));
+        } catch (DatabaseException e) {
+            e.printStackTrace(System.err);
+            fail("saveAccount failed validation in an unexpected way");
         }
     }
 
@@ -202,11 +234,14 @@ public class UserManagerTest {
         NEW_ACCOUNT.setPassword("foo");
 
         try {
-            userManager.saveAccount(NEW_ACCOUNT);
+            accountManager.save(NEW_ACCOUNT);
             fail("saveAccount should have thrown an exception for an invalid password");
         } catch (BadRequestException badRequestException) {
             assertTrue(badRequestException.getRequestErrors().containsKey("password"));
             assertTrue(badRequestException.getRequestErrors().get("password").startsWith("Invalid Password:"));
+        } catch (DatabaseException e) {
+            e.printStackTrace(System.err);
+            fail("saveAccount failed validation in an unexpected way");
         }
     }
 }

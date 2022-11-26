@@ -1,4 +1,6 @@
-package edu.rice.comp610.store;
+package edu.rice.comp610.util;
+
+import edu.rice.comp610.model.DatabaseManager;
 
 /**
  * An Exception generated in the {@link DatabaseManager}

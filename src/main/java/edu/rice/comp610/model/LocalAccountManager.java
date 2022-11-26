@@ -1,12 +1,10 @@
 package edu.rice.comp610.model;
 
-import edu.rice.comp610.controller.AppResponse;
-import edu.rice.comp610.model.Account;
-import edu.rice.comp610.store.DatabaseException;
-import edu.rice.comp610.store.DatabaseManager;
-import edu.rice.comp610.store.Query;
-import edu.rice.comp610.store.QueryManager;
+import edu.rice.comp610.controller.AccountManager;
+import edu.rice.comp610.controller.Credentials;
+import edu.rice.comp610.util.DatabaseException;
 import edu.rice.comp610.util.BadRequestException;
+import edu.rice.comp610.util.ObjectNotFoundException;
 import edu.rice.comp610.util.UnauthorizedException;
 
 import javax.crypto.SecretKeyFactory;
@@ -21,14 +19,14 @@ import java.util.*;
 /**
  * Controller that handles incoming requests for creating, viewing and updating accounts in the RiceBay system.
  */
-public class UserManager {
+public class LocalAccountManager implements AccountManager {
 
     private static final String RICE_EMAIL_SUFFIX = "@rice.edu";
 
     private final QueryManager queryManager;
     DatabaseManager databaseManager;
 
-    public UserManager(QueryManager queryManager, DatabaseManager databaseManager) {
+    public LocalAccountManager(QueryManager queryManager, DatabaseManager databaseManager) {
         this.queryManager = queryManager;
         this.databaseManager = databaseManager;
     }
@@ -45,7 +43,7 @@ public class UserManager {
      * included in the response.
      * @see Account
      */
-    public AppResponse<Account> saveAccount(Account account) throws BadRequestException {
+    public Account save(Account account) throws BadRequestException, DatabaseException {
         // Validate the account is correct
         try {
             Map<String, String> validationErrors = validateAccount(account);
@@ -62,37 +60,45 @@ public class UserManager {
                 account.setPassword(hashPassword(account.getPassword()));
             }
 
-            Query<Account> accountQuery = queryManager.makeUpdateQuery(Account.class);
+            var accountQuery = queryManager.makeUpdateQuery(Account.class);
             databaseManager.saveObjects(accountQuery, account);
 
-            return new AppResponse<>(true, account, "OK");
-        } catch (NoSuchAlgorithmException | DatabaseException | InvalidKeySpecException e) {
+            return account;
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             e.printStackTrace();
-            return new AppResponse<>(false, null, "Internal Server Error: failed to create account");
+            throw new RuntimeException("Unable to proceed");
         }
     }
 
-    public AppResponse<Account> savePassword(String email, String currentPassword, String newPassword) throws BadRequestException, UnauthorizedException {
+    public void savePassword(Credentials credentials, String newPassword) throws BadRequestException, UnauthorizedException, DatabaseException {
         try {
-            Account account = validateLogin(email, currentPassword).getData();
+            boolean validCredentials = validateLogin(credentials);
+            if (!validCredentials) {
+                throw new UnauthorizedException();
+            }
+
+            var aliasQuery = queryManager.makeLoadQuery(Account.class, "email");
+            var accounts = databaseManager.loadObjects(aliasQuery, credentials.getEmail());
+            if (accounts.size() != 1) {
+                throw new UnauthorizedException();
+            }
+            var account = accounts.get(0);
             account.setLastPassword(account.getPassword());
             account.setPassword(hashPassword(newPassword));
 
             Map<String, String> validationErrors = validateAccount(account);
-            if (Objects.equals(currentPassword, newPassword)) {
+            if (Objects.equals(credentials.getPassword(), newPassword)) {
                 validationErrors.put("password", "Invalid Password: new password must be different from last password");
             }
             if (!validationErrors.isEmpty()) {
                 throw new BadRequestException("invalid_account_parameters", validationErrors);
             }
 
-            Query<Account> accountQuery = queryManager.makeUpdateQuery(Account.class);
+            var accountQuery = queryManager.makeUpdateQuery(Account.class);
             databaseManager.saveObjects(accountQuery, account);
-
-            return new AppResponse<>(true, account, "OK");
-        } catch (NoSuchAlgorithmException | DatabaseException | InvalidKeySpecException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             e.printStackTrace();
-            return new AppResponse<>(false, null, "Internal Server Error: failed to save password update");
+            throw new RuntimeException("Unable to proceed");
         }
     }
 
@@ -118,7 +124,7 @@ public class UserManager {
         errors.putAll(checkEmail(account.getEmail()));
 
         // Ensure unique email
-        Query<Account> emailQuery = queryManager.makeLoadQuery(Account.class, "email");
+        var emailQuery = queryManager.makeLoadQuery(Account.class, "email");
         List<Account> accountsByEmail = databaseManager.loadObjects(emailQuery, account.getEmail());
         if (accountsByEmail.size() > 0 && !accountsByEmail.get(0).getId().equals(account.getId())) {
             errors.put("email", "Invalid Email: email already in use");
@@ -130,7 +136,7 @@ public class UserManager {
         }
 
         // Ensure unique alias
-        Query<Account> aliasQuery = queryManager.makeLoadQuery(Account.class, "alias");
+        var aliasQuery = queryManager.makeLoadQuery(Account.class, "alias");
         List<Account> accountsByAlias = databaseManager.loadObjects(aliasQuery, account.getAlias());
         if (accountsByAlias.size() > 0 && !accountsByAlias.get(0).getId().equals(account.getId())) {
             errors.put("alias", "Invalid Alias: alias already in use");
@@ -138,7 +144,7 @@ public class UserManager {
 
         // Ensure password length
         if (!account.getPassword().isEmpty()) {
-            errors.putAll(checkPassword(account.getPassword(), account.getLastPassword()));
+            errors.putAll(checkPassword(account.getPassword()));
         }
 
         return errors;
@@ -153,7 +159,7 @@ public class UserManager {
         return errors;
     }
 
-    private Map<String, String> checkPassword(String password, String lastPassword) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    private Map<String, String> checkPassword(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
         HashMap<String, String> errors = new HashMap<>();
 
         // TODO: Potential expansion to include checking compromised passwords and other requirements
@@ -161,91 +167,61 @@ public class UserManager {
             errors.put("password", "Invalid Password: password must be at least four characters");
         }
 
-
         return errors;
     }
 
     /**
      * Retrieves information about a user account
      *
-     * @param alias the user's login name
+     * @param id the user's id
      * @return a response object containing the corresponding user account, or null if the account does not exist.
      */
-    public AppResponse<Account> retrieveAccount(String alias) throws DatabaseException {
-        // there must be characters in an alias
-        if (alias.isBlank()) {
-            return null;
+    public Account get(UUID id) throws DatabaseException, ObjectNotFoundException {
+        // find account by alias
+        var aliasQuery = queryManager.makeLoadQuery(Account.class, "id");
+        var accounts = databaseManager.loadObjects(aliasQuery, id);
+        // alias didn't match single account
+        if (accounts.size() != 1) {
+            throw new ObjectNotFoundException("Unable to find user");
         }
+        return accounts.get(0);
+    }
 
-        try {
-            // find account by alias
-            Query<Account> aliasQuery = queryManager.makeLoadQuery(Account.class, "alias");
-            var accounts = databaseManager.loadObjects(aliasQuery, alias);
-            // alias didn't match single account
-            if (accounts.size() != 1) {
-                return null;
-            }
-            return new AppResponse<>(true, accounts.get(0), "OK");
-        } catch (DatabaseException e) {
-            System.err.println("Caught an exception while trying to retrieve a user.");
-            e.printStackTrace();
-            throw e;
+    public Account get(String email) throws DatabaseException, ObjectNotFoundException {
+        // find account by alias
+        var aliasQuery = queryManager.makeLoadQuery(Account.class, "email");
+        var accounts = databaseManager.loadObjects(aliasQuery, email);
+        // alias didn't match single account
+        if (accounts.size() != 1) {
+            throw new ObjectNotFoundException("Unable to find user");
         }
+        return accounts.get(0);
     }
 
 
     /**
      * Given the alias (username), compare the password saved in the database and return a success or failure based on success of login
      *
-     * @param email the user's email
-     * @param password the user's password
+     * @param credentials the user's email and password
      * @return a response with the status of the login attempt; if an error occurred, the response will include an error
      * message.
-     * @throws UnauthorizedException if unable to validate credentials
      */
-    public AppResponse<Account> validateLogin(String email, String password) throws UnauthorizedException {
+    public boolean validateLogin(Credentials credentials) {
         try {
             // Throw out any requests that are automatically invalid
-            if (!checkEmail(email).isEmpty() || !checkPassword(password, "").isEmpty()) {
-                throw new UnauthorizedException();
-            }
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-            throw new UnauthorizedException();
-        }
-
-        try {
-            // Find the account by email
-            Query<Account> emailQuery = queryManager.makeLoadQuery(Account.class, "email");
-            var accounts = databaseManager.loadObjects(emailQuery, email);
-
-            // Email didn't match a single account
-            if (accounts.size() != 1) {
-                throw new UnauthorizedException();
+            if (!checkEmail(credentials.getEmail()).isEmpty() || !checkPassword(credentials.getPassword()).isEmpty()) {
+                return false;
             }
 
             // Credentials were not correct
-            if (!validatePassword(password, accounts.get(0).getPassword())) {
-                throw new UnauthorizedException();
-            }
-
-            return new AppResponse<>(true, accounts.get(0), "OK");
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException | DatabaseException e) {
-            System.err.println("Caught an exception while trying to authenticate a user. We'll throw an unauthorized error for safety.");
+            return validatePassword(credentials.getPassword(), this.get(credentials.getEmail()).getPassword());
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | DatabaseException | ObjectNotFoundException e) {
+            System.err.println("Caught an exception while trying to authenticate a user. We'll return false for safety.");
             e.printStackTrace();
-            throw new UnauthorizedException();
+            return false;
         }
 
     }
-
-
-    /**
-     * Given the alias (username), destroy the user session
-     *
-     * @param alias the user's account information.
-     * @return a response with the status of the session destruction; if an error occurred, the response will include an error
-     * message.
-     */
-    public AppResponse<Account> logout(String alias) {return new AppResponse<>(true, null, "OK");}
 
     /**
      * Given a user's password, return a string we can safely store in the DB

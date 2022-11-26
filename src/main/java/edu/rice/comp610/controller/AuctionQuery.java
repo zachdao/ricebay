@@ -1,7 +1,9 @@
-package edu.rice.comp610.store;
+package edu.rice.comp610.controller;
 
 import edu.rice.comp610.model.Auction;
+import edu.rice.comp610.store.AuctionSortField;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
@@ -13,6 +15,12 @@ public class AuctionQuery {
     private final Map<String, String[]> queryMap;
     private final AuctionSortField sortField;
     private final boolean sortAscending;
+
+    public AuctionQuery() {
+        this.queryMap = Collections.emptyMap();
+        this.sortField = AuctionSortField.TITLE;
+        this.sortAscending = true;
+    }
 
     public AuctionQuery(Map<String, String[]> queryMap, AuctionSortField sortField, boolean sortAscending) {
         this.queryMap = queryMap;

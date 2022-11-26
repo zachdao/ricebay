@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 class PostgresDatabaseManagerTest {
     private static PostgresDatabaseManager databaseManager;
-    private final QueryManager queryManager = new QueryManager();
+    private final PostgresQueryManager queryManager = new PostgresQueryManager();
 
     private static final UUID AUCTION_ID = UUID.randomUUID();
 
