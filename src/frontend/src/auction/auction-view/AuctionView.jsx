@@ -1,5 +1,12 @@
 import React, { useCallback } from 'react';
-import { Flex, Grid, Heading, ProgressBar, Text } from '@adobe/react-spectrum';
+import {
+    Flex,
+    Grid,
+    Heading,
+    ProgressBar,
+    Text,
+    View,
+} from '@adobe/react-spectrum';
 import { usePostWithToast } from '../../http-query/use-post-with-toast';
 import { Bid } from './bid/Bid';
 import { StarRating } from '../../star-rating/StarRating';
@@ -9,8 +16,8 @@ import { DateTime, Interval } from 'luxon';
 import { ImagePlaceholder } from '../../image-placeholder/ImagePlaceholder';
 
 export const AuctionView = ({ auction, refresh }) => {
-    const startDate = DateTime.fromISO(auction.startDate);
-    const endDate = DateTime.fromISO(auction.endDate);
+    const startDate = DateTime.fromFormat(auction.startDate, 'DD');
+    const endDate = DateTime.fromFormat(auction.endDate, 'DD');
 
     // Handle bad calls to make the bid, Handle bad calls to increase max bid
     const makeBid = usePostWithToast(
@@ -30,6 +37,20 @@ export const AuctionView = ({ auction, refresh }) => {
         ).length();
         return (amount / total) * 100;
     }, [auction]);
+
+    const getCatSpan = (count) => {
+        if (count < 3) {
+            return 1;
+        } else if (count < 6) {
+            return 2;
+        } else if (count < 9) {
+            return 3;
+        } else if (count < 12) {
+            return 4;
+        }
+        // Jump two here for extra padding on long lists
+        return 6;
+    };
 
     // Render data if found
     return (
@@ -68,7 +89,9 @@ export const AuctionView = ({ auction, refresh }) => {
                     rowGap="size-100"
                 >
                     <FancyLabel>Current Bid</FancyLabel>
-                    <Text>{auction.currentBid || auction.minimumBid}</Text>
+                    <Text>
+                        ${(auction.currentBid || auction.minimumBid).toFixed(2)}
+                    </Text>
                     <FancyLabel>Status</FancyLabel>
                     <ProgressBar
                         label="Time Remaining"
@@ -84,7 +107,11 @@ export const AuctionView = ({ auction, refresh }) => {
                         justifyContent="start"
                     />
                     <FancyLabel>Categories</FancyLabel>
-                    <Text>
+                    <Text
+                        gridRow={`span ${getCatSpan(
+                            auction.categories.length,
+                        )}`}
+                    >
                         <CategoryTagGroup categories={auction.categories} />
                     </Text>
                     <Bid
