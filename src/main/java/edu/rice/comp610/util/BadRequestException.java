@@ -1,9 +1,15 @@
 package edu.rice.comp610.util;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class BadRequestException extends Exception{
     private final Map<String, String> requestErrors;
+
+    public BadRequestException(String message) {
+        super(message);
+        this.requestErrors = new HashMap<>();
+    }
 
     public BadRequestException(String message, Map<String, String> requestErrors) {
         super(message);

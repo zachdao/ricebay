@@ -1,5 +1,8 @@
 package edu.rice.comp610.store;
 
+import edu.rice.comp610.model.DatabaseManager;
+import edu.rice.comp610.util.DatabaseException;
+
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.util.ArrayList;
@@ -10,11 +13,28 @@ import java.util.Properties;
  * Manages loading and storing data in the database.
  */
 public class PostgresDatabaseManager implements DatabaseManager {
+    private static PostgresDatabaseManager dbManager = null;
+
+    public static void initialize(String jdbcUrl, Properties properties) {
+        if (dbManager == null) {
+            dbManager = new PostgresDatabaseManager(jdbcUrl, properties);
+        }
+    }
+
+    public static void initialize(Properties properties) {
+        if (dbManager == null) {
+            dbManager = new PostgresDatabaseManager(properties);
+        }
+    }
+
+    public static PostgresDatabaseManager getInstance() {
+        return dbManager;
+    }
 
     private final String jdbcUrl;
     private final Properties jdbcProperties;
 
-    public PostgresDatabaseManager(String jdbcUrl, Properties jdbcProperties) {
+    private PostgresDatabaseManager(String jdbcUrl, Properties jdbcProperties) {
         this.jdbcUrl = jdbcUrl;
         this.jdbcProperties = jdbcProperties;
     }
@@ -23,7 +43,7 @@ public class PostgresDatabaseManager implements DatabaseManager {
      * Constructor that loads configuration from properties.
      * @param properties
      */
-    public PostgresDatabaseManager(Properties properties) {
+    private PostgresDatabaseManager(Properties properties) {
         boolean useEnvVarAsValue = Boolean.parseBoolean(properties.getProperty("ricebay.env", "false"));
         String jdbcUrl = properties.getProperty("ricebay.jdbc.url");
         String jdbcUser = properties.getProperty("ricebay.jdbc.user");
@@ -58,7 +78,7 @@ public class PostgresDatabaseManager implements DatabaseManager {
                     T model = query.newModel();
                     for (int columnIndex = 1; columnIndex <= metadata.getColumnCount(); columnIndex++) {
                         String name = metadata.getColumnName(columnIndex);
-                        QueryManager.Accessors accessors = query.accessorForColumn(name);
+                        PostgresQueryManager.Accessors accessors = query.accessorForColumn(name);
                         Object arg = results.getObject(columnIndex);
                         try {
                             accessors.invokeSetter(model, arg);
@@ -72,6 +92,7 @@ public class PostgresDatabaseManager implements DatabaseManager {
             }
         } catch (SQLException | NoSuchMethodException | IllegalAccessException | InstantiationException |
                  InvocationTargetException e) {
+            e.printStackTrace();
             throw new DatabaseException(e);
         }
         return resultList;
@@ -123,6 +144,7 @@ public class PostgresDatabaseManager implements DatabaseManager {
                 }
             }
         } catch (SQLException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
             throw new DatabaseException(e);
         }
     }

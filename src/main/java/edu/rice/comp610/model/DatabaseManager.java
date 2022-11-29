@@ -1,4 +1,7 @@
-package edu.rice.comp610.store;
+package edu.rice.comp610.model;
+
+import edu.rice.comp610.util.DatabaseException;
+import edu.rice.comp610.store.Query;
 
 import java.util.List;
 

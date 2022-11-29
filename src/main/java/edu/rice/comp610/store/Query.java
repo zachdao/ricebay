@@ -1,7 +1,6 @@
 package edu.rice.comp610.store;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +16,15 @@ public class Query<T> {
     private final String sql;
     private final List<String> params;
     private final List<Object[]> values;
-    final Map<String, QueryManager.Accessors> accessorsMap;
+    final Map<String, PostgresQueryManager.Accessors> accessorsMap;
+
+    public Query() {
+        this.modelClass = null;
+        this.sql = null;
+        this.params = null;
+        this.values = null;
+        this.accessorsMap = null;
+    }
 
     /**
      *
@@ -26,7 +33,7 @@ public class Query<T> {
      * @param params the field names of the model class that are used as the parameters for the SQL statement.
      */
     public Query(Class<T> modelClass, String sql, List<String> params, List<Object[]> values,
-                 Map<String, QueryManager.Accessors> accessorsMap) {
+                 Map<String, PostgresQueryManager.Accessors> accessorsMap) {
         this.modelClass = modelClass;
         this.sql = sql;
         this.params = params;
@@ -34,10 +41,10 @@ public class Query<T> {
         this.accessorsMap = accessorsMap;
     }
 
-    public Query(Class<T> modelClass, String sql, String[] params, Map<String, QueryManager.Accessors> accessorsMap) {
+    public Query(Class<T> modelClass, String sql, String[] params, Map<String, PostgresQueryManager.Accessors> accessorsMap) {
         this(modelClass, sql, Arrays.asList(params), List.of(), accessorsMap);
     }
-    public Query(Class<T> modelClass, String sql, List<String> params, Map<String, QueryManager.Accessors> accessorsMap) {
+    public Query(Class<T> modelClass, String sql, List<String> params, Map<String, PostgresQueryManager.Accessors> accessorsMap) {
         this(modelClass, sql, params, List.of(), accessorsMap);
     }
 
@@ -50,7 +57,7 @@ public class Query<T> {
         return modelClass.getDeclaredConstructor().newInstance();
     }
 
-    public QueryManager.Accessors accessorForColumn(String name) {
+    public PostgresQueryManager.Accessors accessorForColumn(String name) {
         return accessorsMap.get(name);
     }
 }

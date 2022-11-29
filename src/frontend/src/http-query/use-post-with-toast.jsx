@@ -19,7 +19,7 @@ export const usePostWithToast = (
         }
         axios
             .post(url, postBody)
-            .then(() => {
+            .then((response) => {
                 toast.custom((t) => (
                     <Toast
                         type="positive"
@@ -29,7 +29,7 @@ export const usePostWithToast = (
                         dismissFn={() => toast.remove(t.id)}
                     />
                 ));
-                onSuccess && onSuccess(body.data);
+                onSuccess && onSuccess(response.data);
             })
             .catch((axiosError) => {
                 toast.custom((t) => (

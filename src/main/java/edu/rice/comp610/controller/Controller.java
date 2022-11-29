@@ -1,9 +1,7 @@
 package edu.rice.comp610.controller;
 
 import com.google.gson.Gson;
-import edu.rice.comp610.model.Account;
-import edu.rice.comp610.model.Auction;
-import edu.rice.comp610.model.Category;
+import edu.rice.comp610.model.*;
 import edu.rice.comp610.store.*;
 import edu.rice.comp610.util.*;
 import spark.Filter;
@@ -44,12 +42,18 @@ public class Controller {
         IUtil util = Util.getInstance();
 
         Properties properties = PropertiesLoader.loadProperties();
+        PostgresDatabaseManager.initialize(properties);
 
-        // TODO Instantiate the app's model
-        final QueryManager queryManager = new QueryManager();
-        final DatabaseManager databaseManager = new PostgresDatabaseManager(properties);
-        final UserManager userManager = new UserManager(queryManager, databaseManager);
-        final AuctionManager auctionManager = new AuctionManager(queryManager, databaseManager);
+        final QueryManager queryManager = new PostgresQueryManager();
+        final DatabaseManager databaseManager = PostgresDatabaseManager.getInstance();
+
+        final AccountManager accountManager = new LocalAccountManager(queryManager, databaseManager);
+
+        final AccountAdapter accountAdapter = new AccountAdapter(accountManager);
+        final AuctionAdapter auctionAdapter = new AuctionAdapter(accountManager,
+                new StandardAuctionManager(queryManager, databaseManager),
+                new SellerRatingManager(queryManager, databaseManager),
+                new StandardBidManager(queryManager, databaseManager));
 
 
         Filter authenticatedMiddleware = (request, response) -> {
@@ -61,88 +65,123 @@ public class Controller {
             }
         };
 
+        before("/accounts", authenticatedMiddleware);
         before("/accounts/*", authenticatedMiddleware);
-        before("/auctions*", authenticatedMiddleware);
-
         // USER/ACCOUNT ENDPOINTS ------------------------------------------------------------
         path("/accounts", () -> {
             post("", (request, response) -> {
-                AppResponse<Account> appResponse=userManager.saveAccount(gson.fromJson(request.body(), Account.class));
-                request.session(true);
-                request.session().attribute("user", appResponse.getData());
+                var accountDetails = gson.fromJson(request.body(), ViewAccount.class);
+                var credentials = gson.fromJson(request.body(), Credentials.class);
+                var appResponse = accountAdapter.register(accountDetails, credentials);
+                response.status(appResponse.getStatus());
+                if (appResponse.isSuccess()) {
+                    request.session(true);
+                    request.session().attribute("user", accountAdapter.me(credentials.getEmail()).getData());
+                }
                 return gson.toJson(appResponse);
             });
 
             post("/login", (request, response) -> {
-                var credentials = util.getJsonParser().parse(request.body());
-                var email = credentials.getAsJsonObject().get("email").getAsString();
-                var password = credentials.getAsJsonObject().get("password").getAsString();
-
-                AppResponse<Account> appResponse = userManager.validateLogin(email, password);
-                request.session(true);
-                request.session().attribute("user", appResponse.getData());
+                var credentials = gson.fromJson(request.body(), Credentials.class);
+                var appResponse = accountAdapter.login(credentials);
+                response.status(appResponse.getStatus());
+                if (appResponse.isSuccess()) {
+                    request.session(true);
+                    request.session().attribute("user", accountAdapter.me(credentials.getEmail()).getData());
+                }
                 return gson.toJson(appResponse);
             });
 
             post("/logout", (request, response) -> {
                 request.session().invalidate();
-                return gson.toJson(new AppResponse<Object>(true, null, "logout"));
+                return gson.toJson(new AppResponse<>(200, true, null, "logout"));
             });
 
             get("/me", (request, response) -> {
-                Account loggedInAccount = request.session().attribute("user");
-                return gson.toJson(userManager.retrieveAccount(loggedInAccount.getAlias()));
+                ViewAccount loggedInAccount = request.session().attribute("user");
+                var appResponse = accountAdapter.me(loggedInAccount.getEmail());
+                response.status(appResponse.getStatus());
+                return gson.toJson(appResponse);
             });
 
             post("/:id", (request, response) -> {
-                Account loggedInAccount = request.session().attribute("user");
-                if (!Objects.equals(loggedInAccount.getId().toString(), request.params("id"))) {
+                ViewAccount loggedInAccount = request.session().attribute("user");
+                ViewAccount account = gson.fromJson(request.body(), ViewAccount.class);
+                if (!Objects.equals(loggedInAccount.getId().toString(), request.params("id")) || !Objects.equals(account.getId().toString(), request.params("id"))) {
                     throw new UnauthorizedException();
                 }
-                return gson.toJson(userManager.saveAccount(gson.fromJson(request.body(), Account.class)));
+                var appResponse = accountAdapter.update(account);
+                response.status(appResponse.getStatus());
+                return gson.toJson(appResponse);
             });
 
             post("/:id/password", (request, response) -> {
-                Account loggedInAccount = request.session().attribute("user");
+                ViewAccount loggedInAccount = request.session().attribute("user");
                 if (!Objects.equals(loggedInAccount.getId().toString(), request.params("id"))) {
                     throw new UnauthorizedException();
                 }
-                var credentials = util.getJsonParser().parse(request.body());
-                var currentPassword = credentials.getAsJsonObject().get("currentPassword").getAsString();
-                var newPassword = credentials.getAsJsonObject().get("newPassword").getAsString();
-                return gson.toJson(userManager.savePassword(loggedInAccount.getEmail(), currentPassword, newPassword));
+                var credentials = gson.fromJson(request.body(), Credentials.class);
+                var jsonBody = util.getJsonParser().parse(request.body());
+                var newPassword = jsonBody.getAsJsonObject().get("newPassword").getAsString();
+                var appResponse = accountAdapter.updatePassword(credentials, newPassword);
+                response.status(appResponse.getStatus());
+                return gson.toJson(appResponse);
             });
         });
 
+        before("/auctions", authenticatedMiddleware);
+        before("/auctions/*", authenticatedMiddleware);
         // AUCTION ENDPOINTS -----------------------------------------------------------------
         path("/auctions", () -> {
-            post("", ((request, response) ->
-                    gson.toJson(auctionManager.createAuction(gson.fromJson(request.body(), Auction.class))))
-            );
-            get("/search", ((request, response) -> gson.toJson(auctionManager.search(new AuctionQuery(request.queryMap().toMap(),
-                    AuctionSortField.valueOf(request.params().getOrDefault("sortField", String.valueOf(AuctionSortField.END_DATE))),
-                    Boolean.parseBoolean(request.params().getOrDefault("sortAscending", "true")))))));
-            get("/:id", ((request, response) ->
-                    gson.toJson(auctionManager.loadAuction(UUID.fromString(request.params("id")))))
-            );
-            // TODO: Only allow owner's to update their auctions
-            put("/:id", ((request, response) ->
-                    gson.toJson(auctionManager.updateAuction(gson.fromJson(request.body(), Auction.class))))
-            );
+            post("", ((request, response) -> {
+                ViewAccount loggedInAccount = request.session().attribute("user");
+                ViewAuction viewAuction = gson.fromJson(request.body(), ViewAuction.class);
+                var appResponse = auctionAdapter.create(viewAuction, loggedInAccount.getId());
+                response.status(appResponse.getStatus());
+                return gson.toJson(appResponse);
+            }));
+            get("/search", ((request, response) -> {
+                var query = new AuctionQuery(request.queryMap().toMap(),
+                        AuctionSortField.valueOf(request.params().getOrDefault("sortField", String.valueOf(AuctionSortField.END_DATE))),
+                        Boolean.parseBoolean(request.params().getOrDefault("sortAscending", "true")));
+                var appResponse = auctionAdapter.search(query);
+                response.status(appResponse.getStatus());
+                return gson.toJson(appResponse);
+            }));
+            get("/:id", ((request, response) -> {
+                ViewAccount loggedInAccount = request.session().attribute("user");
+                var appResponse = auctionAdapter.get(UUID.fromString(request.params("id")), loggedInAccount.getId());
+                response.status(appResponse.getStatus());
+                return gson.toJson(appResponse);
+            }));
+            put("/:id", ((request, response) -> {
+                ViewAccount loggedInAccount = request.session().attribute("user");
+                ViewAuction viewAuction = gson.fromJson(request.body(), ViewAuction.class);
+                var appResponse = auctionAdapter.update(viewAuction, loggedInAccount.getId());
+                response.status(appResponse.getStatus());
+                return gson.toJson(appResponse);
+            }));
+
+            // BID ENDPOINTS -----------------------------------------------------------------
+            post("/:id/placeBid", (((request, response) -> {
+                ViewAccount loggedInAccount = request.session().attribute("user");
+                ViewBid bid = gson.fromJson(request.body(), ViewBid.class);
+                UUID auctionId = UUID.fromString(request.params("id"));
+                var appResponse = auctionAdapter.placeBid(loggedInAccount.getId(), auctionId, bid.getBid(), bid.getMaxBid());
+                response.status(appResponse.getStatus());
+                return gson.toJson(appResponse);
+            })));
+
+            // TODO: Update bid endpoint
+
         });
 
-        // BID ENDPOINTS -----------------------------------------------------------------
-        // TODO: create and implement the bid endpoints
-
-        // CATEGORY ENDPOINT
-        // TODO: add an endpoint to get a list of all available categories and their ids
-        // Have this reside in the auction manager
- //       path("/categories", () -> {
- //           post("", ((request, response) ->
- //                   gson.toJson(CategoryManager.createCategory(gson.fromJson(request.body(), Category.class))))
- //           );
- //           get("/list", ((request, response) -> gson.toJson(CategoryManager.load(new Query(request.params().getOrDefault("query", ""))))));
- //       });
+        // CATEGORY ENDPOINT -----------------------------------------------------------------
+        get("/categories", (((request, response) -> {
+            var appResponse = auctionAdapter.allCategories();
+            response.status(appResponse.getStatus());
+            return gson.toJson(appResponse);
+        })));
 
         // A redirect to our SPA if it isn't a route we recognize
         get("*", (req, res) -> {
@@ -158,12 +197,6 @@ public class Controller {
                 res.status(404);
                 res.type("application/json");
                 return "not supported";
-            }
-        });
-
-        after((request, response) -> {
-            if (response.status() == 200 && response.body() != null && response.body().contains("\"success\":false")) {
-                response.status(500);
             }
         });
 

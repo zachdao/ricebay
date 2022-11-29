@@ -8,13 +8,13 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class QueryManagerTest {
+class PostgresQueryManagerTest {
 
-    private final QueryManager queryManager = new QueryManager();
+    private final PostgresQueryManager queryManager = new PostgresQueryManager();
 
     @Test
     void makeColumnsToAccessorsMap() {
-        var map = QueryManager.makeColumnsToAccessorsMap(Auction.class);
+        var map = PostgresQueryManager.makeColumnsToAccessorsMap(Auction.class);
         assertNotNull(map);
         assertEquals(map.keySet(), Set.of(
                 "bid_increment", "category_ids", "description", "end_date", "id", "minimum_bid", "owner_id",

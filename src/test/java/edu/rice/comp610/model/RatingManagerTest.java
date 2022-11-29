@@ -1,14 +1,12 @@
-package edu.rice.comp610.controller;
+package edu.rice.comp610.model;
 
 
-import edu.rice.comp610.model.Account;
-import edu.rice.comp610.model.Rating;
-import edu.rice.comp610.store.DatabaseManager;
+import edu.rice.comp610.model.*;
 import edu.rice.comp610.store.Query;
-import edu.rice.comp610.store.QueryManager;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,12 +18,10 @@ import static org.mockito.Mockito.*;
 
 
 public class RatingManagerTest {
-    Rating rating = mock(Rating.class);
 
-    Account account = mock(Account.class);
     DatabaseManager databaseManager = mock(DatabaseManager.class);
-    private final QueryManager queryManager = new QueryManager();
-    RatingManager ratingManager = new RatingManager(rating, queryManager, databaseManager);
+    QueryManager queryManager = mock(QueryManager.class);
+    SellerRatingManager ratingManager = new SellerRatingManager(queryManager, databaseManager);
 
     private static final Rating RATING1 = new Rating();
     {
@@ -41,29 +37,22 @@ public class RatingManagerTest {
         RATING2 .setSellerId(UUID.randomUUID());
     }
 
+    @BeforeEach
+    void setUp() {
+        when(queryManager.makeLoadQuery(any(), any()))
+                .thenReturn(new Query<>());
+    }
 
     @Test
-    void getAverageUserRatingTest(){
-        List<Rating> ratingList = new ArrayList<>();
-        ratingList.add(0, RATING1);
-        ratingList.add(1,RATING2);
-
-        Double result = ratingManager.getAverageUserRating(ratingList);
+    void getRatingTest() throws Exception {
+        when(databaseManager.loadObjects(any(Query.class), eq(RATING1.getSellerId())))
+                .thenReturn(List.of(RATING1, RATING2));
+        Double result = ratingManager.getRating(RATING1.getSellerId());
 
         assertEquals(4.5, result);
     }
 
-    @Test
-    void retrieveUserRatingTest() throws Exception{
-        RatingManager RatingManagerTest = new RatingManager(RATING1, queryManager, databaseManager);
-
-        when(databaseManager.loadObjects(any(Query.class), eq(RATING1.getSellerId())))
-                .thenReturn(List.of(RATING1));
-
-        AppResponse<Double> response = RatingManagerTest.retrieveUserRating(RATING1);
-        assertEquals(5.0, response.getData());
-    }
-
+    @Disabled
     @Test
     void updateUserRatingTest() {
         // Needs to upgrade query manager for Rating table since PK is (buyer_id, seller_id)

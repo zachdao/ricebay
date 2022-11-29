@@ -20,29 +20,39 @@ import {
     getLocalTimeZone,
     today,
     parseDateTime,
+    parseDate,
+    CalendarDate,
 } from '@internationalized/date';
 import { usePostWithToast } from '../../http-query/use-post-with-toast';
 import Alert from '@spectrum-icons/workflow/Alert';
 import { useNavigate } from 'react-router-dom';
-import { SearchContext } from '../../search.context';
 import { CategoriesContext } from '../../categories.context';
 
 export const EditAuction = ({ auction }) => {
     // Set up text field data
     const [image, setImage] = useState(auction?.images?.[0] || '');
     const [title, setTitle] = useState(auction?.title || '');
-    const categoryOptions = useContext(CategoriesContext);
     const [startingBid, setStartingBid] = useState(auction?.minimumBid || 1);
     const [bidIncrement, setBidIncrement] = useState(
         auction?.bidIncrement || undefined,
     );
     const [description, setDescription] = useState(auction?.description || '');
+    const startDate = auction?.startDate && new Date(auction.startDate);
+    const endDate = auction?.endDate && new Date(auction.endDate);
     let [range, setRange] = React.useState({
         start: auction?.startDate
-            ? parseDateTime(auction.startDate)
+            ? new CalendarDate(
+                  startDate.getFullYear(),
+                  startDate.getMonth(),
+                  startDate.getDate(),
+              )
             : today(getLocalTimeZone()),
         end: auction?.endDate
-            ? parseDateTime(auction.endDate)
+            ? new CalendarDate(
+                  endDate.getFullYear(),
+                  endDate.getMonth(),
+                  endDate.getDate(),
+              )
             : today(getLocalTimeZone()).add({ weeks: 1 }),
     });
     const [categories, setCategories] = useState(
@@ -51,9 +61,7 @@ export const EditAuction = ({ auction }) => {
     const [error, setError] = useState({});
     const navigate = useNavigate();
 
-    // Set up category choice data
-    // TODO: Replace with a useContext for the category list
-    const allCategories = [];
+    const categoryOptions = useContext(CategoriesContext);
 
     const undo = usePostWithToast(
         `/auctions/${auction?.id}`,
@@ -69,11 +77,11 @@ export const EditAuction = ({ auction }) => {
             ...auction,
             title,
             image,
-            startingBid,
+            minimumBid: startingBid,
             bidIncrement,
             startDate: range.start.toString(),
             endDate: range.end.toString(),
-            categoryIds: allCategories
+            categoryIds: categoryOptions
                 .filter((cat) => categories.has(cat.name))
                 .map((cat) => cat.id),
             description,
@@ -93,7 +101,8 @@ export const EditAuction = ({ auction }) => {
             actionFn: auction && undo,
         },
         { message: 'Failed to save auction!' },
-        null,
+        (appResponse) =>
+            !auction && navigate(`/auction/${appResponse.data}/edit`),
         (axiosError) => setError(axiosError?.response?.data),
     );
 

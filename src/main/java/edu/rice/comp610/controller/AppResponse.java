@@ -12,6 +12,7 @@ import java.util.Objects;
  * @param <T> the type of the response data.
  */
 public class AppResponse<T> {
+    private final int status;
     private final boolean success;
     private final T data;
     private final String message;
@@ -19,14 +20,20 @@ public class AppResponse<T> {
     /**
      * Create a new response.
      *
+     * @param status HTTP status code to return
      * @param success true if the response indicates success
      * @param data the result if there is any, null otherwise
      * @param message an error message if success is false
      */
-    public AppResponse(boolean success, T data, String message) {
+    public AppResponse(int status, boolean success, T data, String message) {
+        this.status = status;
         this.success = success;
         this.data = data;
         this.message = message;
+    }
+
+    public int getStatus() {
+        return status;
     }
 
     public boolean isSuccess() {
