@@ -17,10 +17,9 @@ import { useNavigate } from 'react-router-dom';
 import { Popover } from '../../popover/Popover';
 import { usePostWithToast } from '../../http-query/use-post-with-toast';
 import JumpToTop from '@spectrum-icons/workflow/JumpToTop';
-import axios from "axios";
-import ArrowLeft from "@spectrum-icons/workflow/ArrowLeft";
+import ArrowLeft from '@spectrum-icons/workflow/ArrowLeft';
 
-export const AccountEdit = ({ account }) => {
+export const AccountEdit = ({ account, refresh }) => {
     const [givenName, setGivenName] = useState(account.givenName || '');
     const [surname, setSurname] = useState(account.surname || '');
     const [alias, setAlias] = useState(account.alias || '');
@@ -46,6 +45,7 @@ export const AccountEdit = ({ account }) => {
             setEmail(appResponse.data.email);
             setZelleId(appResponse.data.zelleId);
             setError({});
+            refresh();
         },
         (axiosError) => setError(axiosError?.response?.data || {}),
     );
@@ -70,7 +70,7 @@ export const AccountEdit = ({ account }) => {
             },
         },
         { message: 'Failed to save account' },
-        null,
+        refresh,
         (axiosError) => setError(axiosError?.response?.data || {}),
     );
 
