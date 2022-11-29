@@ -64,7 +64,8 @@ class PostgresDatabaseManagerTest {
         Properties props = new Properties();
         props.setProperty("user", container.getUsername());
         props.setProperty("password", container.getPassword());
-        databaseManager = new PostgresDatabaseManager(container.getJdbcUrl(), props);
+        PostgresDatabaseManager.initialize(container.getJdbcUrl(), props);
+        databaseManager = PostgresDatabaseManager.getInstance();
     }
 
     @AfterAll

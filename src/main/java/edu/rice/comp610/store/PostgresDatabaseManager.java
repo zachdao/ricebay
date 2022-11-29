@@ -13,11 +13,28 @@ import java.util.Properties;
  * Manages loading and storing data in the database.
  */
 public class PostgresDatabaseManager implements DatabaseManager {
+    private static PostgresDatabaseManager dbManager = null;
+
+    public static void initialize(String jdbcUrl, Properties properties) {
+        if (dbManager == null) {
+            dbManager = new PostgresDatabaseManager(jdbcUrl, properties);
+        }
+    }
+
+    public static void initialize(Properties properties) {
+        if (dbManager == null) {
+            dbManager = new PostgresDatabaseManager(properties);
+        }
+    }
+
+    public static PostgresDatabaseManager getInstance() {
+        return dbManager;
+    }
 
     private final String jdbcUrl;
     private final Properties jdbcProperties;
 
-    public PostgresDatabaseManager(String jdbcUrl, Properties jdbcProperties) {
+    private PostgresDatabaseManager(String jdbcUrl, Properties jdbcProperties) {
         this.jdbcUrl = jdbcUrl;
         this.jdbcProperties = jdbcProperties;
     }
@@ -26,7 +43,7 @@ public class PostgresDatabaseManager implements DatabaseManager {
      * Constructor that loads configuration from properties.
      * @param properties
      */
-    public PostgresDatabaseManager(Properties properties) {
+    private PostgresDatabaseManager(Properties properties) {
         boolean useEnvVarAsValue = Boolean.parseBoolean(properties.getProperty("ricebay.env", "false"));
         String jdbcUrl = properties.getProperty("ricebay.jdbc.url");
         String jdbcUser = properties.getProperty("ricebay.jdbc.user");

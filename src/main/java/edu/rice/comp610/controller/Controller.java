@@ -42,9 +42,10 @@ public class Controller {
         IUtil util = Util.getInstance();
 
         Properties properties = PropertiesLoader.loadProperties();
+        PostgresDatabaseManager.initialize(properties);
 
         final QueryManager queryManager = new PostgresQueryManager();
-        final DatabaseManager databaseManager = new PostgresDatabaseManager(properties);
+        final DatabaseManager databaseManager = PostgresDatabaseManager.getInstance();
 
         final AccountManager accountManager = new LocalAccountManager(queryManager, databaseManager);
 
@@ -162,7 +163,7 @@ public class Controller {
             }));
 
             // BID ENDPOINTS -----------------------------------------------------------------
-            put("/:id/placeBid", (((request, response) -> {
+            post("/:id/placeBid", (((request, response) -> {
                 ViewAccount loggedInAccount = request.session().attribute("user");
                 ViewBid bid = gson.fromJson(request.body(), ViewBid.class);
                 UUID auctionId = UUID.fromString(request.params("id"));
