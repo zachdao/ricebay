@@ -70,7 +70,7 @@ def generate(base_path):
         return
 
     with open(os.path.join(base_path, migration_file), 'w') as f:
-        f.write(f"""from database.migration import migration
+        f.write(f"""from migration import migration
 
 
 @migration(order={len(migration_files) + 1})
