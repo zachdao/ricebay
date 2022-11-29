@@ -162,6 +162,7 @@ public class AuctionAdapter {
             // Check that the auction exists
             var auction = this.auctionManager.get(auctionId);
             var newBid = new Bid();
+            newBid.setId(UUID.randomUUID());
             newBid.setOwnerId(bidderId);
             newBid.setAmount(bid);
             newBid.setTimestamp(new Date());

@@ -21,7 +21,7 @@ export const AuctionView = ({ auction, refresh }) => {
 
     // Handle bad calls to make the bid, Handle bad calls to increase max bid
     const makeBid = usePostWithToast(
-        `/auction/${auction.id}/bid`,
+        `/auctions/${auction.id}/placeBid`,
         null,
         [auction],
         { message: 'Bid placed!' },

@@ -1,5 +1,9 @@
 package edu.rice.comp610.model;
 
+import edu.rice.comp610.store.PrimaryKey;
+import edu.rice.comp610.store.SqlType;
+import org.postgresql.util.PGmoney;
+
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
@@ -17,6 +21,7 @@ public class Bid {
     private UUID ownerId;
     private UUID auctionId;
 
+    @PrimaryKey
     public UUID getId() {
         return id;
     }
@@ -33,6 +38,7 @@ public class Bid {
         this.timestamp = timestamp;
     }
 
+    @SqlType(PGmoney.class)
     public Double getAmount() {
         return amount;
     }
