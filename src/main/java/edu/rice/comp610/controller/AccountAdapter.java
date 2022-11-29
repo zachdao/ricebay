@@ -46,7 +46,7 @@ public class AccountAdapter {
             if (!viewAccount.getZelleId().isEmpty()) {
                 account.setZelleId(viewAccount.getZelleId());
             }
-            if (!viewAccount.getImage().isEmpty()) {
+            if (viewAccount.getImage() != null && !viewAccount.getImage().isEmpty()) {
                 account.setImage(viewAccount.getImage().getBytes());
             }
             this.accountManager.save(account);
