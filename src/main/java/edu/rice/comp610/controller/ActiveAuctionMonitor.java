@@ -36,8 +36,6 @@ public class ActiveAuctionMonitor implements Runnable{
         while (iterator.hasNext()){
             Auction auction = iterator.next();
             auction.setPublished(false);
-            auctionManager.save(auction);
-
         }
     }
 

@@ -28,17 +28,6 @@ public class ActiveAuctionMonitorTest {
     private final PostgresQueryManager queryManager = new PostgresQueryManager();
     private final AuctionManager auctionManager = new StandardAuctionManager(queryManager, databaseManager1);
 
-
-    private static final Account NEW_ACCOUNT = new Account();
-    static {
-        NEW_ACCOUNT.setId(UUID.randomUUID());
-        NEW_ACCOUNT.setGivenName("Name");
-        NEW_ACCOUNT.setSurname("Surname");
-        NEW_ACCOUNT.setEmail("mail@mail.com");
-        NEW_ACCOUNT.setAlias("testalias");
-        NEW_ACCOUNT.setPassword("password123");
-    }
-
     private static final Auction NEW_AUCTION = new Auction();
     static {
         NEW_AUCTION.setTitle("New Auction");
@@ -50,30 +39,12 @@ public class ActiveAuctionMonitorTest {
         NEW_AUCTION.setTaxPercent(0.06f);
         NEW_AUCTION.setPublished(true);
         NEW_AUCTION.setId(UUID.randomUUID());
-        NEW_AUCTION.setOwnerId(NEW_ACCOUNT.getId());
+        NEW_AUCTION.setOwnerId(UUID.randomUUID());
     }
 
-
-    @BeforeAll
-    static void setupDatabase() throws IOException, InterruptedException {
-        PostgreSQLContainer container = DatabaseSetup.init();
-        Properties props = new Properties();
-        props.setProperty("user", container.getUsername());
-        props.setProperty("password", container.getPassword());
-        PostgresDatabaseManager.initialize(container.getJdbcUrl(), props);
-        databaseManager1 = PostgresDatabaseManager.getInstance();
-    }
-
-    @AfterAll
-    static void tearDown() {
-        DatabaseSetup.shutdown();
-    }
 
     @Test
     void unpublishTest() throws BadRequestException, DatabaseException {
-        Query<Account> saveAccount = queryManager.makeUpdateQuery(Account.class);
-        databaseManager1.saveObjects(saveAccount, NEW_ACCOUNT);
-
         List<Auction> expiredAuctions = new ArrayList<>();
         expiredAuctions.add(NEW_AUCTION);
 
