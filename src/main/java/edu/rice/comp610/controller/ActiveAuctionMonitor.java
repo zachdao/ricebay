@@ -17,7 +17,7 @@ public class ActiveAuctionMonitor implements Runnable{
 
     /**
      * Method returns list of auctions where attribute endDate is less than current time
-     * @return
+     *
      */
 
     public List<Auction> getExpired(){
