@@ -24,9 +24,9 @@ import static edu.rice.comp610.testing.Dates.parseDate;
 
 public class ActiveAuctionMonitorTest {
 
-    private static PostgresDatabaseManager databaseManager;
+    private static PostgresDatabaseManager databaseManager1;
     private final PostgresQueryManager queryManager = new PostgresQueryManager();
-    private final AuctionManager auctionManager = new StandardAuctionManager(queryManager, databaseManager);
+    private final AuctionManager auctionManager = new StandardAuctionManager(queryManager, databaseManager1);
 
 
     private static final Account NEW_ACCOUNT = new Account();
@@ -61,7 +61,7 @@ public class ActiveAuctionMonitorTest {
         props.setProperty("user", container.getUsername());
         props.setProperty("password", container.getPassword());
         PostgresDatabaseManager.initialize(container.getJdbcUrl(), props);
-        databaseManager = PostgresDatabaseManager.getInstance();
+        databaseManager1 = PostgresDatabaseManager.getInstance();
     }
 
     @AfterAll
@@ -72,7 +72,7 @@ public class ActiveAuctionMonitorTest {
     @Test
     void unpublishTest() throws BadRequestException, DatabaseException {
         Query<Account> saveAccount = queryManager.makeUpdateQuery(Account.class);
-        databaseManager.saveObjects(saveAccount, NEW_ACCOUNT);
+        databaseManager1.saveObjects(saveAccount, NEW_ACCOUNT);
 
         List<Auction> expiredAuctions = new ArrayList<>();
         expiredAuctions.add(NEW_AUCTION);
