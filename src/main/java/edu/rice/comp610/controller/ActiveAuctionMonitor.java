@@ -50,7 +50,7 @@ public class ActiveAuctionMonitor implements Runnable{
     /**
      * Performs expiry check on all auctions in database with given frequency (currently set to 1 min).
      *
-     * @return result of the search, which contains a list of auction objects if successful, or an error message
+     * returns result of the search, which contains a list of auction objects if successful, or an error message
      * otherwise.
      */
 
