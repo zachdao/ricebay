@@ -83,7 +83,23 @@ public class StandardAuctionManager implements AuctionManager {
         return null;
     }
 
+    /**
+     * Searches for auctions matching query string and returns matching results.
+     *
+     * @param query the {@link AuctionQuery} object to match against fields in the auction.
+     * @return result of the search, which contains a list of auction objects if successful, or an error message
+     * otherwise.
+     */
     public List<Category> addCategories(List<String> categoryNames, UUID auctionId) throws ObjectNotFoundException, DatabaseException {
+        // Associates a given auction to a list of categories to help buyers find the item
+        var addCategoriesQuery = queryManager.makeUpdateQuery(Auction.class);
+
+        if (accounts.isEmpty()) {
+            throw new BadRequestException("Invalid auction owner");
+        }
+
+        var auctionQuery = queryManager.makeUpdateQuery(Auction.class);
+        databaseManager.saveObjects(auctionQuery, auction);
         return null;
     }
 }

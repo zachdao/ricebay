@@ -135,4 +135,10 @@ class AuctionManagerTest {
         assertEquals(1, auctions.size());
         assertEquals(NEW_AUCTION.getId(), auctions.get(0).getId());
     }
+
+    @Test
+    // Not sure how to do this...  Trying to test the addCategories method in StandardAuctionManager
+    void addCategories() throws Exception {
+
+    }
 }
