@@ -18,6 +18,8 @@ import { Popover } from '../../popover/Popover';
 import { usePostWithToast } from '../../http-query/use-post-with-toast';
 import JumpToTop from '@spectrum-icons/workflow/JumpToTop';
 import ArrowLeft from '@spectrum-icons/workflow/ArrowLeft';
+import VisibilityOff from '@spectrum-icons/workflow/VisibilityOff';
+import Visibility from '@spectrum-icons/workflow/Visibility';
 
 export const AccountEdit = ({ account, refresh }) => {
     const [givenName, setGivenName] = useState(account.givenName || '');
@@ -30,6 +32,7 @@ export const AccountEdit = ({ account, refresh }) => {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState({});
     const [changePassword, setChangePassword] = useState(false);
+    const [showZelleId, setShowZelleId] = useState(false);
     const navigate = useNavigate();
 
     const undo = usePostWithToast(
@@ -253,17 +256,26 @@ export const AccountEdit = ({ account, refresh }) => {
                     </Flex>
                 </Popover>
                 <Heading level="2">Payment Information *</Heading>
-                <TextField
-                    type="password"
-                    label="Zelle Account ID"
-                    value={zelleId}
-                    onChange={(value) => {
-                        setZelleId(value);
-                        setError({});
-                    }}
-                    validationState={error.zelleId ? 'invalid' : undefined}
-                    errorMessage={error.zelleId}
-                />
+                <Flex direction="row" alignItems="end" justifyContent="start">
+                    <TextField
+                        type={showZelleId ? 'text' : 'password'}
+                        label="Zelle Account ID"
+                        value={zelleId}
+                        onChange={(value) => {
+                            setZelleId(value);
+                            setError({});
+                        }}
+                        validationState={error.zelleId ? 'invalid' : undefined}
+                        errorMessage={error.zelleId}
+                    />
+                    <ActionButton
+                        gridArea="button"
+                        isQuiet
+                        onPress={() => setShowZelleId((prev) => !prev)}
+                    >
+                        {showZelleId ? <VisibilityOff /> : <Visibility />}
+                    </ActionButton>
+                </Flex>
                 <ButtonGroup width="100%" align="center" marginTop="20px">
                     <Button
                         variant="negative"

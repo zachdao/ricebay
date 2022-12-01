@@ -35,7 +35,7 @@ export const Register = () => {
                 email,
                 password,
             });
-            navigate('/login');
+            navigate('/account/edit');
         } catch (error) {
             setError(error.response.data);
         }
