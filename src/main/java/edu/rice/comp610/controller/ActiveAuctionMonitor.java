@@ -10,9 +10,10 @@ import java.util.ListIterator;
 
 public class ActiveAuctionMonitor implements Runnable{
     private AuctionManager auctionManager;
-
+    private boolean isRunning;
     public ActiveAuctionMonitor(AuctionManager AuctionManager){
         this.auctionManager = AuctionManager;
+        this.isRunning = false;
     }
 
     /**
@@ -32,10 +33,9 @@ public class ActiveAuctionMonitor implements Runnable{
      * @param expiredAuctions - a list of expired auctions
      */
     public void unpublish(List<Auction> expiredAuctions) throws BadRequestException, DatabaseException {
-        ListIterator<Auction> iterator = expiredAuctions.listIterator();
-        while (iterator.hasNext()){
-            Auction auction = iterator.next();
+        for (Auction auction : expiredAuctions) {
             auction.setPublished(false);
+            this.auctionManager.save(auction);
         }
     }
 
@@ -52,24 +52,36 @@ public class ActiveAuctionMonitor implements Runnable{
      * otherwise.
      */
 
-    public void run(){
+    public void run() {
         while (true) {
-            try {
-                doExpiryCheck();
-            } catch (BadRequestException e) {
-                throw new RuntimeException(e);
-            } catch (DatabaseException e) {
-                throw new RuntimeException(e);
+
+            if (isRunning) {
+                System.err.println("Run already called!");
+                return;
             }
-            System.out.println("ACTIVE AUCTION MONITOR will sleep now for 1 min");
-            try {
-                Thread.sleep(60000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            isRunning = true;
+            while (isRunning) {
+                try {
+                    doExpiryCheck();
+                } catch (BadRequestException e) {
+                    e.printStackTrace();
+                    System.err.println("Encountered a BadRequestException while processing expired auctions");
+                    isRunning = false;
+                } catch (DatabaseException e) {
+                    e.printStackTrace();
+                    System.err.println("Encountered a DatabaseException while processing expired auctions");
+                    isRunning = false;
+                }
+                System.out.println("ACTIVE AUCTION MONITOR will sleep now for 1 min");
+                try {
+                    Thread.sleep(60000);
+                } catch (InterruptedException e) {
+                    System.out.println("Exiting ActiveAuctionMonitor due to interrupt.");
+                    isRunning = false;
+                }
+                System.out.println("Sleeping is done...");
+                System.out.println();
             }
-            System.out.println("Sleeping is done...");
-            System.out.println();
         }
     }
-
 }

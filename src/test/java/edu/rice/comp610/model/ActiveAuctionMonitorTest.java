@@ -2,31 +2,21 @@ package edu.rice.comp610.model;
 
 import edu.rice.comp610.controller.ActiveAuctionMonitor;
 import edu.rice.comp610.controller.AuctionManager;
-import edu.rice.comp610.store.PostgresDatabaseManager;
-import edu.rice.comp610.store.PostgresQueryManager;
-import edu.rice.comp610.store.Query;
-import edu.rice.comp610.testing.DatabaseSetup;
 import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.DatabaseException;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.containers.PostgreSQLContainer;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 import static edu.rice.comp610.testing.Dates.parseDate;
+import static org.mockito.Mockito.mock;
 
 public class ActiveAuctionMonitorTest {
 
-    private static PostgresDatabaseManager databaseManager1;
-    private final PostgresQueryManager queryManager = new PostgresQueryManager();
-    private final AuctionManager auctionManager = new StandardAuctionManager(queryManager, databaseManager1);
+    private final AuctionManager auctionManager = mock(AuctionManager.class);
 
     private static final Auction NEW_AUCTION = new Auction();
     static {
@@ -51,7 +41,5 @@ public class ActiveAuctionMonitorTest {
         ActiveAuctionMonitor activeAuctionMonitor = new ActiveAuctionMonitor(auctionManager);
         activeAuctionMonitor.unpublish(expiredAuctions);
         assertFalse(NEW_AUCTION.getPublished());
-
-
     }
 }

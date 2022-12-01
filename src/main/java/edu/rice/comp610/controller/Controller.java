@@ -233,7 +233,7 @@ public class Controller {
         System.out.println("Server started and running on http://localhost:" + getHerokuAssignedPort());
 
         Thread monitorThread = new Thread(activeAuctionMonitor);
-        monitorThread.run();
+        monitorThread.start();
 
     }
 
