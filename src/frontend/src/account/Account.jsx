@@ -15,7 +15,8 @@ export const Account = () => {
     const navigate = useNavigate();
 
     // Get the current user from the API (AppResponse<Account>)
-    const { appResponse, error, status } = useHttpQuery('/accounts/me');
+    const { appResponse, error, status, refetch } =
+        useHttpQuery('/accounts/me');
 
     // Check for errors and raise a toast to the user if we have one
     useEffect(() => {
@@ -59,7 +60,10 @@ export const Account = () => {
                             <Route
                                 path="edit"
                                 element={
-                                    <AccountEdit account={appResponse.data} />
+                                    <AccountEdit
+                                        account={appResponse.data}
+                                        refresh={refetch}
+                                    />
                                 }
                             />
                         </Routes>
