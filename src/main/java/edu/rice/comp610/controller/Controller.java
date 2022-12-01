@@ -49,12 +49,15 @@ public class Controller {
 
         final AccountManager accountManager = new LocalAccountManager(queryManager, databaseManager);
 
+        final AuctionManager auctionManager = new StandardAuctionManager(queryManager, databaseManager);
+
         final AccountAdapter accountAdapter = new AccountAdapter(accountManager);
         final AuctionAdapter auctionAdapter = new AuctionAdapter(accountManager,
-                new StandardAuctionManager(queryManager, databaseManager),
+                auctionManager,
                 new SellerRatingManager(queryManager, databaseManager),
                 new StandardBidManager(queryManager, databaseManager));
 
+        final ActiveAuctionMonitor activeAuctionMonitor = new ActiveAuctionMonitor(auctionManager);
 
         Filter authenticatedMiddleware = (request, response) -> {
             boolean isUnauthenticatedRoute = Objects.equals(request.requestMethod(), "POST") &&
@@ -228,6 +231,10 @@ public class Controller {
         awaitInitialization();
 
         System.out.println("Server started and running on http://localhost:" + getHerokuAssignedPort());
+
+        Thread monitorThread = new Thread(activeAuctionMonitor);
+        monitorThread.start();
+
     }
 
     /**
