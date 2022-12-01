@@ -37,7 +37,7 @@ class AuctionManagerTest {
     void setUp() {
         when(queryManager.makeLoadQuery(any(), any()))
                 .thenReturn(new Query<>());
-        when(queryManager.makeUpdateQuery(any()))
+        when(queryManager.makeUpdateQuery(any(), eq(false)))
                 .thenReturn(new Query<>());
         when(queryManager.makeLoadQuery(any()))
                 .thenReturn(new Query<>());
