@@ -16,6 +16,7 @@ public class Query<T> {
     private final String sql;
     private final List<String> params;
     private final List<Object[]> values;
+    private final boolean upsert;
     final Map<String, PostgresQueryManager.Accessors> accessorsMap;
 
     public Query() {
@@ -24,6 +25,7 @@ public class Query<T> {
         this.params = null;
         this.values = null;
         this.accessorsMap = null;
+        this.upsert = false;
     }
 
     /**
@@ -33,24 +35,29 @@ public class Query<T> {
      * @param params the field names of the model class that are used as the parameters for the SQL statement.
      */
     public Query(Class<T> modelClass, String sql, List<String> params, List<Object[]> values,
-                 Map<String, PostgresQueryManager.Accessors> accessorsMap) {
+                 Map<String, PostgresQueryManager.Accessors> accessorsMap, boolean upsert) {
         this.modelClass = modelClass;
         this.sql = sql;
         this.params = params;
         this.values = values;
         this.accessorsMap = accessorsMap;
+        this.upsert = upsert;
     }
 
     public Query(Class<T> modelClass, String sql, String[] params, Map<String, PostgresQueryManager.Accessors> accessorsMap) {
-        this(modelClass, sql, Arrays.asList(params), List.of(), accessorsMap);
+        this(modelClass, sql, Arrays.asList(params), List.of(), accessorsMap, false);
     }
-    public Query(Class<T> modelClass, String sql, List<String> params, Map<String, PostgresQueryManager.Accessors> accessorsMap) {
-        this(modelClass, sql, params, List.of(), accessorsMap);
+    public Query(Class<T> modelClass, String sql, List<String> params, Map<String, PostgresQueryManager.Accessors> accessorsMap, boolean upsert) {
+        this(modelClass, sql, params, List.of(), accessorsMap, upsert);
     }
 
 
     public String getSql() {
         return sql;
+    }
+
+    public boolean isUpsert() {
+        return upsert;
     }
 
     public T newModel() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {

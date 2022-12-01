@@ -6,8 +6,7 @@ import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.DatabaseException;
 import edu.rice.comp610.util.ObjectNotFoundException;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Manages requests for creating, updating, searching and loading auctions.
@@ -79,11 +78,52 @@ public class StandardAuctionManager implements AuctionManager {
         return databaseManager.loadObjects(queryManager.makeLoadQuery(Category.class));
     }
 
+    public List<Category> categories(UUID auctionId) throws DatabaseException {
+        List<AuctionCategory> auctionCategories = databaseManager.loadObjects(queryManager.makeLoadQuery(AuctionCategory.class, "auction_id"), auctionId);
+
+        // TODO: Remove the for loop once we get filters
+        List<Category> categories = new ArrayList<>();
+        for (AuctionCategory auctionCategory : auctionCategories) {
+            categories.addAll(databaseManager.loadObjects(queryManager.makeLoadQuery(Category.class, "id"), auctionCategory.getCategoryId()));
+        }
+        return categories;
+    }
+
     public List<Picture> addImages(List<String> images, UUID auctionId) throws ObjectNotFoundException, DatabaseException {
         return null;
     }
 
-    public List<Category> addCategories(List<String> categoryNames, UUID auctionId) throws ObjectNotFoundException, DatabaseException {
-        return null;
+    /**
+     * Associates a given auction to a list of categories to help buyers find the item.
+     *
+     * @param categoryNames list of category names.
+     * @param auctionId     the auction_id the categories will be associated with
+     */
+    public void addCategories(List<String> categoryNames, UUID auctionId) throws DatabaseException {
+
+        // Translate the category names into the category ids
+        var getCategoryIdQuery = queryManager.makeLoadQuery(Category.class);
+
+        // This is the right way, but not working right now
+        // List<Category> categoryObjs = databaseManager.loadObjects(getCategoryIdQuery, categoryNames);
+        List<Category> categoryObjs = databaseManager.loadObjects(getCategoryIdQuery);
+
+        // TODO: Remove this once we get filters
+        Set<String> auctionCategoryNames = new HashSet<>(categoryNames);
+
+        // Add each combination of auctionId and categoryId to the auction_category table
+        for (Category cat: categoryObjs) {
+
+            if (auctionCategoryNames.contains(cat.getName())) {
+
+                // Create new auctionCategory object
+                AuctionCategory auctionCategory = new AuctionCategory();
+                auctionCategory.setAuctionId(auctionId);
+                auctionCategory.setCategoryId(cat.getId());
+
+                var addCategoriesQuery = queryManager.makeUpdateQuery(AuctionCategory.class, false);
+                databaseManager.saveObjects(addCategoriesQuery, auctionCategory);
+            }
+        }
     }
 }

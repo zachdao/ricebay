@@ -2,6 +2,7 @@ package edu.rice.comp610.store;
 
 import edu.rice.comp610.model.DatabaseManager;
 import edu.rice.comp610.model.QueryManager;
+import edu.rice.comp610.util.Util;
 import org.postgresql.util.PGmoney;
 
 import java.lang.reflect.InvocationTargetException;
@@ -125,7 +126,7 @@ public class PostgresQueryManager implements QueryManager {
      */
     public <T> Query<T> makeLoadQuery(Class<T> modelClass, String... filterBy) {
         Map<String, Accessors> accessorsMap = makeColumnsToAccessorsMap(modelClass);
-        String primaryTable = modelClass.getSimpleName().toLowerCase();
+        String primaryTable = Util.getInstance().camelToSnake(modelClass.getSimpleName());
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("SELECT ");
@@ -160,8 +161,21 @@ public class PostgresQueryManager implements QueryManager {
      * @return a SQL query string .
      */
     public <T> Query<T> makeUpdateQuery(Class<T> modelClass) {
+        return makeUpdateQuery(modelClass, true);
+    }
+
+    /**
+     * Generate a SQL query to insert or update model objects of a particular type. The model class is mapped to a
+     * database table and class fields are mapped to columns that are used in a WHERE clause to filter the rows to
+     * update.
+     *
+     * @param modelClass the model class that will be loaded.
+     * @param upsert flag to control if we handle ON CONFLICT
+     * @return a SQL query string .
+     */
+    public <T> Query<T> makeUpdateQuery(Class<T> modelClass, boolean upsert) {
         Map<String, Accessors> accessorsMap = makeColumnsToAccessorsMap(modelClass);
-        String primaryTable = modelClass.getSimpleName().toLowerCase();
+        String primaryTable = Util.getInstance().camelToSnake(modelClass.getSimpleName());
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("INSERT INTO ");
         stringBuilder.append(primaryTable);
@@ -182,18 +196,25 @@ public class PostgresQueryManager implements QueryManager {
                 .filter(entry -> !entry.getValue().isPrimaryKey() && !entry.getValue().isOneToMany())
                 .map(entry -> entry.getKey() + " = ?")
                 .collect(Collectors.toList());
-        stringBuilder.append(") ON CONFLICT (");
-        List<String> pkColumns = accessorsMap.entrySet().stream()
-                .filter(entry -> entry.getValue().isPrimaryKey())
-                .map(Map.Entry::getKey).collect(Collectors.toList());
-        if (pkColumns.isEmpty()) {
-            throw new IllegalStateException("Model class has no fields marked with @PrimaryKey");
+        if (upsert) {
+            stringBuilder.append(") ON CONFLICT (");
+            List<String> pkColumns = accessorsMap.entrySet().stream()
+                    .filter(entry -> entry.getValue().isPrimaryKey())
+                    .map(Map.Entry::getKey).collect(Collectors.toList());
+            if (pkColumns.isEmpty()) {
+                throw new IllegalStateException("Model class has no fields marked with @PrimaryKey");
+            }
+            stringBuilder.append(String.join(", ", pkColumns));
+            stringBuilder.append(") DO UPDATE SET ");
+            stringBuilder.append(String.join(", ", updateColumns));
+        } else {
+            stringBuilder.append(")");
         }
-        stringBuilder.append(String.join(", ", pkColumns));
-        stringBuilder.append(") DO UPDATE SET ");
-        stringBuilder.append(String.join(", ", updateColumns));
         String sql = stringBuilder.toString();
-        List<String> params = Stream.concat(insertColumns.stream(), updateColumns.stream()).collect(Collectors.toList());
-        return new Query<>(modelClass, sql, params, accessorsMap);
+        List<String> params = insertColumns;
+        if (upsert) {
+            params = Stream.concat(insertColumns.stream(), updateColumns.stream()).collect(Collectors.toList());
+        }
+        return new Query<>(modelClass, sql, params, accessorsMap, upsert);
     }
 }

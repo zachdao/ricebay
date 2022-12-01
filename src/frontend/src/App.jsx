@@ -20,13 +20,8 @@ export const App = () => {
     const [showSidebar, setShowSidebar] = useState(false);
     const [searchText, setSearchText] = useState();
     const { appResponse } = useHttpQuery('/accounts/me');
-    const categories = [
-        'Furniture',
-        'Lawn',
-        'Electronics',
-        'Vehicles',
-        'Books',
-    ];
+    const { appResponse: categoryResponse } = useHttpQuery('/categories');
+    const categories = categoryResponse?.data || [];
 
     return (
         // The UserContext.Provider allows sub-components to easily access the logged in user

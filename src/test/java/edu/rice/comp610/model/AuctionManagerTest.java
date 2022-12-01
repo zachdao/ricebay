@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,8 +17,7 @@ import static edu.rice.comp610.testing.Dates.parseDate;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class AuctionManagerTest {
 
@@ -36,6 +36,10 @@ class AuctionManagerTest {
     @BeforeEach
     void setUp() {
         when(queryManager.makeLoadQuery(any(), any()))
+                .thenReturn(new Query<>());
+        when(queryManager.makeUpdateQuery(any(), eq(false)))
+                .thenReturn(new Query<>());
+        when(queryManager.makeLoadQuery(any()))
                 .thenReturn(new Query<>());
         NEW_AUCTION.setTitle("New Auction");
         NEW_AUCTION.setDescription("New Auction Description");
@@ -134,5 +138,35 @@ class AuctionManagerTest {
         List<Auction> auctions = auctionManager.search(new AuctionQuery());
         assertEquals(1, auctions.size());
         assertEquals(NEW_AUCTION.getId(), auctions.get(0).getId());
+    }
+
+    @Test
+    // Not sure how to do this...  Trying to test the addCategories method in StandardAuctionManager
+    void addCategories() throws Exception {
+
+        Category newCategory = new Category();
+        newCategory.setId(11);
+        newCategory.setName("Dogs");
+
+        Category newCategory2 = new Category();
+        newCategory2.setId(666);
+        newCategory2.setName("Cats");
+
+        when(databaseManager.loadObjects(any(Query.class), any()))
+                .thenReturn(List.of(newCategory, newCategory2));
+
+        UUID auctionId = UUID.randomUUID();
+        auctionManager.addCategories(List.of(newCategory.getName()), auctionId);
+
+        AuctionCategory newAuctionCategory = new AuctionCategory();
+        newAuctionCategory.setCategoryId(11);
+        newAuctionCategory.setAuctionId(auctionId);
+
+        AuctionCategory newAuctionCategory2 = new AuctionCategory();
+        newAuctionCategory2.setCategoryId(666);
+        newAuctionCategory2.setAuctionId(auctionId);
+
+        verify(databaseManager).saveObjects(any(Query.class), eq(newAuctionCategory));
+        verify(databaseManager, never()).saveObjects(any(Query.class), eq(newAuctionCategory2));
     }
 }
