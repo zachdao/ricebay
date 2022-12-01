@@ -6,7 +6,9 @@ import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.DatabaseException;
 import edu.rice.comp610.util.ObjectNotFoundException;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -84,22 +86,36 @@ public class StandardAuctionManager implements AuctionManager {
     }
 
     /**
-     * Searches for auctions matching query string and returns matching results.
+     * Associates a given auction to a list of categories to help buyers find the item.
      *
-     * @param query the {@link AuctionQuery} object to match against fields in the auction.
-     * @return result of the search, which contains a list of auction objects if successful, or an error message
-     * otherwise.
+     * @param categoryNames list of category names.
+     * @param auctionId     the auction_id the categories will be associated with
      */
-    public List<Category> addCategories(List<String> categoryNames, UUID auctionId) throws ObjectNotFoundException, DatabaseException {
-        // Associates a given auction to a list of categories to help buyers find the item
-        var addCategoriesQuery = queryManager.makeUpdateQuery(Auction.class);
+    public void addCategories(List<String> categoryNames, UUID auctionId) throws DatabaseException {
 
-        if (accounts.isEmpty()) {
-            throw new BadRequestException("Invalid auction owner");
+        // Translate the category names into the category ids
+        var getCategoryIdQuery = queryManager.makeLoadQuery(Category.class);
+
+        // This is the right way, but not working right now
+        // List<Category> categoryObjs = databaseManager.loadObjects(getCategoryIdQuery, categoryNames);
+        List<Category> categoryObjs = databaseManager.loadObjects(getCategoryIdQuery);
+
+        // TODO: Remove this once we get filters
+        Set<String> auctionCategoryNames = new HashSet<>(categoryNames);
+
+        // Add each combination of auctionId and categoryId to the auction_category table
+        for (Category cat: categoryObjs) {
+
+            if (auctionCategoryNames.contains(cat.getName())) {
+
+                // Create new auctionCategory object
+                AuctionCategory auctionCategory = new AuctionCategory();
+                auctionCategory.setAuctionId(auctionId);
+                auctionCategory.setCategoryId(cat.getId());
+
+                var addCategoriesQuery = queryManager.makeUpdateQuery(AuctionCategory.class);
+                databaseManager.saveObjects(addCategoriesQuery, auctionCategory);
+            }
         }
-
-        var auctionQuery = queryManager.makeUpdateQuery(Auction.class);
-        databaseManager.saveObjects(auctionQuery, auction);
-        return null;
     }
 }

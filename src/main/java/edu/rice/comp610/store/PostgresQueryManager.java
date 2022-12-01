@@ -2,6 +2,7 @@ package edu.rice.comp610.store;
 
 import edu.rice.comp610.model.DatabaseManager;
 import edu.rice.comp610.model.QueryManager;
+import edu.rice.comp610.util.Util;
 import org.postgresql.util.PGmoney;
 
 import java.lang.reflect.InvocationTargetException;
@@ -125,7 +126,7 @@ public class PostgresQueryManager implements QueryManager {
      */
     public <T> Query<T> makeLoadQuery(Class<T> modelClass, String... filterBy) {
         Map<String, Accessors> accessorsMap = makeColumnsToAccessorsMap(modelClass);
-        String primaryTable = modelClass.getSimpleName().toLowerCase();
+        String primaryTable = Util.getInstance().camelToSnake(modelClass.getSimpleName());
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("SELECT ");
@@ -161,7 +162,7 @@ public class PostgresQueryManager implements QueryManager {
      */
     public <T> Query<T> makeUpdateQuery(Class<T> modelClass) {
         Map<String, Accessors> accessorsMap = makeColumnsToAccessorsMap(modelClass);
-        String primaryTable = modelClass.getSimpleName().toLowerCase();
+        String primaryTable = Util.getInstance().camelToSnake(modelClass.getSimpleName());
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("INSERT INTO ");
         stringBuilder.append(primaryTable);

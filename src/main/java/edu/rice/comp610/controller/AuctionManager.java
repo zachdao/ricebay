@@ -16,5 +16,5 @@ public interface AuctionManager {
     List<Auction> search(AuctionQuery query) throws DatabaseException;
     List<Category> categories() throws DatabaseException;
     List<Picture> addImages(List<String> images, UUID auctionId) throws ObjectNotFoundException, DatabaseException;
-    List<Category> addCategories(List<String> categoryNames, UUID auctionId) throws ObjectNotFoundException, DatabaseException;
+    void addCategories(List<String> categoryNames, UUID auctionId) throws ObjectNotFoundException, DatabaseException;
 }
