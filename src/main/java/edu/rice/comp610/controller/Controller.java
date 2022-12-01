@@ -153,11 +153,11 @@ public class Controller {
             }));
             get("/:id", ((request, response) -> {
                 ViewAccount loggedInAccount = request.session().attribute("user");
-                var appResponse = auctionAdapter.get(UUID.fromString(request.params("id")), loggedInAccount.getId());
+                var appResponse = auctionAdapter.get(UUID.fromString(request.params("id")), loggedInAccount);
                 response.status(appResponse.getStatus());
                 return gson.toJson(appResponse);
             }));
-            put("/:id", ((request, response) -> {
+            post("/:id", ((request, response) -> {
                 ViewAccount loggedInAccount = request.session().attribute("user");
                 ViewAuction viewAuction = gson.fromJson(request.body(), ViewAuction.class);
                 var appResponse = auctionAdapter.update(viewAuction, loggedInAccount.getId());

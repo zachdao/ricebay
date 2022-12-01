@@ -37,6 +37,7 @@ public class StandardAuctionManager implements AuctionManager {
 
         if (auction.getId() == null) {
             auction.setId(UUID.randomUUID());
+            auction.setPublished(true);
         }
         var auctionQuery = queryManager.makeUpdateQuery(Auction.class);
         databaseManager.saveObjects(auctionQuery, auction);

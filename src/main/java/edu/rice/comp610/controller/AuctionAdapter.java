@@ -5,6 +5,7 @@ import edu.rice.comp610.util.DatabaseException;
 import edu.rice.comp610.util.ObjectNotFoundException;
 import edu.rice.comp610.util.BadRequestException;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -50,7 +51,7 @@ public class AuctionAdapter {
     AppResponse<?> update(ViewAuction viewAuction, UUID ownerId) {
         try {
             Auction auction = this.auctionManager.get(viewAuction.getId());
-            if (auction.getOwnerId() != ownerId) {
+            if (!auction.getOwnerId().equals(ownerId)) {
                 return new AppResponse<>(401, false, null, "Unauthorized");
             }
             if (!viewAuction.getTitle().isEmpty()) {
@@ -71,6 +72,7 @@ public class AuctionAdapter {
             if (viewAuction.getEndDate() != null) {
                 auction.setEndDate(viewAuction.getEndDate());
             }
+            auction.setPublished(viewAuction.isPublished());
             // TODO: Diff categories and add new ones and delete removed ones
             this.auctionManager.save(auction);
             return new AppResponse<>(200, true, null, "OK");
@@ -92,7 +94,7 @@ public class AuctionAdapter {
         }
     }
 
-    AppResponse<?> get(UUID id, UUID userId) {
+    AppResponse<?> get(UUID id, ViewAccount user) {
         try {
             Auction auction = this.auctionManager.get(id);
             ViewAuction viewAuction = new ViewAuction();
@@ -103,6 +105,7 @@ public class AuctionAdapter {
             viewAuction.setBidIncrement(auction.getBidIncrement());
             viewAuction.setStartDate(auction.getStartDate());
             viewAuction.setEndDate(auction.getEndDate());
+            viewAuction.setPublished(auction.getPublished());
 
             // Set categories
             List<Category> categories = this.auctionManager.categories(id);
@@ -119,9 +122,10 @@ public class AuctionAdapter {
                 viewAuction.setCurrentBid(currentBid.getAmount());
             }
 
-            Bid bid = this.bidManager.getUserBid(id, userId);
+            Bid bid = this.bidManager.getUserBid(id, user.getId());
             if (bid != null) {
                 ViewBid userBid = new ViewBid();
+                userBid.setAlias(user.getAlias());
                 userBid.setBid(bid.getAmount());
                 userBid.setMaxBid(bid.getMaxBid());
                 userBid.setTimestamp(bid.getTimestamp());
@@ -129,6 +133,19 @@ public class AuctionAdapter {
             }
 
             viewAuction.setImages(List.of());
+
+            List<ViewBid> bids = new ArrayList<>();
+            if (owner.getId().equals(user.getId())) {
+                List<Bid> auctionBids = this.bidManager.getAuctionBids(id);
+                for (Bid auctionBid : auctionBids) {
+                    ViewBid viewBid = new ViewBid();
+                    viewBid.setBid(auctionBid.getAmount());
+                    Account bidder = this.accountManager.get(auctionBid.getOwnerId());
+                    viewBid.setAlias(bidder.getAlias());
+                    bids.add(viewBid);
+                }
+            }
+            viewAuction.setBids(bids);
 
             return new AppResponse<>(200, true, viewAuction, "OK");
         } catch (ObjectNotFoundException e) {

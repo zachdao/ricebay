@@ -11,22 +11,21 @@ import {
     RangeCalendar,
     LabeledValue,
     NumberField,
+    StatusLight,
+    Badge,
 } from '@adobe/react-spectrum';
 import PublishCheck from '@spectrum-icons/workflow/PublishCheck';
 import Image from '@spectrum-icons/workflow/Image';
 import { CategoryTagGroup } from '../../category-tag-group/CategoryTagGroup';
 import styled from 'styled-components';
-import {
-    getLocalTimeZone,
-    today,
-    parseDateTime,
-    parseDate,
-    CalendarDate,
-} from '@internationalized/date';
+import { getLocalTimeZone, today, CalendarDate } from '@internationalized/date';
 import { usePostWithToast } from '../../http-query/use-post-with-toast';
 import Alert from '@spectrum-icons/workflow/Alert';
 import { useNavigate } from 'react-router-dom';
 import { CategoriesContext } from '../../categories.context';
+import Cancel from '@spectrum-icons/workflow/Cancel';
+import User from '@spectrum-icons/workflow/User';
+import Copy from '@spectrum-icons/workflow/Copy';
 
 export const EditAuction = ({ auction }) => {
     // Set up text field data
@@ -58,6 +57,7 @@ export const EditAuction = ({ auction }) => {
     const [categories, setCategories] = useState(
         new Set(auction?.categories || []),
     );
+    const [published, setPublished] = useState(auction?.published);
     const [error, setError] = useState({});
     const navigate = useNavigate();
 
@@ -83,6 +83,7 @@ export const EditAuction = ({ auction }) => {
             endDate: range.end.toString(),
             categories: [...categories],
             description,
+            published,
         },
         [
             title,
@@ -92,6 +93,7 @@ export const EditAuction = ({ auction }) => {
             range,
             categories,
             description,
+            published,
         ],
         {
             message: auction ? 'Auction updated!' : 'Auction created!',
@@ -102,6 +104,20 @@ export const EditAuction = ({ auction }) => {
         (appResponse) =>
             !auction && navigate(`/auction/${appResponse.data}/edit`),
         (axiosError) => setError(axiosError?.response?.data),
+    );
+
+    const copyAuction = usePostWithToast(
+        `/auctions`,
+        {
+            ...auction,
+            id: undefined,
+            startDate: range.start.toString(),
+            endDate: range.end.toString(),
+        },
+        [auction],
+        { message: 'Auction Copied' },
+        { message: 'Failed to Copy auction' },
+        (appResponse) => navigate(`/auction/${appResponse.data}/edit`),
     );
 
     const isValid = useCallback(() => {
@@ -120,26 +136,61 @@ export const EditAuction = ({ auction }) => {
         );
     }, [title, categories, startingBid, bidIncrement, description]);
 
+    const getLastBid = (bids) => {
+        if (!bids) {
+            return undefined;
+        }
+
+        return bids[bids.length - 1];
+    };
+
+    const isTerminal =
+        auction?.published === false && auction?.bids?.length > 0;
+
     return (
         <Grid
             height="calc(100% - 40px)"
             maxWidth="960px"
-            areas={['publish save', 'image details', 'description description']}
+            areas={['status save', 'image details', 'description description']}
             columns={['3fr', '2fr']}
             rows={['auto', 'auto', '1fr']}
             columnGap="size-200"
             rowGap="size-150"
         >
-            {/* TODO: Figure out publish status ? */}
-            <Button
-                variant="primary"
-                gridArea="publish"
-                maxWidth="120px"
-                isDisabled={!isValid()}
+            <Flex
+                gridArea="status"
+                direction="row"
+                alignItems="center"
+                justifyContent="start"
             >
-                <PublishCheck />
-                <Text>Publish</Text>
-            </Button>
+                {auction &&
+                    published === false &&
+                    auction.bids?.length === 0 && (
+                        <RelistAuction onPress={() => setPublished(true)} />
+                    )}
+                {auction &&
+                    auction.published === false &&
+                    auction.bids?.length > 0 && (
+                        <CopyAuction onPress={() => copyAuction()} />
+                    )}
+                {auction && auction.published === true && (
+                    <CancelAuction
+                        isDisabled={auction?.bids?.length > 0}
+                        onPress={() => {
+                            saveAuction({ published: false });
+                        }}
+                    />
+                )}
+                {auction && (
+                    <AuctionState
+                        isPublished={auction?.published}
+                        lastBid={getLastBid(auction?.bids)}
+                        isRelisted={
+                            auction?.published === false && published === true
+                        }
+                    />
+                )}
+            </Flex>
             <Flex
                 direction="row"
                 space="size-100"
@@ -153,7 +204,7 @@ export const EditAuction = ({ auction }) => {
                     variant="primary"
                     marginStart="size-100"
                     onPress={() => saveAuction()}
-                    isDisabled={!isValid()}
+                    isDisabled={!isValid() || isTerminal}
                 >
                     <Text>Save</Text>
                 </Button>
@@ -176,6 +227,7 @@ export const EditAuction = ({ auction }) => {
                     width="100%"
                     gridColumnStart="1"
                     gridColumnEnd="3"
+                    isDisabled={isTerminal}
                 />
                 {!auction && (
                     <ComboBox
@@ -186,6 +238,7 @@ export const EditAuction = ({ auction }) => {
                                 (prev) => new Set([...prev, selected]),
                             )
                         }
+                        isDisabled={isTerminal}
                     >
                         {(item) => <Item key={item.name}>{item.name}</Item>}
                     </ComboBox>
@@ -241,6 +294,7 @@ export const EditAuction = ({ auction }) => {
                         aria-label="auction dates"
                         value={range}
                         onChange={setRange}
+                        isDisabled={isTerminal}
                     />
                 </Flex>
 
@@ -259,6 +313,7 @@ export const EditAuction = ({ auction }) => {
                         currencyDisplay: 'symbol',
                     }}
                     width="100%"
+                    isDisabled={isTerminal}
                 />
                 <NumberField
                     minValue={0}
@@ -276,6 +331,7 @@ export const EditAuction = ({ auction }) => {
                         currencyDisplay: 'symbol',
                     }}
                     width="100%"
+                    isDisabled={isTerminal}
                 />
             </Grid>
             <TextArea
@@ -284,6 +340,7 @@ export const EditAuction = ({ auction }) => {
                 width="100%"
                 value={description}
                 onChange={setDescription}
+                isDisabled={isTerminal}
             />
         </Grid>
     );
@@ -315,3 +372,61 @@ const Warning = styled.div`
         var(--spectrum-semantic-negative-color-text-small)
     );
 `;
+
+const RelistAuction = ({ onPress }) => {
+    return (
+        <Button variant="primary" maxWidth="max-content" onPress={onPress}>
+            <PublishCheck />
+            <Text>Re-list</Text>
+        </Button>
+    );
+};
+
+const CancelAuction = ({ onPress, isDisabled }) => {
+    return (
+        <Button
+            variant="primary"
+            maxWidth="max-content"
+            onPress={onPress}
+            isDisabled={isDisabled}
+        >
+            <Cancel />
+            <Text>Cancel Auction</Text>
+        </Button>
+    );
+};
+
+const CopyAuction = ({ onPress }) => {
+    return (
+        <Button variant="primary" maxWidth="max-content" onPress={onPress}>
+            <Copy />
+            <Text>Copy Auction</Text>
+        </Button>
+    );
+};
+
+const AuctionState = ({ isPublished, lastBid, isRelisted }) => {
+    let variant = 'positive';
+    let statusText = `Published ${!lastBid ? '(No Bids)' : ''}`;
+    if (isRelisted) {
+        variant = 'neutral';
+        statusText = 'Unpublished (Save to Publish)';
+    } else if (!isPublished && !lastBid) {
+        variant = 'negative';
+        statusText = 'Expired';
+    } else if (!isPublished && lastBid) {
+        variant = 'info';
+        statusText = 'Sold';
+    }
+    return (
+        <Flex direction="row" alignItems="center">
+            <StatusLight variant={variant}>{statusText}</StatusLight>
+            {!isPublished && lastBid && (
+                <Badge variant="positive" marginStart="size-100">
+                    <User />
+                    <Text>Buyer: {lastBid.alias}</Text>
+                </Badge>
+            )}
+        </Flex>
+    );
+};
