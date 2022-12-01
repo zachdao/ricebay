@@ -81,9 +81,7 @@ export const EditAuction = ({ auction }) => {
             bidIncrement,
             startDate: range.start.toString(),
             endDate: range.end.toString(),
-            categoryIds: categoryOptions
-                .filter((cat) => categories.has(cat.name))
-                .map((cat) => cat.id),
+            categories: [...categories],
             description,
         },
         [
@@ -179,35 +177,45 @@ export const EditAuction = ({ auction }) => {
                     gridColumnStart="1"
                     gridColumnEnd="3"
                 />
-                <ComboBox
-                    label="Add Category"
-                    items={categoryOptions.map((opt) => ({ name: opt }))}
-                    onSelectionChange={(selected) =>
-                        setCategories((prev) => new Set([...prev, selected]))
-                    }
-                >
-                    {(item) => <Item key={item.name}>{item.name}</Item>}
-                </ComboBox>
+                {!auction && (
+                    <ComboBox
+                        label="Add Category"
+                        items={categoryOptions.map((opt) => ({ name: opt }))}
+                        onSelectionChange={(selected) =>
+                            setCategories(
+                                (prev) => new Set([...prev, selected]),
+                            )
+                        }
+                    >
+                        {(item) => <Item key={item.name}>{item.name}</Item>}
+                    </ComboBox>
+                )}
                 <Flex
                     direction="column"
                     alignItems="start"
                     gap="size-100"
                     height="min-content"
                     width="100%"
+                    gridColumnStart={auction ? '1' : undefined}
+                    gridColumnEnd={auction ? '3' : undefined}
                 >
                     <LabeledValue label="Categories" />
                     {categories.size ? (
                         <CategoryTagGroup
                             categories={categories}
-                            onRemove={(category) =>
-                                setCategories(
-                                    (prev) =>
-                                        new Set(
-                                            Array.from(prev).filter(
-                                                (el) => el !== category,
-                                            ),
-                                        ),
-                                )
+                            onRemove={
+                                auction
+                                    ? undefined
+                                    : (category) =>
+                                          setCategories(
+                                              (prev) =>
+                                                  new Set(
+                                                      Array.from(prev).filter(
+                                                          (el) =>
+                                                              el !== category,
+                                                      ),
+                                                  ),
+                                          )
                             }
                         />
                     ) : (

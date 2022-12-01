@@ -36,7 +36,7 @@ public class AuctionAdapter {
             auction.setEndDate(viewAuction.getEndDate());
             UUID newId = this.auctionManager.save(auction);
             List<Picture> images = this.auctionManager.addImages(viewAuction.getImages(), newId);
-            this.auctionManager.addCategories(viewAuction.getCategories(), newId);
+            this.auctionManager.addCategories(viewAuction.getCategories() != null ? viewAuction.getCategories() : List.of(), newId);
             return new AppResponse<>(201, true, newId, "OK");
         } catch (BadRequestException e) {
             return new AppResponse<>(400, false, e.getRequestErrors(), "Bad Request");
@@ -105,8 +105,8 @@ public class AuctionAdapter {
             viewAuction.setEndDate(auction.getEndDate());
 
             // Set categories
-            List<Category> allCategories = this.auctionManager.categories();
-            viewAuction.setCategories(allCategories.stream().map(Category::getName).collect(Collectors.toList()));
+            List<Category> categories = this.auctionManager.categories(id);
+            viewAuction.setCategories(categories.stream().map(Category::getName).collect(Collectors.toList()));
 
             Account owner = this.accountManager.get(auction.getOwnerId());
             ViewSeller seller = new ViewSeller();

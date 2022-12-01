@@ -122,16 +122,18 @@ public class PostgresDatabaseManager implements DatabaseManager {
                         statement.setObject(col, param);
                         col++;
                     }
-                    // UPDATE parameters (exclude one-to-many and primary key)
-                    for (var entry : query.accessorsMap.entrySet()) {
-                        if (entry.getValue().isOneToMany() || entry.getValue().isPrimaryKey()) {
-                            continue;
-                        }
-                        Object param = toSqlType(entry.getValue().invokeGetter(model));
-                        statement.setObject(col, param);
-                        col++;
-                    }
 
+                    if (query.isUpsert()) {
+                        // UPDATE parameters (exclude one-to-many and primary key)
+                        for (var entry : query.accessorsMap.entrySet()) {
+                            if (entry.getValue().isOneToMany() || entry.getValue().isPrimaryKey()) {
+                                continue;
+                            }
+                            Object param = toSqlType(entry.getValue().invokeGetter(model));
+                            statement.setObject(col, param);
+                            col++;
+                        }
+                    }
                 }
                 if (statement.execute()) {
                     throw new IllegalStateException("Unexpected result set from update query: " + query.getSql());

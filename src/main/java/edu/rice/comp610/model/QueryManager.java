@@ -5,4 +5,5 @@ import edu.rice.comp610.store.Query;
 public interface QueryManager {
     <T> Query<T> makeLoadQuery(Class<T> modelClass, String... filterBy);
     <T> Query<T> makeUpdateQuery(Class<T> modelClass);
+    <T> Query<T> makeUpdateQuery(Class<T> modelClass, boolean upsert);
 }

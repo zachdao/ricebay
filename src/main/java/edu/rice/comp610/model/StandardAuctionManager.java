@@ -6,10 +6,7 @@ import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.DatabaseException;
 import edu.rice.comp610.util.ObjectNotFoundException;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Manages requests for creating, updating, searching and loading auctions.
@@ -81,6 +78,17 @@ public class StandardAuctionManager implements AuctionManager {
         return databaseManager.loadObjects(queryManager.makeLoadQuery(Category.class));
     }
 
+    public List<Category> categories(UUID auctionId) throws DatabaseException {
+        List<AuctionCategory> auctionCategories = databaseManager.loadObjects(queryManager.makeLoadQuery(AuctionCategory.class, "auction_id"), auctionId);
+
+        // TODO: Remove the for loop once we get filters
+        List<Category> categories = new ArrayList<>();
+        for (AuctionCategory auctionCategory : auctionCategories) {
+            categories.addAll(databaseManager.loadObjects(queryManager.makeLoadQuery(Category.class, "id"), auctionCategory.getCategoryId()));
+        }
+        return categories;
+    }
+
     public List<Picture> addImages(List<String> images, UUID auctionId) throws ObjectNotFoundException, DatabaseException {
         return null;
     }
@@ -113,7 +121,7 @@ public class StandardAuctionManager implements AuctionManager {
                 auctionCategory.setAuctionId(auctionId);
                 auctionCategory.setCategoryId(cat.getId());
 
-                var addCategoriesQuery = queryManager.makeUpdateQuery(AuctionCategory.class);
+                var addCategoriesQuery = queryManager.makeUpdateQuery(AuctionCategory.class, false);
                 databaseManager.saveObjects(addCategoriesQuery, auctionCategory);
             }
         }
