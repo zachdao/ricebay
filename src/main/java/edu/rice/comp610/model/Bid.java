@@ -21,6 +21,8 @@ public class Bid {
     private UUID ownerId;
     private UUID auctionId;
 
+    private Double maxBid;
+
     @PrimaryKey
     public UUID getId() {
         return id;
@@ -63,16 +65,26 @@ public class Bid {
         this.auctionId = auctionId;
     }
 
+    @SqlType(PGmoney.class)
+    public Double getMaxBid() {
+        return maxBid;
+    }
+
+    public void setMaxBid(Double maxBid) {
+        this.maxBid = maxBid;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Bid bid = (Bid) o;
         return Objects.equals(id, bid.id)
-                && amount == bid.amount
+                && Objects.equals(amount, bid.amount)
                 && Objects.equals(timestamp, bid.timestamp)
                 && Objects.equals(ownerId, bid.ownerId)
-                && Objects.equals(auctionId, bid.auctionId);
+                && Objects.equals(auctionId, bid.auctionId)
+                && Objects.equals(maxBid, bid.maxBid);
     }
 
     @Override
@@ -88,6 +100,7 @@ public class Bid {
                 ", amount=" + amount +
                 ", ownerId=" + ownerId +
                 ", auctionId=" + auctionId +
+                ", maxBid=" + maxBid +
                 '}';
     }
 }

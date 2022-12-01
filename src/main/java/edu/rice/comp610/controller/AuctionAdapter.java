@@ -123,6 +123,8 @@ public class AuctionAdapter {
             if (bid != null) {
                 ViewBid userBid = new ViewBid();
                 userBid.setBid(bid.getAmount());
+                userBid.setMaxBid(bid.getMaxBid());
+                userBid.setTimestamp(bid.getTimestamp());
                 viewAuction.setUserBid(userBid);
             }
 
@@ -166,6 +168,7 @@ public class AuctionAdapter {
             newBid.setOwnerId(bidderId);
             newBid.setAmount(bid);
             newBid.setTimestamp(new Date());
+            newBid.setMaxBid(maxBid);
 
             this.bidManager.placeBid(auction, newBid);
             return new AppResponse<>(200, true, null, "OK");
@@ -188,6 +191,7 @@ public class AuctionAdapter {
             newBid.setOwnerId(bidderId);
             newBid.setAmount(bid);
             newBid.setTimestamp(new Date());
+            newBid.setMaxBid(maxBid);
 
             this.bidManager.updateBid(auction, newBid);
             return new AppResponse<>(200, true, null, "OK");
