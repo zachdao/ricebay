@@ -11,10 +11,7 @@ import {
     RangeCalendar,
     LabeledValue,
     NumberField,
-    StatusLight,
-    Badge,
 } from '@adobe/react-spectrum';
-import PublishCheck from '@spectrum-icons/workflow/PublishCheck';
 import Image from '@spectrum-icons/workflow/Image';
 import { CategoryTagGroup } from '../../category-tag-group/CategoryTagGroup';
 import styled from 'styled-components';
@@ -24,10 +21,28 @@ import Alert from '@spectrum-icons/workflow/Alert';
 import { useNavigate } from 'react-router-dom';
 import { CategoriesContext } from '../../categories.context';
 import Cancel from '@spectrum-icons/workflow/Cancel';
-import User from '@spectrum-icons/workflow/User';
-import Copy from '@spectrum-icons/workflow/Copy';
+import { EditState } from './EditState';
 
-export const EditAuction = ({ auction }) => {
+const getInitialRange = (startDate, endDate) => {
+    return {
+        start: startDate
+            ? new CalendarDate(
+                  startDate.getFullYear(),
+                  startDate.getMonth() + 1,
+                  startDate.getDate(),
+              )
+            : today(getLocalTimeZone()),
+        end: endDate
+            ? new CalendarDate(
+                  endDate.getFullYear(),
+                  endDate.getMonth() + 1,
+                  endDate.getDate(),
+              )
+            : today(getLocalTimeZone()).add({ weeks: 1 }),
+    };
+};
+
+export const EditAuction = ({ auction, refresh }) => {
     // Set up text field data
     const [image, setImage] = useState(auction?.images?.[0] || '');
     const [title, setTitle] = useState(auction?.title || '');
@@ -36,24 +51,11 @@ export const EditAuction = ({ auction }) => {
         auction?.bidIncrement || undefined,
     );
     const [description, setDescription] = useState(auction?.description || '');
-    const startDate = auction?.startDate && new Date(auction.startDate);
-    const endDate = auction?.endDate && new Date(auction.endDate);
-    let [range, setRange] = React.useState({
-        start: auction?.startDate
-            ? new CalendarDate(
-                  startDate.getFullYear(),
-                  startDate.getMonth(),
-                  startDate.getDate(),
-              )
-            : today(getLocalTimeZone()),
-        end: auction?.endDate
-            ? new CalendarDate(
-                  endDate.getFullYear(),
-                  endDate.getMonth(),
-                  endDate.getDate(),
-              )
-            : today(getLocalTimeZone()).add({ weeks: 1 }),
-    });
+    const startDate = auction?.startDate
+        ? new Date(auction.startDate)
+        : undefined;
+    const endDate = auction?.endDate ? new Date(auction.endDate) : undefined;
+    let [range, setRange] = useState(getInitialRange(startDate, endDate));
     const [categories, setCategories] = useState(
         new Set(auction?.categories || []),
     );
@@ -63,14 +65,20 @@ export const EditAuction = ({ auction }) => {
 
     const categoryOptions = useContext(CategoriesContext);
 
+    // Set up a POST to undo our changes
     const undo = usePostWithToast(
         `/auctions/${auction?.id}`,
-        auction,
+        {
+            ...auction,
+            startDate: range.start.toString(),
+            endDate: range.end.toString(),
+        },
         [auction],
         { message: 'Auction restored!' },
         { message: 'Failed to undo auction save!' },
     );
 
+    // Set up a POST to save our auction state
     const saveAuction = usePostWithToast(
         auction ? `/auctions/${auction.id}` : '/auctions',
         {
@@ -98,14 +106,20 @@ export const EditAuction = ({ auction }) => {
         {
             message: auction ? 'Auction updated!' : 'Auction created!',
             actionTitle: auction && 'UNDO',
-            actionFn: auction && undo,
+            actionFn: auction ? () => undo() : undefined,
         },
         { message: 'Failed to save auction!' },
-        (appResponse) =>
-            !auction && navigate(`/auction/${appResponse.data}/edit`),
+        (appResponse) => {
+            if (!auction) {
+                navigate(`/auction/${appResponse.data}/edit`);
+            } else {
+                refresh();
+            }
+        },
         (axiosError) => setError(axiosError?.response?.data),
     );
 
+    // Set up a POST to copy this auction
     const copyAuction = usePostWithToast(
         `/auctions`,
         {
@@ -120,30 +134,118 @@ export const EditAuction = ({ auction }) => {
         (appResponse) => navigate(`/auction/${appResponse.data}/edit`),
     );
 
-    const isValid = useCallback(() => {
-        const validTitle = title.length > 0;
-        const validCategory = categories.size > 0;
-        const validStartingBid = startingBid > 0;
-        const validBidIncrement =
-            bidIncrement !== undefined ? bidIncrement > 0 : true;
-        const validDescription = description.length > 0;
-        return (
-            validTitle &&
-            validCategory &&
-            validStartingBid &&
-            validBidIncrement &&
-            validDescription
-        );
-    }, [title, categories, startingBid, bidIncrement, description]);
-
-    const getLastBid = (bids) => {
-        if (!bids) {
-            return undefined;
+    // Validate our form fields
+    const isValidTitle = useCallback(() => title.length > 0, [title]);
+    const isValidCategory = useCallback(
+        () => categories.size > 0,
+        [categories],
+    );
+    const isValidStartingBid = useCallback(
+        () => startingBid > 0,
+        [startingBid],
+    );
+    const isValidBidIncrement = useCallback(
+        () => (bidIncrement !== undefined ? bidIncrement > 0 : true),
+        [bidIncrement],
+    );
+    const isValidDescription = useCallback(
+        () => description.length > 0,
+        [description],
+    );
+    const isValidStartDate = useCallback(() => {
+        const { start } = getInitialRange(startDate, endDate);
+        const cleanStart = range.start.compare(start) === 0;
+        if (
+            !auction ||
+            (published && auction?.published === false) ||
+            !cleanStart
+        ) {
+            return range.start.compare(today(getLocalTimeZone())) >= 0;
+        } else {
+            return true;
         }
+    }, [auction, published, range]);
 
-        return bids[bids.length - 1];
+    const isValid = () => {
+        return (
+            isValidTitle() &&
+            isValidCategory() &&
+            isValidStartingBid() &&
+            isValidBidIncrement() &&
+            isValidDescription() &&
+            isValidStartDate()
+        );
     };
 
+    const isCleanTitle = useCallback(
+        () => title === auction?.title,
+        [auction, title],
+    );
+    const isCleanCategory = useCallback(
+        () =>
+            auction && auction?.categories.every((cat) => categories.has(cat)),
+        [auction, categories],
+    );
+    const isCleanStartingBid = useCallback(
+        () => startingBid === auction?.minimumBid,
+        [auction, startingBid],
+    );
+    const isCleanBidIncrement = useCallback(
+        () => bidIncrement === auction?.bidIncrement,
+        [auction, bidIncrement],
+    );
+    const isCleanDescription = useCallback(
+        () => description === auction?.description,
+        [auction, description],
+    );
+    const isCleanStart = useCallback(() => {
+        const { start } = getInitialRange(startDate, endDate);
+        return range.start.compare(start) === 0;
+    }, [auction, range]);
+    const isCleanEnd = useCallback(() => {
+        const { end } = getInitialRange(startDate, endDate);
+        return range.end.compare(end) === 0;
+    }, [auction, range]);
+    const isCleanPublished = useCallback(
+        () => published === auction?.published,
+        [auction, range],
+    );
+
+    // Check if any form fields have been touched
+    const isClean = () => {
+        return (
+            isCleanTitle() &&
+            isCleanCategory() &&
+            isCleanStartingBid() &&
+            isCleanBidIncrement() &&
+            isCleanDescription() &&
+            isCleanStart() &&
+            isCleanEnd() &&
+            isCleanPublished()
+        );
+    };
+
+    // Cancel any ongoing, unsaved changes
+    const cancel = useCallback(() => {
+        setTitle(auction?.title || '');
+        setStartingBid(auction?.minimumBid || 1);
+        setBidIncrement(auction?.bidIncrement || undefined);
+        setDescription(auction?.description || '');
+        setRange(getInitialRange(startDate, endDate));
+        setCategories(new Set(auction?.categories || []));
+        setPublished(auction?.published);
+    }, [
+        title,
+        categories,
+        startingBid,
+        bidIncrement,
+        description,
+        range,
+        published,
+        auction,
+    ]);
+
+    // Is this a terminal state update
     const isTerminal =
         auction?.published === false && auction?.bids?.length > 0;
 
@@ -157,54 +259,30 @@ export const EditAuction = ({ auction }) => {
             columnGap="size-200"
             rowGap="size-150"
         >
-            <Flex
-                gridArea="status"
-                direction="row"
-                alignItems="center"
-                justifyContent="start"
-            >
-                {auction &&
-                    published === false &&
-                    auction.bids?.length === 0 && (
-                        <RelistAuction onPress={() => setPublished(true)} />
-                    )}
-                {auction &&
-                    auction.published === false &&
-                    auction.bids?.length > 0 && (
-                        <CopyAuction onPress={() => copyAuction()} />
-                    )}
-                {auction && auction.published === true && (
-                    <CancelAuction
-                        isDisabled={auction?.bids?.length > 0}
-                        onPress={() => {
-                            saveAuction({ published: false });
-                        }}
-                    />
-                )}
-                {auction && (
-                    <AuctionState
-                        isPublished={auction?.published}
-                        lastBid={getLastBid(auction?.bids)}
-                        isRelisted={
-                            auction?.published === false && published === true
-                        }
-                    />
-                )}
-            </Flex>
+            <EditState
+                auction={auction}
+                published={published}
+                setPublished={setPublished}
+                saveAuction={saveAuction}
+                copyAuction={copyAuction}
+            />
             <Flex
                 direction="row"
                 space="size-100"
                 justifyContent="right"
                 gridArea="save"
             >
-                <Button variant="negative" onPress={() => navigate(-1)}>
-                    <Text>Cancel</Text>
+                <Button
+                    variant={isClean() ? 'primary' : 'negative'}
+                    onPress={() => (isClean() ? navigate(-1) : cancel())}
+                >
+                    <Text>{isClean() ? 'Go Back' : 'Cancel'}</Text>
                 </Button>
                 <Button
                     variant="primary"
                     marginStart="size-100"
                     onPress={() => saveAuction()}
-                    isDisabled={!isValid() || isTerminal}
+                    isDisabled={!isValid() || isTerminal || isClean()}
                 >
                     <Text>Save</Text>
                 </Button>
@@ -228,6 +306,14 @@ export const EditAuction = ({ auction }) => {
                     gridColumnStart="1"
                     gridColumnEnd="3"
                     isDisabled={isTerminal}
+                    validationState={
+                        isValidTitle()
+                            ? isCleanTitle()
+                                ? undefined
+                                : 'valid'
+                            : 'invalid'
+                    }
+                    errorMessage={!isValidTitle() && 'Title is required'}
                 />
                 {!auction && (
                     <ComboBox
@@ -294,7 +380,21 @@ export const EditAuction = ({ auction }) => {
                         aria-label="auction dates"
                         value={range}
                         onChange={setRange}
-                        isDisabled={isTerminal}
+                        isDisabled={isTerminal || auction?.bids?.length > 0}
+                        validationState={
+                            isValidStartDate()
+                                ? isCleanStart() && isCleanEnd()
+                                    ? undefined
+                                    : 'valid'
+                                : 'invalid'
+                        }
+                        errorMessage={
+                            !isValidStartDate() &&
+                            'Start date must be on or after today'
+                        }
+                        minValue={
+                            auction ? undefined : today(getLocalTimeZone())
+                        }
                     />
                 </Flex>
 
@@ -305,15 +405,25 @@ export const EditAuction = ({ auction }) => {
                     isRequired
                     hideStepper
                     minValue={0}
-                    validationState={error?.minimumBid ? 'invalid' : undefined}
-                    errorMessage={error?.minimumBid}
+                    validationState={
+                        error?.minimumBid || !isValidStartingBid()
+                            ? 'invalid'
+                            : isValidStartingBid() && !isCleanStartingBid()
+                            ? 'valid'
+                            : undefined
+                    }
+                    errorMessage={
+                        !isValidStartingBid()
+                            ? 'must be greater than 0'
+                            : error?.minimumBid
+                    }
                     formatOptions={{
                         style: 'currency',
                         currency: 'USD',
                         currencyDisplay: 'symbol',
                     }}
                     width="100%"
-                    isDisabled={isTerminal}
+                    isDisabled={isTerminal || auction?.bids?.length > 0}
                 />
                 <NumberField
                     minValue={0}
@@ -322,16 +432,24 @@ export const EditAuction = ({ auction }) => {
                     onChange={setBidIncrement}
                     hideStepper
                     validationState={
-                        error?.bidIncrement ? 'invalid' : undefined
+                        error?.bidIncrement
+                            ? 'invalid'
+                            : isValidBidIncrement() && !isCleanBidIncrement()
+                            ? 'valid'
+                            : undefined
                     }
-                    errorMessage={error?.bidIncrement}
+                    errorMessage={
+                        !isValidBidIncrement()
+                            ? 'must be greater than 0'
+                            : error?.bidIncrement
+                    }
                     formatOptions={{
                         style: 'currency',
                         currency: 'USD',
                         currencyDisplay: 'symbol',
                     }}
                     width="100%"
-                    isDisabled={isTerminal}
+                    isDisabled={isTerminal || auction?.bids?.length > 0}
                 />
             </Grid>
             <TextArea
@@ -341,10 +459,21 @@ export const EditAuction = ({ auction }) => {
                 value={description}
                 onChange={setDescription}
                 isDisabled={isTerminal}
+                validationState={
+                    isValidDescription()
+                        ? isCleanDescription()
+                            ? undefined
+                            : 'valid'
+                        : 'invalid'
+                }
+                errorMessage={
+                    !isValidDescription() && 'Must have a description'
+                }
             />
         </Grid>
     );
 };
+
 const ImageUploadWrapper = styled.div`
     grid-area: image;
     width: 100%;
@@ -372,61 +501,3 @@ const Warning = styled.div`
         var(--spectrum-semantic-negative-color-text-small)
     );
 `;
-
-const RelistAuction = ({ onPress }) => {
-    return (
-        <Button variant="primary" maxWidth="max-content" onPress={onPress}>
-            <PublishCheck />
-            <Text>Re-list</Text>
-        </Button>
-    );
-};
-
-const CancelAuction = ({ onPress, isDisabled }) => {
-    return (
-        <Button
-            variant="primary"
-            maxWidth="max-content"
-            onPress={onPress}
-            isDisabled={isDisabled}
-        >
-            <Cancel />
-            <Text>Cancel Auction</Text>
-        </Button>
-    );
-};
-
-const CopyAuction = ({ onPress }) => {
-    return (
-        <Button variant="primary" maxWidth="max-content" onPress={onPress}>
-            <Copy />
-            <Text>Copy Auction</Text>
-        </Button>
-    );
-};
-
-const AuctionState = ({ isPublished, lastBid, isRelisted }) => {
-    let variant = 'positive';
-    let statusText = `Published ${!lastBid ? '(No Bids)' : ''}`;
-    if (isRelisted) {
-        variant = 'neutral';
-        statusText = 'Unpublished (Save to Publish)';
-    } else if (!isPublished && !lastBid) {
-        variant = 'negative';
-        statusText = 'Expired';
-    } else if (!isPublished && lastBid) {
-        variant = 'info';
-        statusText = 'Sold';
-    }
-    return (
-        <Flex direction="row" alignItems="center">
-            <StatusLight variant={variant}>{statusText}</StatusLight>
-            {!isPublished && lastBid && (
-                <Badge variant="positive" marginStart="size-100">
-                    <User />
-                    <Text>Buyer: {lastBid.alias}</Text>
-                </Badge>
-            )}
-        </Flex>
-    );
-};

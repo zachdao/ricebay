@@ -41,7 +41,10 @@ export const Toast = ({
                     <Button
                         marginEnd="10px"
                         variant="overBackground"
-                        onPress={actionFn}
+                        onPress={() => {
+                            actionFn();
+                            dismissFn && dismissFn();
+                        }}
                         gridArea="action"
                     >
                         {actionTitle}

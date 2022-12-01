@@ -54,7 +54,7 @@ describe('Edit Auction', () => {
             screen.getByLabelText('Auction Description'),
         ).toBeInTheDocument();
 
-        expect(screen.getByText('Cancel')).toBeInTheDocument();
+        expect(screen.getByText('Go Back')).toBeInTheDocument();
         expect(screen.getByText('Save')).toBeInTheDocument();
         expect(screen.getByText('Upload Image')).toBeInTheDocument();
 

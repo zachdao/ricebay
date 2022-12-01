@@ -2,9 +2,11 @@ package edu.rice.comp610.model;
 
 import edu.rice.comp610.controller.AuctionManager;
 import edu.rice.comp610.controller.AuctionQuery;
+import edu.rice.comp610.store.Query;
 import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.DatabaseException;
 import edu.rice.comp610.util.ObjectNotFoundException;
+import org.eclipse.jetty.util.ArrayUtil;
 
 import java.util.*;
 
@@ -71,8 +73,11 @@ public class StandardAuctionManager implements AuctionManager {
      */
     public List<Auction> search(AuctionQuery query) throws DatabaseException {
         // find auction by category and text
-        var auctionQuery = queryManager.makeLoadQuery(Auction.class, query.getQueryMap().getOrDefault("filterBy", new String[]{}));
-        return databaseManager.loadObjects(auctionQuery, query.getQueryMap().getOrDefault("filterByValues", new String[]{}));
+        String[] filterBy = (String[]) query.getQueryMap().getOrDefault("filterBy", new String[]{});
+        Query<Auction> auctionQuery = queryManager.makeLoadQuery(Auction.class, ArrayUtil.prependToArray("published", filterBy, String.class));
+
+        Object[] filterValues = query.getQueryMap().getOrDefault( "filterByValues", new Object[]{});
+        return databaseManager.loadObjects(auctionQuery, ArrayUtil.prependToArray(true, filterValues, Object.class));
     }
 
     public List<Category> categories() throws DatabaseException {

@@ -93,7 +93,7 @@ export const Auction = () => {
                     path="/edit"
                     element={
                         auction ? (
-                            <EditAuction auction={auction} />
+                            <EditAuction auction={auction} refresh={refetch} />
                         ) : (
                             <Loading />
                         )
