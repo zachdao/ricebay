@@ -36,7 +36,7 @@ public class AuctionAdapter {
             auction.setEndDate(viewAuction.getEndDate());
             UUID newId = this.auctionManager.save(auction);
             List<Picture> images = this.auctionManager.addImages(viewAuction.getImages(), newId);
-            List<Category> categories = this.auctionManager.addCategories(viewAuction.getCategories(), newId);
+            this.auctionManager.addCategories(viewAuction.getCategories(), newId);
             return new AppResponse<>(201, true, newId, "OK");
         } catch (BadRequestException e) {
             return new AppResponse<>(400, false, e.getRequestErrors(), "Bad Request");

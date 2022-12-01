@@ -54,4 +54,9 @@ public final class Util implements IUtil {
         return colors[random.nextInt(colors.length)];
     }
 
+    public String camelToSnake(String str) {
+        String ret = str.replaceAll("([A-Z]+)([A-Z][a-z])", "$1_$2").replaceAll("([a-z])([A-Z])", "$1_$2");
+        return ret.toLowerCase();
+    }
+
 }
