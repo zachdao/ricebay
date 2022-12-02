@@ -33,7 +33,6 @@ export const BidHistory = ({ auction, ...otherParams }) => {
                 const first = direction === 'ascending' ? a : b;
                 const second = direction === 'ascending' ? b : a;
                 if (column === 'alias') {
-                    console.log('sorting by alias');
                     return first.alias.localeCompare(second.alias);
                 }
 
