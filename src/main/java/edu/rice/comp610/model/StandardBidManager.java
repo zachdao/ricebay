@@ -39,6 +39,11 @@ public class StandardBidManager implements BidManager {
         return maxBid;
     }
 
+    public List<Bid> getAuctionBids(UUID auctionId) throws DatabaseException {
+        var loadBid = queryManager.makeLoadQuery(Bid.class, "auction_id");
+        return databaseManager.loadObjects(loadBid, auctionId);
+    }
+
     public Bid getUserBid(UUID auctionId, UUID ownerId) throws DatabaseException {
         var loadBid = queryManager.makeLoadQuery(Bid.class, "auction_id", "owner_id");
         List<Bid> bids = databaseManager.loadObjects(loadBid, auctionId, ownerId);
@@ -58,7 +63,7 @@ public class StandardBidManager implements BidManager {
         // 1. new_bid > current_bid + bid_increment
         // 2. Owner of bid is not Owner of Auction
         boolean isHighestBid = currentBid == null || bid.getAmount() > currentBid.getAmount() + auction.getBidIncrement();
-        boolean isOwner = bid.getOwnerId() == auction.getOwnerId();
+        boolean isOwner = bid.getOwnerId().equals(auction.getOwnerId());
 
         return !isHighestBid || isOwner;
     }
