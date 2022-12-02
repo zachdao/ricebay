@@ -1,6 +1,8 @@
 package edu.rice.comp610.store;
 
 import edu.rice.comp610.model.DatabaseManager;
+import edu.rice.comp610.model.Filter;
+import edu.rice.comp610.model.Filters;
 import edu.rice.comp610.model.QueryManager;
 import edu.rice.comp610.util.Util;
 import org.postgresql.util.PGmoney;
@@ -18,6 +20,7 @@ import java.util.stream.Stream;
 public class PostgresQueryManager implements QueryManager {
 
     private static final Set<String> IGNORE = Set.of("getClass");
+    private final Filters filters = new SqlFilters();
 
     static final class Accessors {
         Method getter;
@@ -124,7 +127,7 @@ public class PostgresQueryManager implements QueryManager {
      * @param filterBy the set of fields to filter by.
      * @return a SQL query string .
      */
-    public <T> Query<T> makeLoadQuery(Class<T> modelClass, String... filterBy) {
+    public <T> Query<T> makeLoadQuery(Class<T> modelClass, Filter... filterBy) {
         Map<String, Accessors> accessorsMap = makeColumnsToAccessorsMap(modelClass);
         String primaryTable = Util.getInstance().camelToSnake(modelClass.getSimpleName());
 
@@ -138,18 +141,19 @@ public class PostgresQueryManager implements QueryManager {
                 .collect(Collectors.joining(", ")));
         stringBuilder.append(" FROM ").append(primaryTable);
         if (filterBy.length > 0 ) {
-        stringBuilder.append(" WHERE ");
-        boolean first = true;
-        for (String column : filterBy) {
-            if (first)
-                first = false;
-            else
-                stringBuilder.append(" AND ");
-            stringBuilder.append(column).append(" = ?");
-        }}
+            stringBuilder.append(" WHERE ");
+            boolean first = true;
+            for (Filter filter : filterBy) {
+                if (first)
+                    first = false;
+                else
+                    stringBuilder.append(" AND ");
+                stringBuilder.append(filter.toQuery());
+            }
+        }
 
         String sql = stringBuilder.toString();
-        return new Query<>(modelClass, sql, filterBy, accessorsMap);
+        return new Query<>(modelClass, sql, accessorsMap, false);
     }
 
     /**
@@ -211,10 +215,17 @@ public class PostgresQueryManager implements QueryManager {
             stringBuilder.append(")");
         }
         String sql = stringBuilder.toString();
-        List<String> params = insertColumns;
-        if (upsert) {
-            params = Stream.concat(insertColumns.stream(), updateColumns.stream()).collect(Collectors.toList());
-        }
-        return new Query<>(modelClass, sql, params, accessorsMap, upsert);
+        List<String> params = Stream.concat(insertColumns.stream(), updateColumns.stream()).collect(Collectors.toList());
+        return new Query<>(modelClass, sql, accessorsMap, true);
+    }
+
+    @Override
+    public Filters filters() {
+        return this.filters;
+//        List<String> params = insertColumns;
+//        if (upsert) {
+//            params = Stream.concat(insertColumns.stream(), updateColumns.stream()).collect(Collectors.toList());
+//        }
+//        return new Query<>(modelClass, sql, params, accessorsMap, upsert);
     }
 }

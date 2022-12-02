@@ -77,7 +77,7 @@ public class LocalAccountManager implements AccountManager {
                 throw new UnauthorizedException();
             }
 
-            var aliasQuery = queryManager.makeLoadQuery(Account.class, "email");
+            var aliasQuery = queryManager.makeLoadQuery(Account.class, queryManager.filters().makeEqualityFilter("id"));
             var accounts = databaseManager.loadObjects(aliasQuery, credentials.getEmail());
             if (accounts.size() != 1) {
                 throw new UnauthorizedException();
@@ -124,7 +124,7 @@ public class LocalAccountManager implements AccountManager {
         errors.putAll(checkEmail(account.getEmail()));
 
         // Ensure unique email
-        var emailQuery = queryManager.makeLoadQuery(Account.class, "email");
+        var emailQuery = queryManager.makeLoadQuery(Account.class, queryManager.filters().makeEqualityFilter("email"));
         List<Account> accountsByEmail = databaseManager.loadObjects(emailQuery, account.getEmail());
         if (accountsByEmail.size() > 0 && !accountsByEmail.get(0).getId().equals(account.getId())) {
             errors.put("email", "Invalid Email: email already in use");
@@ -136,7 +136,7 @@ public class LocalAccountManager implements AccountManager {
         }
 
         // Ensure unique alias
-        var aliasQuery = queryManager.makeLoadQuery(Account.class, "alias");
+        var aliasQuery = queryManager.makeLoadQuery(Account.class, queryManager.filters().makeEqualityFilter("alias"));
         List<Account> accountsByAlias = databaseManager.loadObjects(aliasQuery, account.getAlias());
         if (accountsByAlias.size() > 0 && !accountsByAlias.get(0).getId().equals(account.getId())) {
             errors.put("alias", "Invalid Alias: alias already in use");
@@ -178,7 +178,7 @@ public class LocalAccountManager implements AccountManager {
      */
     public Account get(UUID id) throws DatabaseException, ObjectNotFoundException {
         // find account by alias
-        var aliasQuery = queryManager.makeLoadQuery(Account.class, "id");
+        var aliasQuery = queryManager.makeLoadQuery(Account.class, queryManager.filters().makeEqualityFilter("id"));
         var accounts = databaseManager.loadObjects(aliasQuery, id);
         // alias didn't match single account
         if (accounts.size() != 1) {
@@ -189,7 +189,7 @@ public class LocalAccountManager implements AccountManager {
 
     public Account get(String email) throws DatabaseException, ObjectNotFoundException {
         // find account by alias
-        var aliasQuery = queryManager.makeLoadQuery(Account.class, "email");
+        var aliasQuery = queryManager.makeLoadQuery(Account.class, queryManager.filters().makeEqualityFilter("email"));
         var accounts = databaseManager.loadObjects(aliasQuery, email);
         // alias didn't match single account
         if (accounts.size() != 1) {
