@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { CategoriesContext } from '../../categories.context';
 import Cancel from '@spectrum-icons/workflow/Cancel';
 import { EditState } from './EditState';
+import { BidHistory } from './BidHistory';
 
 const getInitialRange = (startDate, endDate) => {
     return {
@@ -253,9 +254,14 @@ export const EditAuction = ({ auction, refresh }) => {
         <Grid
             height="calc(100% - 40px)"
             maxWidth="960px"
-            areas={['status save', 'image details', 'description description']}
+            areas={[
+                'status save',
+                'image details',
+                'description description',
+                'bidhistory bidhistory',
+            ]}
             columns={['3fr', '2fr']}
-            rows={['auto', 'auto', '1fr']}
+            rows={['auto', 'auto', 'auto', '2fr']}
             columnGap="size-200"
             rowGap="size-150"
         >
@@ -470,6 +476,14 @@ export const EditAuction = ({ auction, refresh }) => {
                     !isValidDescription() && 'Must have a description'
                 }
             />
+            {!auction || (
+                <BidHistory
+                    auction={auction}
+                    gridArea="bidhistory"
+                    width="100%"
+                    height="100%"
+                />
+            )}
         </Grid>
     );
 };
