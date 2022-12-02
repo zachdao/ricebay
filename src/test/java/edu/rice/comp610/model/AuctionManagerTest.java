@@ -1,7 +1,6 @@
 package edu.rice.comp610.model;
 
 import edu.rice.comp610.controller.AuctionQuery;
-import edu.rice.comp610.model.*;
 import edu.rice.comp610.store.Query;
 import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.ObjectNotFoundException;
@@ -9,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -116,7 +114,7 @@ class AuctionManagerTest {
         when(databaseManager.loadObjects(any(Query.class), eq(NEW_AUCTION.getId())))
                 .thenReturn(List.of(NEW_AUCTION));
 
-        Auction auction = auctionManager.get(NEW_AUCTION.getId());
+        Auction auction = auctionManager.get(NEW_AUCTION.getId(), );
         assertEquals(NEW_AUCTION.getId(), auction.getId());
     }
 
@@ -126,7 +124,7 @@ class AuctionManagerTest {
         when(databaseManager.loadObjects(any(Query.class), eq(NEW_AUCTION.getId())))
                 .thenReturn(List.of());
 
-        assertThrows(ObjectNotFoundException.class, () -> auctionManager.get(NEW_AUCTION.getId()));
+        assertThrows(ObjectNotFoundException.class, () -> auctionManager.get(NEW_AUCTION.getId(), ));
     }
 
     @Test
@@ -168,5 +166,39 @@ class AuctionManagerTest {
 
         verify(databaseManager).saveObjects(any(Query.class), eq(newAuctionCategory));
         verify(databaseManager, never()).saveObjects(any(Query.class), eq(newAuctionCategory2));
+    }
+
+    @Test
+        // Not sure how to do this...  Trying to test the addCategories method in StandardAuctionManager
+    void auctionViewByOwner() throws Exception {
+
+        NEW_AUCTION.setId(UUID.randomUUID());
+
+        when(databaseManager.loadObjects(any(Query.class), any()))
+                .thenReturn(List.of(NEW_AUCTION));
+
+        AuctionView auctionView = new AuctionView();
+        auctionView.setAuctionId(NEW_AUCTION.getId());
+        auctionView.setViewerUD(NEW_AUCTION.getOwnerId());
+
+        //verify(databaseManager).saveObjects(any(Query.class), eq(newAuctionCategory));
+        verify(databaseManager, never()).saveObjects(any(Query.class), eq(auctionView));
+    }
+
+    @Test
+        // Not sure how to do this...  Trying to test the addCategories method in StandardAuctionManager
+    void auctionViewNotOwner() throws Exception {
+
+        NEW_AUCTION.setId(UUID.randomUUID());
+
+        when(databaseManager.loadObjects(any(Query.class), any()))
+                .thenReturn(List.of(NEW_AUCTION));
+
+        AuctionView auctionView = new AuctionView();
+        auctionView.setAuctionId(NEW_AUCTION.getId());
+        auctionView.setViewerUD(UUID.randomUUID());
+
+        verify(databaseManager).saveObjects(any(Query.class), eq(auctionView));
+        //verify(databaseManager, never()).saveObjects(any(Query.class), eq(auctionView));
     }
 }

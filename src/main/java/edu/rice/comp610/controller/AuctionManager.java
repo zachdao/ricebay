@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public interface AuctionManager {
     UUID save(Auction auction) throws BadRequestException, DatabaseException;
-    Auction get(UUID id) throws ObjectNotFoundException, DatabaseException;
+    Auction get(UUID id, UUID viewerUD) throws ObjectNotFoundException, DatabaseException;
     List<Auction> search(AuctionQuery query) throws DatabaseException;
     List<Category> categories() throws DatabaseException;
     List<Category> categories(UUID auctionId) throws DatabaseException;
