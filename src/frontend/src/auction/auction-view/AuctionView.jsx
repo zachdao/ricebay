@@ -1,11 +1,12 @@
 import React, { useCallback } from 'react';
 import {
+    Content,
+    ContextualHelp,
     Flex,
     Grid,
     Heading,
     ProgressBar,
     Text,
-    View,
 } from '@adobe/react-spectrum';
 import { usePostWithToast } from '../../http-query/use-post-with-toast';
 import { Bid } from './bid/Bid';
@@ -88,7 +89,20 @@ export const AuctionView = ({ auction, refresh }) => {
                     alignItems="center"
                     rowGap="size-100"
                 >
-                    <FancyLabel>Current Bid</FancyLabel>
+                    <FancyLabel>
+                        <Text>Current Bid</Text>
+                        {auction?.taxPercent > 0 ? (
+                            <ContextualHelp variant="info">
+                                <Heading>Sales Tax</Heading>
+                                <Content>
+                                    <Text>
+                                        The seller has set a Sales Tax of{' '}
+                                        {auction.taxPercent * 100}%
+                                    </Text>
+                                </Content>
+                            </ContextualHelp>
+                        ) : null}
+                    </FancyLabel>
                     <Text>
                         ${(auction.currentBid || auction.minimumBid).toFixed(2)}
                     </Text>
@@ -144,4 +158,6 @@ export const AuctionView = ({ auction, refresh }) => {
 const FancyLabel = styled.div`
     font-size: 125%;
     font-weight: lighter;
+    display: flex;
+    align-items: end;
 `;
