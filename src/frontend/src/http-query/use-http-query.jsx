@@ -47,9 +47,9 @@ export const useHttpQuery = (url, options) => {
         //         }
         //     }
         // });
-    }, []);
+    }, [url]);
 
-    useEffect(refetch, []);
+    useEffect(refetch, [url]);
 
     return { appResponse, error, status, refetch };
 };

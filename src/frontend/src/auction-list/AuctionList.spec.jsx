@@ -5,11 +5,11 @@ import mockAxios from 'jest-mock-axios';
 import { defaultTheme, Provider } from '@adobe/react-spectrum';
 import { MemoryRouter } from 'react-router-dom';
 
-const renderComponent = async () => {
+const renderComponent = async (auctions) => {
     await render(
         <Provider theme={defaultTheme}>
             <MemoryRouter>
-                <AuctionList />
+                <AuctionList auctions={auctions} />
             </MemoryRouter>
         </Provider>,
     );
@@ -25,29 +25,8 @@ describe('AuctionList', () => {
         },
     ];
 
-    afterEach(() => {
-        mockAxios.reset();
-    });
-
     it('should render a grid of auctions', async () => {
-        await act(async () => await renderComponent(<AuctionList />));
-
-        await waitFor(async () => {
-            expect(mockAxios.request).toHaveBeenCalledWith({
-                url: '/auctions/search',
-            });
-        });
-
-        await act(async () => {
-            mockAxios.mockResponse({
-                data: {
-                    success: true,
-                    data: testAuctions,
-                    msg: 'OK',
-                },
-                status: 200,
-            });
-        });
+        await act(async () => await renderComponent(testAuctions));
 
         expect(
             screen.queryByText(new RegExp(`.*${testAuctions[0].title}.*`)),

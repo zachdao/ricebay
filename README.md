@@ -37,7 +37,7 @@ Docker is a [container](https://www.docker.com/resources/what-container/) runtim
 Run the container, exposing port 5432, like:
 
 ```shell
-docker run --rm -it -e POSTGRES_PASSWORD=postgrespwd -e POSTGRES_USER=postgres -e POSTGRES_DB=ricebay -d -p 5432:5432 postgres
+docker run --rm -it -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=ricebay -d -p 5432:5432 postgres
 ```
 
 #### Natively

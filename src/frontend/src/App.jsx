@@ -15,6 +15,7 @@ import { RecentlyViewed } from './recently-viewed/RecentlyViewed';
 import { CategoriesContext } from './categories.context';
 import { SearchContext } from './search.context';
 import { Search } from './search/Search';
+import { Home } from './home/Home';
 
 export const App = () => {
     const [showSidebar, setShowSidebar] = useState(false);
@@ -65,7 +66,7 @@ export const App = () => {
                         >
                             {/* Put new routes to views HERE */}
                             <Routes>
-                                <Route index element={<AuctionList />} />
+                                <Route index element={<Home />} />
                                 <Route path="account*" element={<Account />} />
                                 <Route
                                     path="auction/:auctionId*"

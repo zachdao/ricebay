@@ -17,12 +17,12 @@ const renderComponent = async () => {
     );
 };
 
-describe('RecentlyViewed', () => {
+describe('Search', () => {
     afterEach(() => {
         mockAxios.reset();
     });
 
-    it('should render list of recently viewed items', async () => {
+    it('should render list of searched items', async () => {
         await renderComponent();
 
         expect(screen.queryByText('Categories')).toBeInTheDocument();
