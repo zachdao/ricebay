@@ -35,7 +35,7 @@ export const MyAuctions = () => {
     // Get our list of owned auctions, where appResponse is AppResponse<List<Auction>>
     const {appResponse, error, status} = useHttpQuery(`/auctions/search`, {
         params: {
-            sellerId: user?.id
+            owner_id: user?.id
         }
     });
     // const auctions = appResponse?.data;
