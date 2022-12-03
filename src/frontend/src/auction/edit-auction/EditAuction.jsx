@@ -23,6 +23,7 @@ import { CategoriesContext } from '../../categories.context';
 import Cancel from '@spectrum-icons/workflow/Cancel';
 import { EditState } from './EditState';
 import { BidHistory } from './BidHistory';
+import { ImageUploader } from '../../image-uploader/ImageUploader';
 
 const getInitialRange = (startDate, endDate) => {
     return {
@@ -45,7 +46,7 @@ const getInitialRange = (startDate, endDate) => {
 
 export const EditAuction = ({ auction, refresh }) => {
     // Set up text field data
-    const [image, setImage] = useState(auction?.images?.[0] || '');
+    const [images, setImages] = useState(auction?.images || []);
     const [title, setTitle] = useState(auction?.title || '');
     const [startingBid, setStartingBid] = useState(auction?.minimumBid || 1);
     const [bidIncrement, setBidIncrement] = useState(
@@ -86,7 +87,7 @@ export const EditAuction = ({ auction, refresh }) => {
         {
             ...auction,
             title,
-            image,
+            images,
             minimumBid: startingBid,
             bidIncrement,
             startDate: range.start.toString(),
@@ -98,7 +99,7 @@ export const EditAuction = ({ auction, refresh }) => {
         },
         [
             title,
-            image,
+            images,
             startingBid,
             bidIncrement,
             range,
@@ -219,11 +220,16 @@ export const EditAuction = ({ auction, refresh }) => {
         () => published === auction?.published,
         [auction, range],
     );
-
     const isCleanTaxPercent = useCallback(
         () => taxPercent === auction?.taxPercent,
         [auction, taxPercent],
     );
+    const isCleanImages = useCallback(() => {
+        if (auction?.images?.length !== images.length) {
+            return false;
+        }
+        return images.every((val, idx) => val === auction.images[idx]);
+    }, [auction, images]);
 
     // Check if any form fields have been touched
     const isClean = () => {
@@ -236,12 +242,14 @@ export const EditAuction = ({ auction, refresh }) => {
             isCleanStart() &&
             isCleanEnd() &&
             isCleanPublished() &&
-            isCleanTaxPercent()
+            isCleanTaxPercent() &&
+            isCleanImages()
         );
     };
 
     // Cancel any ongoing, unsaved changes
     const cancel = useCallback(() => {
+        setImages(auction?.images || []);
         setTitle(auction?.title || '');
         setStartingBid(auction?.minimumBid || 1);
         setBidIncrement(auction?.bidIncrement || undefined);
@@ -249,7 +257,9 @@ export const EditAuction = ({ auction, refresh }) => {
         setRange(getInitialRange(startDate, endDate));
         setCategories(new Set(auction?.categories || []));
         setPublished(auction?.published);
+        setTaxPercent(auction?.taxPercent || undefined);
     }, [
+        images,
         title,
         categories,
         startingBid,
@@ -295,7 +305,9 @@ export const EditAuction = ({ auction, refresh }) => {
             >
                 <Button
                     variant={isClean() ? 'primary' : 'negative'}
-                    onPress={() => (isClean() ? navigate(-1) : cancel())}
+                    onPress={() =>
+                        isClean() || !auction ? navigate(-1) : cancel()
+                    }
                 >
                     <Text>{isClean() ? 'Go Back' : 'Cancel'}</Text>
                 </Button>
@@ -308,10 +320,17 @@ export const EditAuction = ({ auction, refresh }) => {
                     <Text>Save</Text>
                 </Button>
             </Flex>
-            <ImageUploadWrapper onClick={() => console.log('click')}>
-                <Image size="XXL" />
-                <Text>Upload Image</Text>
-            </ImageUploadWrapper>
+            <ImageUploader
+                multiple
+                images={images}
+                setImages={auction?.images?.length ? undefined : setImages}
+                zeroState={
+                    <ImageUploadWrapper>
+                        <Image size="XXL" />
+                        <Text>Upload Image</Text>
+                    </ImageUploadWrapper>
+                }
+            />
             <Grid
                 gridArea="details"
                 columns={['2fr', '2fr', '2fr']}

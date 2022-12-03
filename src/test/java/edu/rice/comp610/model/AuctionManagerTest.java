@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -205,8 +204,9 @@ class AuctionManagerTest {
 
         Picture pic = new Picture();
         pic.setAuctionId(NEW_AUCTION.getId());
-        pic.setSequenceNum(0);
-        pic.setImage("Best Image Ever".getBytes());
+        pic.setPictureSequence(0);
+        pic.setPictureData("Best Image Ever".getBytes());
+        pic.setPictureName("Image 0");
 
         List<Picture> pics = auctionManager.addImages(List.of("Best Image Ever".getBytes()), NEW_AUCTION.getId());
 

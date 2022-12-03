@@ -6,7 +6,9 @@ import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.DatabaseException;
 import edu.rice.comp610.util.ObjectNotFoundException;
 import org.eclipse.jetty.util.ArrayUtil;
+import org.eclipse.jetty.util.security.Credential;
 
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -107,6 +109,9 @@ public class StandardAuctionManager implements AuctionManager {
             return databaseManager.loadObjects(auctionQuery, ArrayUtil.prependToArray(true, query.getValues(), Object.class));
         } else if (query.getFilters().length == 0) {
             Object[] auctionIds = getAuctionIds(query);
+            if (auctionIds.length == 0) {
+                return List.of();
+            }
             Object[] objects = ArrayUtil.prependToArray(true, auctionIds, Object.class);
             return databaseManager.loadObjects(queryManager.makeLoadQuery(Auction.class,
                             queryManager.filters().makeAndFilter(
@@ -147,6 +152,10 @@ public class StandardAuctionManager implements AuctionManager {
         List<AuctionCategory> auctionCategories = databaseManager.loadObjects(queryManager.makeLoadQuery(AuctionCategory.class, queryManager.filters().makeEqualityFilter("auction_id")), auctionId);
 
         var categoryIds = auctionCategories.stream().map(AuctionCategory::getCategoryId).toArray();
+        if (categoryIds.length == 0) {
+            System.err.format("Auction %s had no categories!", auctionId.toString());
+            return List.of();
+        }
         return databaseManager.loadObjects(queryManager.makeLoadQuery(Category.class,
                 queryManager.filters().makeInFilter("id", auctionCategories.size())),
                 categoryIds);
@@ -159,8 +168,9 @@ public class StandardAuctionManager implements AuctionManager {
             // Create new picture object
             Picture img = new Picture();
             img.setAuctionId(auctionId);
-            img.setImage(images.get(i));
-            img.setSequenceNum(i);
+            img.setPictureData(images.get(i));
+            img.setPictureSequence(i);
+            img.setPictureName(String.format("Image %d", i));
 
             pictures.add(img);
 

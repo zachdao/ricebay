@@ -36,7 +36,7 @@ public class AuctionAdapter {
             auction.setStartDate(viewAuction.getStartDate());
             auction.setEndDate(viewAuction.getEndDate());
             UUID newId = this.auctionManager.save(auction);
-            List<Picture> images = this.auctionManager.addImages(viewAuction.getImages(), newId);
+            this.auctionManager.addImages(viewAuction.getImages().stream().map(String::getBytes).collect(Collectors.toList()), newId);
             this.auctionManager.addCategories(viewAuction.getCategories() != null ? viewAuction.getCategories() : List.of(), newId);
             return new AppResponse<>(201, true, newId, "OK");
         } catch (BadRequestException e) {
@@ -75,6 +75,7 @@ public class AuctionAdapter {
             if (viewAuction.getTaxPercent() != 0 ) {
                 auction.setTaxPercent(viewAuction.getTaxPercent());
             }
+            this.auctionManager.addImages(viewAuction.getImages().stream().map(String::getBytes).collect(Collectors.toList()), viewAuction.getId());
             auction.setPublished(viewAuction.isPublished());
             // TODO: Diff categories and add new ones and delete removed ones
             this.auctionManager.save(auction);
@@ -90,7 +91,29 @@ public class AuctionAdapter {
 
     AppResponse<?> search(AuctionQuery query) {
         try {
-            var auctions = this.auctionManager.search(query);
+            var auctions = this.auctionManager.search(query).stream().map(auction -> {
+                ViewAuction viewAuction = new ViewAuction();
+                viewAuction.setId(auction.getId());
+                viewAuction.setTitle(auction.getTitle());
+                viewAuction.setDescription(auction.getDescription());
+                viewAuction.setMinimumBid(auction.getMinimumBid());
+                try {
+                    Bid currentBid = this.bidManager.getCurrentBid(auction.getId());
+                    if (currentBid != null) {
+                        viewAuction.setCurrentBid(currentBid.getAmount());
+                    }
+                } catch (DatabaseException e) {
+                    e.printStackTrace();
+                    System.err.format("Encountered DB error while loading current bid for auction %s%n", auction.getId().toString());
+                }
+                try {
+                    viewAuction.setImages(this.auctionManager.getImages(viewAuction.getId()).stream().map(Picture::getPictureData).map(String::new).collect(Collectors.toList()));
+                } catch (DatabaseException e) {
+                    e.printStackTrace();
+                    System.err.format("Encountered DB error while loading images for auction %s%n", auction.getId().toString());
+                }
+                return viewAuction;
+            }).collect(Collectors.toList());
             return new AppResponse<>(200, true, auctions, "OK");
         } catch (DatabaseException e) {
             return new AppResponse<>(500, false, null, "Internal Server Error");
@@ -136,7 +159,10 @@ public class AuctionAdapter {
                 viewAuction.setUserBid(userBid);
             }
             List<Picture> pictures = this.auctionManager.getImages(id);
-            viewAuction.setImages(pictures.stream().map(Picture::getImage).collect(Collectors.toList()));
+            viewAuction.setImages(pictures.stream()
+                    .map(Picture::getPictureData)
+                    .map(String::new)
+                    .collect(Collectors.toList()));
 
             List<ViewBid> bids = new ArrayList<>();
             if (owner.getId().equals(user.getId())) {
