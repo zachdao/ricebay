@@ -45,6 +45,7 @@ public class Bid {
         return amount;
     }
 
+    @SqlType(PGmoney.class)
     public void setAmount(Double amount) {
         this.amount = amount;
     }
@@ -70,6 +71,7 @@ public class Bid {
         return maxBid;
     }
 
+    @SqlType(PGmoney.class)
     public void setMaxBid(Double maxBid) {
         this.maxBid = maxBid;
     }

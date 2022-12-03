@@ -10,6 +10,8 @@ import org.postgresql.util.PGmoney;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,9 +62,9 @@ public class PostgresQueryManager implements QueryManager {
          * @throws InvocationTargetException if there is an exception thrown by the setter
          * @throws IllegalAccessException if the caller does not have access to the setter
          */
-        void invokeSetter(Object model, Object value) throws InvocationTargetException, IllegalAccessException {
+        void invokeSetter(Object model, Object value) throws InvocationTargetException, IllegalAccessException, ParseException {
             if (setter.isAnnotationPresent(SqlType.class)) {
-                value = toSqlType(value, setter.getAnnotation(SqlType.class).value());
+                value = fromSqlType(value, setter.getAnnotation(SqlType.class).value());
             }
             setter.invoke(model, value);
         }
@@ -74,6 +76,18 @@ public class PostgresQueryManager implements QueryManager {
                 return new PGmoney((Double) from);
             } else {
                 throw new IllegalArgumentException("Cannot convert type " + from.getClass() + " to SQL type " + toType);
+            }
+        }
+
+        private Object fromSqlType(Object from, Class<?> fromType) throws ParseException {
+            if (from.getClass() == fromType) {
+                return from;
+            } else if (from instanceof String && fromType == PGmoney.class) {
+                String money = (String) from;
+                DecimalFormat parser = new DecimalFormat("'$'0.##");
+                return parser.parse(money);
+            } else {
+                throw new IllegalArgumentException("Cannot convert SQL type " + from.getClass() + " to type " + fromType);
             }
         }
     }
