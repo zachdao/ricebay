@@ -18,8 +18,10 @@ export const Home = () => {
     useEffect(() => {
         if (searchText) {
             setSearchURL(
-                `/auctions/search?filterBy=title&filterByValue=${searchText}`,
+                `/auctions/search?title:like=${searchText}&description:like=${searchText}`,
             );
+        } else {
+            setSearchURL('/auctions/search');
         }
     }, [searchText]);
 

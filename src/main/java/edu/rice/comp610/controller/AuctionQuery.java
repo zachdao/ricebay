@@ -33,8 +33,8 @@ public class AuctionQuery {
     }
 
     public AuctionQuery(Filters filterFactory, Map<String, String[]> queryMap, AuctionSortField sortField, boolean sortAscending) {
-        this.filters = new ArrayList<>(List.of(filterFactory.makeEqualityFilter("published")));
-        this.values = new ArrayList<>(List.of(true));
+        this.filters = new ArrayList<>();
+        this.values = new ArrayList<>();
         this.categories = new ArrayList<>();
         for (Map.Entry<String, String[]> entry : queryMap.entrySet()) {
             var values = entry.getValue();
