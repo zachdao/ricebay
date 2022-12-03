@@ -285,6 +285,7 @@ export const EditAuction = ({ auction, refresh }) => {
                 setPublished={setPublished}
                 saveAuction={saveAuction}
                 copyAuction={copyAuction}
+                isClean={isClean}
             />
             <Flex
                 direction="row"

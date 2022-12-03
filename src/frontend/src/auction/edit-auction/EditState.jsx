@@ -19,6 +19,7 @@ export const EditState = ({
     setPublished,
     saveAuction,
     copyAuction,
+    isClean,
 }) => {
     return (
         <Flex
@@ -37,9 +38,9 @@ export const EditState = ({
                 )}
             {auction && auction.published === true && (
                 <CancelAuction
-                    isDisabled={auction?.bids?.length > 0}
+                    isDisabled={auction?.bids?.length > 0 || !isClean()}
                     onPress={() => {
-                        saveAuction({ ...auction, published: false });
+                        saveAuction({ published: false });
                     }}
                 />
             )}
