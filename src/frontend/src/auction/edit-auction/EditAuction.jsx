@@ -478,6 +478,7 @@ export const EditAuction = ({ auction, refresh }) => {
                     value={taxPercent}
                     onChange={setTaxPercent}
                     hideStepper
+                    step={0.0001}
                     validationState={
                         error?.taxPercent
                             ? 'invalid'
@@ -492,6 +493,9 @@ export const EditAuction = ({ auction, refresh }) => {
                     }
                     formatOptions={{
                         style: 'percent',
+                        minimumFractionDigits: 1,
+                        maximumFractionDigits: 2,
+                        minimumIntegerDigits: 1,
                     }}
                     width="100%"
                     isDisabled={isTerminal}
