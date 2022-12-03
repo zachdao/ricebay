@@ -49,7 +49,7 @@ describe('Home', () => {
 
         await waitFor(async () => {
             expect(mockAxios.request).toHaveBeenCalledWith({
-                url: `/auctions/search?filterBy=title&filterByValue=${searchText}`,
+                url: `/auctions/search?title:like=${searchText}&description:like=${searchText}`,
             });
         });
     });
