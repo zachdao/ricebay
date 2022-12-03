@@ -72,6 +72,9 @@ public class AuctionAdapter {
             if (viewAuction.getEndDate() != null) {
                 auction.setEndDate(viewAuction.getEndDate());
             }
+            if (viewAuction.getTaxPercent() != 0 ) {
+                auction.setTaxPercent(viewAuction.getTaxPercent());
+            }
             auction.setPublished(viewAuction.isPublished());
             // TODO: Diff categories and add new ones and delete removed ones
             this.auctionManager.save(auction);
@@ -106,6 +109,7 @@ public class AuctionAdapter {
             viewAuction.setStartDate(auction.getStartDate());
             viewAuction.setEndDate(auction.getEndDate());
             viewAuction.setPublished(auction.getPublished());
+            viewAuction.setTaxPercent(auction.getTaxPercent());
 
             // Set categories
             List<Category> categories = this.auctionManager.categories(id);

@@ -61,6 +61,7 @@ export const EditAuction = ({ auction, refresh }) => {
         new Set(auction?.categories || []),
     );
     const [published, setPublished] = useState(auction?.published);
+    const [taxPercent, setTaxPercent] = useState(auction?.taxPercent);
     const [error, setError] = useState({});
     const navigate = useNavigate();
 
@@ -93,6 +94,7 @@ export const EditAuction = ({ auction, refresh }) => {
             categories: [...categories],
             description,
             published,
+            taxPercent,
         },
         [
             title,
@@ -103,6 +105,7 @@ export const EditAuction = ({ auction, refresh }) => {
             categories,
             description,
             published,
+            taxPercent,
         ],
         {
             message: auction ? 'Auction updated!' : 'Auction created!',
@@ -166,6 +169,10 @@ export const EditAuction = ({ auction, refresh }) => {
             return true;
         }
     }, [auction, published, range]);
+    const isValidTaxPercent = useCallback(
+        () => (taxPercent !== undefined ? taxPercent > 0 : true),
+        [taxPercent],
+    );
 
     const isValid = () => {
         return (
@@ -174,7 +181,8 @@ export const EditAuction = ({ auction, refresh }) => {
             isValidStartingBid() &&
             isValidBidIncrement() &&
             isValidDescription() &&
-            isValidStartDate()
+            isValidStartDate() &&
+            isValidTaxPercent()
         );
     };
 
@@ -212,6 +220,11 @@ export const EditAuction = ({ auction, refresh }) => {
         [auction, range],
     );
 
+    const isCleanTaxPercent = useCallback(
+        () => taxPercent === auction?.taxPercent,
+        [auction, taxPercent],
+    );
+
     // Check if any form fields have been touched
     const isClean = () => {
         return (
@@ -222,7 +235,8 @@ export const EditAuction = ({ auction, refresh }) => {
             isCleanDescription() &&
             isCleanStart() &&
             isCleanEnd() &&
-            isCleanPublished()
+            isCleanPublished() &&
+            isCleanTaxPercent()
         );
     };
 
@@ -299,7 +313,7 @@ export const EditAuction = ({ auction, refresh }) => {
             </ImageUploadWrapper>
             <Grid
                 gridArea="details"
-                columns={['2fr', '2fr']}
+                columns={['2fr', '2fr', '2fr']}
                 autoRows="min-content"
                 gap="size-100"
                 height="100%"
@@ -310,7 +324,7 @@ export const EditAuction = ({ auction, refresh }) => {
                     onChange={setTitle}
                     width="100%"
                     gridColumnStart="1"
-                    gridColumnEnd="3"
+                    gridColumnEnd="4"
                     isDisabled={isTerminal}
                     validationState={
                         isValidTitle()
@@ -341,8 +355,8 @@ export const EditAuction = ({ auction, refresh }) => {
                     gap="size-100"
                     height="min-content"
                     width="100%"
-                    gridColumnStart={auction ? '1' : undefined}
-                    gridColumnEnd={auction ? '3' : undefined}
+                    gridColumnStart={auction ? '1' : '2'}
+                    gridColumnEnd={auction ? '4' : undefined}
                 >
                     <LabeledValue label="Categories" />
                     {categories.size ? (
@@ -373,7 +387,7 @@ export const EditAuction = ({ auction, refresh }) => {
                 <Flex
                     direction="column"
                     gridColumnStart="1"
-                    gridColumnEnd="3"
+                    gridColumnEnd="4"
                     justifyContent="start"
                     alignItems="start"
                     height="min-content"
@@ -456,6 +470,30 @@ export const EditAuction = ({ auction, refresh }) => {
                     }}
                     width="100%"
                     isDisabled={isTerminal || auction?.bids?.length > 0}
+                />
+                <NumberField
+                    minValue={0}
+                    label="Sales Tax"
+                    value={taxPercent}
+                    onChange={setTaxPercent}
+                    hideStepper
+                    validationState={
+                        error?.taxPercent
+                            ? 'invalid'
+                            : isValidTaxPercent() && !isCleanTaxPercent()
+                            ? 'valid'
+                            : undefined
+                    }
+                    errorMessage={
+                        !isValidTaxPercent()
+                            ? 'must be greater than 0'
+                            : error?.taxPercent
+                    }
+                    formatOptions={{
+                        style: 'percent',
+                    }}
+                    width="100%"
+                    isDisabled={isTerminal}
                 />
             </Grid>
             <TextArea
