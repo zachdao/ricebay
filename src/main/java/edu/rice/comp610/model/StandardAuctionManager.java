@@ -8,7 +8,6 @@ import edu.rice.comp610.util.ObjectNotFoundException;
 import org.eclipse.jetty.util.ArrayUtil;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Manages requests for creating, updating, searching and loading auctions.
@@ -153,8 +152,31 @@ public class StandardAuctionManager implements AuctionManager {
                 categoryIds);
     }
 
-    public List<Picture> addImages(List<String> images, UUID auctionId) throws ObjectNotFoundException, DatabaseException {
-        return null;
+    public List<Picture> addImages(List<byte[]> images, UUID auctionId) throws DatabaseException {
+
+        List<Picture> pictures = new ArrayList<Picture>();
+        for (int i = 0; i < images.size(); i++) {
+            // Create new picture object
+            Picture img = new Picture();
+            img.setAuctionId(auctionId);
+            img.setImage(images.get(i));
+            img.setSequenceNum(i);
+
+            pictures.add(img);
+
+            var addImagesQuery = queryManager.makeUpdateQuery(Picture.class, false);
+            databaseManager.saveObjects(addImagesQuery, img);
+        }
+        return pictures;
+    }
+
+    public List<Picture> getImages(UUID auctionId) throws DatabaseException {
+
+        // Grab the image data from the database
+        var getImageQuery = queryManager.makeLoadQuery(Picture.class, queryManager.filters().makeEqualityFilter("auction_id"));
+        List<Picture> pictureObjs = databaseManager.loadObjects(getImageQuery, auctionId);
+
+        return pictureObjs;
     }
 
     /**
