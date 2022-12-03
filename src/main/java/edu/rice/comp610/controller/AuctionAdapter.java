@@ -140,6 +140,7 @@ public class AuctionAdapter {
                 for (Bid auctionBid : auctionBids) {
                     ViewBid viewBid = new ViewBid();
                     viewBid.setBid(auctionBid.getAmount());
+                    viewBid.setTimestamp(auctionBid.getTimestamp());
                     Account bidder = this.accountManager.get(auctionBid.getOwnerId());
                     viewBid.setAlias(bidder.getAlias());
                     bids.add(viewBid);
