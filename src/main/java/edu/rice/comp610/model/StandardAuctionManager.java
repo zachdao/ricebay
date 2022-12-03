@@ -46,12 +46,23 @@ public class StandardAuctionManager implements AuctionManager {
 
         return auction.getId();
     }
-
     /**
      * Loads an existing auction and returns it. The id must be that of an existing auction.
      *
      * @param auctionId the id of auction to load
      * @param viewerUD
+     * @return a response containing the auction; or an error message, if an error occurred (e.g., the auction could not
+     * be found).
+     */
+    public Auction get(UUID auctionId) throws DatabaseException, ObjectNotFoundException {
+        return this.get(auctionId, null);
+    }
+
+    /**
+     * Loads an existing auction and returns it. The id must be that of an existing auction.
+     *
+     * @param auctionId the id of auction to load
+     * @param viewerUD if not null then account id a user viewing the auction
      * @return a response containing the auction; or an error message, if an error occurred (e.g., the auction could not
      * be found).
      */
@@ -65,13 +76,15 @@ public class StandardAuctionManager implements AuctionManager {
 
         // Record auction view in the database
         // Only if the viewer is not the auction owner
-        if (viewerUD != auctions.get(0).getOwnerId()) {
-            // Time and ID get set to defaults by postgres
+        if (viewerUD != null && viewerUD != auctions.get(0).getOwnerId()) {
+            // Time get set to defaults by postgres
             AuctionView auctionView = new AuctionView();
             auctionView.setAuctionId(auctionId);
             auctionView.setViewerUD(viewerUD);
+            auctionView.setId(UUID.randomUUID());
+            // Not setting the timestamp, allowing the database set the timestamp
 
-            var insertAuctionViewQuery = queryManager.makeUpdateQuery(AuctionView.class, false);
+            var insertAuctionViewQuery = queryManager.makeUpdateQuery(AuctionView.class);
             databaseManager.saveObjects(insertAuctionViewQuery, auctionView);
         }
         return auctions.get(0);

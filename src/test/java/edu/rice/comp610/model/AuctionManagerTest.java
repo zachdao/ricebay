@@ -37,6 +37,8 @@ class AuctionManagerTest {
                 .thenReturn(new Query<>());
         when(queryManager.makeUpdateQuery(any(), eq(false)))
                 .thenReturn(new Query<>());
+        when(queryManager.makeUpdateQuery(any()))
+                .thenReturn(new Query<>());
         when(queryManager.makeLoadQuery(any()))
                 .thenReturn(new Query<>());
         NEW_AUCTION.setTitle("New Auction");
@@ -114,7 +116,7 @@ class AuctionManagerTest {
         when(databaseManager.loadObjects(any(Query.class), eq(NEW_AUCTION.getId())))
                 .thenReturn(List.of(NEW_AUCTION));
 
-        Auction auction = auctionManager.get(NEW_AUCTION.getId(), );
+        Auction auction = auctionManager.get(NEW_AUCTION.getId());
         assertEquals(NEW_AUCTION.getId(), auction.getId());
     }
 
@@ -124,7 +126,7 @@ class AuctionManagerTest {
         when(databaseManager.loadObjects(any(Query.class), eq(NEW_AUCTION.getId())))
                 .thenReturn(List.of());
 
-        assertThrows(ObjectNotFoundException.class, () -> auctionManager.get(NEW_AUCTION.getId(), ));
+        assertThrows(ObjectNotFoundException.class, () -> auctionManager.get(NEW_AUCTION.getId()));
     }
 
     @Test
@@ -139,7 +141,6 @@ class AuctionManagerTest {
     }
 
     @Test
-    // Not sure how to do this...  Trying to test the addCategories method in StandardAuctionManager
     void addCategories() throws Exception {
 
         Category newCategory = new Category();
@@ -169,7 +170,6 @@ class AuctionManagerTest {
     }
 
     @Test
-        // Not sure how to do this...  Trying to test the addCategories method in StandardAuctionManager
     void auctionViewByOwner() throws Exception {
 
         NEW_AUCTION.setId(UUID.randomUUID());
@@ -177,16 +177,12 @@ class AuctionManagerTest {
         when(databaseManager.loadObjects(any(Query.class), any()))
                 .thenReturn(List.of(NEW_AUCTION));
 
-        AuctionView auctionView = new AuctionView();
-        auctionView.setAuctionId(NEW_AUCTION.getId());
-        auctionView.setViewerUD(NEW_AUCTION.getOwnerId());
+        auctionManager.get(NEW_AUCTION.getId(), NEW_AUCTION.getOwnerId());
 
-        //verify(databaseManager).saveObjects(any(Query.class), eq(newAuctionCategory));
-        verify(databaseManager, never()).saveObjects(any(Query.class), eq(auctionView));
+        verify(databaseManager, never()).saveObjects(any(Query.class), any(AuctionView.class));
     }
 
     @Test
-        // Not sure how to do this...  Trying to test the addCategories method in StandardAuctionManager
     void auctionViewNotOwner() throws Exception {
 
         NEW_AUCTION.setId(UUID.randomUUID());
@@ -194,11 +190,8 @@ class AuctionManagerTest {
         when(databaseManager.loadObjects(any(Query.class), any()))
                 .thenReturn(List.of(NEW_AUCTION));
 
-        AuctionView auctionView = new AuctionView();
-        auctionView.setAuctionId(NEW_AUCTION.getId());
-        auctionView.setViewerUD(UUID.randomUUID());
+        auctionManager.get(NEW_AUCTION.getId(), UUID.randomUUID());
 
-        verify(databaseManager).saveObjects(any(Query.class), eq(auctionView));
-        //verify(databaseManager, never()).saveObjects(any(Query.class), eq(auctionView));
+        verify(databaseManager).saveObjects(any(Query.class), any(AuctionView.class));
     }
 }

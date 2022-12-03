@@ -50,7 +50,7 @@ public class AuctionAdapter {
 
     AppResponse<?> update(ViewAuction viewAuction, UUID ownerId) {
         try {
-            Auction auction = this.auctionManager.get(viewAuction.getId(), );
+            Auction auction = this.auctionManager.get(viewAuction.getId());
             if (!auction.getOwnerId().equals(ownerId)) {
                 return new AppResponse<>(401, false, null, "Unauthorized");
             }
@@ -96,7 +96,7 @@ public class AuctionAdapter {
 
     AppResponse<?> get(UUID id, ViewAccount user) {
         try {
-            Auction auction = this.auctionManager.get(id, );
+            Auction auction = this.auctionManager.get(id, user.getId());
             ViewAuction viewAuction = new ViewAuction();
             viewAuction.setId(auction.getId());
             viewAuction.setTitle(auction.getTitle());
@@ -157,7 +157,7 @@ public class AuctionAdapter {
 
     AppResponse<?> rateSeller(UUID raterId, UUID auctionId, int rating) {
         try {
-            var auction = this.auctionManager.get(auctionId, );
+            var auction = this.auctionManager.get(auctionId);
             var sellerRating = new Rating();
             sellerRating.setRating(rating);
             sellerRating.setSellerId(auction.getOwnerId());
@@ -179,7 +179,7 @@ public class AuctionAdapter {
             // Check that the bidder exists
             this.accountManager.get(bidderId);
             // Check that the auction exists
-            var auction = this.auctionManager.get(auctionId, );
+            var auction = this.auctionManager.get(auctionId);
             var newBid = new Bid();
             newBid.setId(UUID.randomUUID());
             newBid.setOwnerId(bidderId);
@@ -203,7 +203,7 @@ public class AuctionAdapter {
             // Check that the bidder exists
             this.accountManager.get(bidderId);
             // Check that the auction exists
-            var auction = this.auctionManager.get(auctionId, );
+            var auction = this.auctionManager.get(auctionId);
             var newBid = new Bid();
             newBid.setOwnerId(bidderId);
             newBid.setAmount(bid);
