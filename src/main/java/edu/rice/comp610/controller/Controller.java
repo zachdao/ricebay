@@ -12,6 +12,9 @@ import java.io.InputStream;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static spark.Spark.*;
 
@@ -144,7 +147,7 @@ public class Controller {
                 return gson.toJson(appResponse);
             }));
             get("/search", ((request, response) -> {
-                var query = new AuctionQuery(request.queryMap().toMap(),
+                var query = new AuctionQuery(queryManager.filters(), request.queryMap().toMap(),
                         AuctionSortField.valueOf(request.params().getOrDefault("sortField", String.valueOf(AuctionSortField.END_DATE))),
                         Boolean.parseBoolean(request.params().getOrDefault("sortAscending", "true")));
                 var appResponse = auctionAdapter.search(query);
@@ -230,11 +233,13 @@ public class Controller {
 
         awaitInitialization();
 
+        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+        executorService.scheduleWithFixedDelay(activeAuctionMonitor,
+                0,
+                Integer.parseInt(properties.getProperty("ricebay.activeauctionmonitor.delay", "1")),
+                TimeUnit.MINUTES);
+
         System.out.println("Server started and running on http://localhost:" + getHerokuAssignedPort());
-
-        Thread monitorThread = new Thread(activeAuctionMonitor);
-        monitorThread.start();
-
     }
 
     /**

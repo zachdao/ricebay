@@ -26,7 +26,7 @@ public class StandardBidManager implements BidManager {
      * Bid objects and finds maximum bid value
      */
     public Bid getCurrentBid(UUID auctionId) throws DatabaseException {
-        var loadBid = queryManager.makeLoadQuery(Bid.class, "auction_id");
+        var loadBid = queryManager.makeLoadQuery(Bid.class, queryManager.filters().makeEqualityFilter("auction_id"));
         List<Bid> allBidsForAuction = databaseManager.loadObjects(loadBid, auctionId);
 
         Bid maxBid = null;
@@ -40,12 +40,15 @@ public class StandardBidManager implements BidManager {
     }
 
     public List<Bid> getAuctionBids(UUID auctionId) throws DatabaseException {
-        var loadBid = queryManager.makeLoadQuery(Bid.class, "auction_id");
+        var loadBid = queryManager.makeLoadQuery(Bid.class, queryManager.filters().makeEqualityFilter("auction_id"));
         return databaseManager.loadObjects(loadBid, auctionId);
     }
 
     public Bid getUserBid(UUID auctionId, UUID ownerId) throws DatabaseException {
-        var loadBid = queryManager.makeLoadQuery(Bid.class, "auction_id", "owner_id");
+        var loadBid = queryManager.makeLoadQuery(Bid.class,
+                queryManager.filters().makeAndFilter(
+                    queryManager.filters().makeEqualityFilter("auction_id"),
+                    queryManager.filters().makeEqualityFilter("owner_id")));
         List<Bid> bids = databaseManager.loadObjects(loadBid, auctionId, ownerId);
 
         return bids.isEmpty() ? null : bids.get(0);
@@ -85,7 +88,10 @@ public class StandardBidManager implements BidManager {
         if(invalidBid(auction, bid)) {
             throw new BadRequestException("Invalid bid", Collections.singletonMap("bid", "Bid is invalid"));
         }
-        var loadQuery = queryManager.makeLoadQuery(Bid.class, "auction_id", "owner_id");
+        var loadQuery = queryManager.makeLoadQuery(Bid.class,
+                queryManager.filters().makeAndFilter(
+                    queryManager.filters().makeEqualityFilter("auction_id"),
+                    queryManager.filters().makeEqualityFilter("owner_id")));
         List<Bid> bids = databaseManager.loadObjects(loadQuery, auction.getId(), bid.getOwnerId());
         if (bids.size() != 1) {
             throw new ObjectNotFoundException("Not Found");

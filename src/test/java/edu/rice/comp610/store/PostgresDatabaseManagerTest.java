@@ -75,7 +75,7 @@ class PostgresDatabaseManagerTest {
 
     @Test
     void loadObjectsEmptyResult() throws Exception {
-        Query<Auction> query = queryManager.makeLoadQuery(Auction.class, "id");
+        Query<Auction> query = queryManager.makeLoadQuery(Auction.class, queryManager.filters().makeEqualityFilter("id"));
         List<Auction> results = databaseManager.loadObjects(query, AUCTION_ID);
 
         assertEquals(results, List.of());
@@ -89,7 +89,7 @@ class PostgresDatabaseManagerTest {
         category.setDescription("Things that are fun");
         databaseManager.saveObjects(query, category);
 
-        query = queryManager.makeLoadQuery(Category.class, "name");
+        query = queryManager.makeLoadQuery(Category.class, queryManager.filters().makeEqualityFilter("name"));
         List<Category> results = databaseManager.loadObjects(query, category.getName());
         assertEquals(1, results.size());
         assertEquals("Toys & Games", results.get(0).getName());
@@ -104,7 +104,7 @@ class PostgresDatabaseManagerTest {
         Query auctionQuery = queryManager.makeUpdateQuery(Auction.class);
         databaseManager.saveObjects(auctionQuery, NEW_AUCTION);
 
-        Query<Auction> loadAuction = queryManager.makeLoadQuery(Auction.class, "id");
+        Query<Auction> loadAuction = queryManager.makeLoadQuery(Auction.class, queryManager.filters().makeEqualityFilter("id"));
         List<Auction> auctionList = databaseManager.loadObjects(loadAuction, NEW_AUCTION.getId());
 
         assertEquals(1, auctionList.size());
@@ -127,7 +127,7 @@ class PostgresDatabaseManagerTest {
         rating.setSellerId(NEW_ACCOUNT2.getId());
         databaseManager.saveObjects(ratingQuery, rating);
 
-        ratingQuery = queryManager.makeLoadQuery(Rating.class, "seller_id");
+        ratingQuery = queryManager.makeLoadQuery(Rating.class, queryManager.filters().makeEqualityFilter("seller_id"));
         List<Rating> ratings = databaseManager.loadObjects(ratingQuery, NEW_ACCOUNT2.getId());
         assertEquals(1, ratings.size());
         Rating rating0 = ratings.get(0);

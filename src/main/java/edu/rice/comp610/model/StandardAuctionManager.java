@@ -2,13 +2,13 @@ package edu.rice.comp610.model;
 
 import edu.rice.comp610.controller.AuctionManager;
 import edu.rice.comp610.controller.AuctionQuery;
-import edu.rice.comp610.store.Query;
 import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.DatabaseException;
 import edu.rice.comp610.util.ObjectNotFoundException;
 import org.eclipse.jetty.util.ArrayUtil;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Manages requests for creating, updating, searching and loading auctions.
@@ -31,7 +31,7 @@ public class StandardAuctionManager implements AuctionManager {
      * occurred.
      */
     public UUID save(Auction auction) throws BadRequestException, DatabaseException {
-        var accountQuery = queryManager.makeLoadQuery(Account.class, "id");
+        var accountQuery = queryManager.makeLoadQuery(Account.class, queryManager.filters().makeEqualityFilter("id"));
         List<Account> accounts = databaseManager.loadObjects(accountQuery, auction.getOwnerId());
         if (accounts.isEmpty()) {
             throw new BadRequestException("Invalid auction owner");
@@ -46,6 +46,7 @@ public class StandardAuctionManager implements AuctionManager {
 
         return auction.getId();
     }
+
     /**
      * Loads an existing auction and returns it. The id must be that of an existing auction.
      *
@@ -66,7 +67,7 @@ public class StandardAuctionManager implements AuctionManager {
      * be found).
      */
     public Auction get(UUID auctionId, UUID viewerId) throws DatabaseException, ObjectNotFoundException {
-        var loadQuery = queryManager.makeLoadQuery(Auction.class, "id");
+        var loadQuery = queryManager.makeLoadQuery(Auction.class, queryManager.filters().makeEqualityFilter("id"));
         List<Auction> auctions = databaseManager.loadObjects(loadQuery, auctionId);
 
         if (auctions.size() != 1) {
@@ -98,11 +99,25 @@ public class StandardAuctionManager implements AuctionManager {
      */
     public List<Auction> search(AuctionQuery query) throws DatabaseException {
         // find auction by category and text
-        String[] filterBy = (String[]) query.getQueryMap().getOrDefault("filterBy", new String[]{});
-        Query<Auction> auctionQuery = queryManager.makeLoadQuery(Auction.class, ArrayUtil.prependToArray("published", filterBy, String.class));
+        if (query.hasCategories().isEmpty()) {
+            var auctionQuery = queryManager.makeLoadQuery(Auction.class, queryManager.filters().makeOrFilter(query.getFilters()));
+            return databaseManager.loadObjects(auctionQuery, query.getValues());
+        } else {
+            var categoryQuery = queryManager.makeLoadQuery(Category.class, queryManager.filters().makeInFilter("name", query.hasCategories().size()));
+            var categoryIds = databaseManager.loadObjects(categoryQuery, query.hasCategories().toArray()).stream().map(Category::getId).toArray();
+            var auctionCategoryQuery = queryManager.makeLoadQuery(AuctionCategory.class, queryManager.filters().makeInFilter("category_id", categoryIds.length));
+            var auctionIds = databaseManager.loadObjects(auctionCategoryQuery, categoryIds).stream().map(AuctionCategory::getAuctionId).toArray();
+            Filter[] filterBy = ArrayUtil.prependToArray(queryManager.filters().makeInFilter("id", auctionIds.length), query.getFilters(), Filter.class);
+            Object[] objects = ArrayUtil.add(auctionIds, query.getValues());
+            return databaseManager.loadObjects(queryManager.makeLoadQuery(Auction.class, queryManager.filters().makeOrFilter(filterBy)), objects);
+        }
+    }
 
-        Object[] filterValues = query.getQueryMap().getOrDefault( "filterByValues", new Object[]{});
-        return databaseManager.loadObjects(auctionQuery, ArrayUtil.prependToArray(true, filterValues, Object.class));
+    public List<Auction> expired() throws DatabaseException {
+        return databaseManager.loadObjects(queryManager.makeLoadQuery(Auction.class,
+                queryManager.filters().makeAndFilter(
+                        queryManager.filters().makeEqualityFilter("published"),
+                        queryManager.filters().makeLessThanFilter("end_date"))), true, new Date());
     }
 
     public List<Category> categories() throws DatabaseException {
@@ -110,14 +125,12 @@ public class StandardAuctionManager implements AuctionManager {
     }
 
     public List<Category> categories(UUID auctionId) throws DatabaseException {
-        List<AuctionCategory> auctionCategories = databaseManager.loadObjects(queryManager.makeLoadQuery(AuctionCategory.class, "auction_id"), auctionId);
+        List<AuctionCategory> auctionCategories = databaseManager.loadObjects(queryManager.makeLoadQuery(AuctionCategory.class, queryManager.filters().makeEqualityFilter("auction_id")), auctionId);
 
-        // TODO: Remove the for loop once we get filters
-        List<Category> categories = new ArrayList<>();
-        for (AuctionCategory auctionCategory : auctionCategories) {
-            categories.addAll(databaseManager.loadObjects(queryManager.makeLoadQuery(Category.class, "id"), auctionCategory.getCategoryId()));
-        }
-        return categories;
+        var categoryIds = auctionCategories.stream().map(AuctionCategory::getCategoryId).toArray();
+        return databaseManager.loadObjects(queryManager.makeLoadQuery(Category.class,
+                queryManager.filters().makeInFilter("id", auctionCategories.size())),
+                categoryIds);
     }
 
     public List<Picture> addImages(List<String> images, UUID auctionId) throws ObjectNotFoundException, DatabaseException {
@@ -133,28 +146,18 @@ public class StandardAuctionManager implements AuctionManager {
     public void addCategories(List<String> categoryNames, UUID auctionId) throws DatabaseException {
 
         // Translate the category names into the category ids
-        var getCategoryIdQuery = queryManager.makeLoadQuery(Category.class);
-
-        // This is the right way, but not working right now
-        // List<Category> categoryObjs = databaseManager.loadObjects(getCategoryIdQuery, categoryNames);
-        List<Category> categoryObjs = databaseManager.loadObjects(getCategoryIdQuery);
-
-        // TODO: Remove this once we get filters
-        Set<String> auctionCategoryNames = new HashSet<>(categoryNames);
+        var getCategoryIdQuery = queryManager.makeLoadQuery(Category.class, queryManager.filters().makeInFilter("name", categoryNames.size()));
+        List<Category> categoryObjs = databaseManager.loadObjects(getCategoryIdQuery, categoryNames.toArray());
 
         // Add each combination of auctionId and categoryId to the auction_category table
         for (Category cat: categoryObjs) {
+            // Create new auctionCategory object
+            AuctionCategory auctionCategory = new AuctionCategory();
+            auctionCategory.setAuctionId(auctionId);
+            auctionCategory.setCategoryId(cat.getId());
 
-            if (auctionCategoryNames.contains(cat.getName())) {
-
-                // Create new auctionCategory object
-                AuctionCategory auctionCategory = new AuctionCategory();
-                auctionCategory.setAuctionId(auctionId);
-                auctionCategory.setCategoryId(cat.getId());
-
-                var addCategoriesQuery = queryManager.makeUpdateQuery(AuctionCategory.class, false);
-                databaseManager.saveObjects(addCategoriesQuery, auctionCategory);
-            }
+            var addCategoriesQuery = queryManager.makeUpdateQuery(AuctionCategory.class, false);
+            databaseManager.saveObjects(addCategoriesQuery, auctionCategory);
         }
     }
 }

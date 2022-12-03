@@ -21,6 +21,7 @@ public class RatingManagerTest {
 
     DatabaseManager databaseManager = mock(DatabaseManager.class);
     QueryManager queryManager = mock(QueryManager.class);
+    Filters filters = mock(Filters.class);
     SellerRatingManager ratingManager = new SellerRatingManager(queryManager, databaseManager);
 
     private static final Rating RATING1 = new Rating();
@@ -41,6 +42,7 @@ public class RatingManagerTest {
     void setUp() {
         when(queryManager.makeLoadQuery(any(), any()))
                 .thenReturn(new Query<>());
+        when(queryManager.filters()).thenReturn(filters);
     }
 
     @Test

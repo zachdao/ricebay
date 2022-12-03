@@ -1,9 +1,13 @@
-package edu.rice.comp610.model;
+package edu.rice.comp610.controller;
 
 import edu.rice.comp610.controller.ActiveAuctionMonitor;
 import edu.rice.comp610.controller.AuctionManager;
+import edu.rice.comp610.model.Auction;
+import edu.rice.comp610.model.Filters;
+import edu.rice.comp610.model.QueryManager;
 import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.DatabaseException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -12,7 +16,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 import static edu.rice.comp610.testing.Dates.parseDate;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 public class ActiveAuctionMonitorTest {
 
@@ -32,14 +36,11 @@ public class ActiveAuctionMonitorTest {
         NEW_AUCTION.setOwnerId(UUID.randomUUID());
     }
 
-
     @Test
-    void unpublishTest() throws BadRequestException, DatabaseException {
-        List<Auction> expiredAuctions = new ArrayList<>();
-        expiredAuctions.add(NEW_AUCTION);
-
-        ActiveAuctionMonitor activeAuctionMonitor = new ActiveAuctionMonitor(auctionManager);
-        activeAuctionMonitor.unpublish(expiredAuctions);
+    void doExpiryCheckTest() throws DatabaseException, BadRequestException {
+        when(auctionManager.expired()).thenReturn(List.of(NEW_AUCTION));
+        new ActiveAuctionMonitor(auctionManager).doExpiryCheck();
         assertFalse(NEW_AUCTION.getPublished());
+        verify(auctionManager).save(eq(NEW_AUCTION));
     }
 }

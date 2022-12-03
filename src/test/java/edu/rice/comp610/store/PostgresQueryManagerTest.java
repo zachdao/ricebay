@@ -26,10 +26,10 @@ class PostgresQueryManagerTest {
     }
     @Test
     void makeLoadQuery() {
-        Query<Auction> query = queryManager.makeLoadQuery(Auction.class, "id");
+        Query<Auction> query = queryManager.makeLoadQuery(Auction.class, queryManager.filters().makeEqualityFilter("id"));
         assertEquals("SELECT bid_increment, description, end_date, id, minimum_bid, owner_id, published, " +
                 "start_date, tax_percent, title FROM auction " +
-                "WHERE id = ?",
+                "WHERE (id = ?)",
                 query.getSql());
     }
 

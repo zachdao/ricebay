@@ -70,7 +70,11 @@ public class PostgresDatabaseManager implements DatabaseManager {
             try (Connection connection = DriverManager.getConnection(jdbcUrl, jdbcProperties)) {
                 PreparedStatement statement = connection.prepareStatement(query.getSql());
                 for (int i = 0; i < filterBy.length; i++) {
-                    statement.setObject(i + 1, filterBy[i]);
+                    if (filterBy[i].getClass() == java.util.Date.class) {
+                        statement.setDate(i + 1, new Date(((java.util.Date) filterBy[i]).getTime()));
+                    } else {
+                        statement.setObject(i + 1, filterBy[i]);
+                    }
                 }
                 ResultSet results = statement.executeQuery();
                 ResultSetMetaData metadata = statement.getMetaData();

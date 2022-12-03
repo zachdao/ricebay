@@ -40,7 +40,7 @@ public class SellerRatingManager implements RatingManager {
      * @return the user's average rating
      */
     public Double getRating(UUID userId) throws DatabaseException {
-        List<Rating> ratingsForUser = this.databaseManager.loadObjects(this.queryManager.makeLoadQuery(Rating.class, "seller_id"), userId);
+        List<Rating> ratingsForUser = this.databaseManager.loadObjects(this.queryManager.makeLoadQuery(Rating.class, queryManager.filters().makeEqualityFilter("seller_id")), userId);
         if (ratingsForUser.isEmpty()) {
             return 0.0;
         }

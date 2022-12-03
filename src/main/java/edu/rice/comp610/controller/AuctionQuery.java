@@ -1,60 +1,93 @@
 package edu.rice.comp610.controller;
 
 import edu.rice.comp610.model.Auction;
+import edu.rice.comp610.model.Filter;
+import edu.rice.comp610.model.Filters;
 import edu.rice.comp610.store.AuctionSortField;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Represents a search query for {@link Auction}s.
  */
 public class AuctionQuery {
 
-    private final Map<String, Object[]> queryMap;
+    private final List<Filter> filters;
+    private final List<Object> values;
+    private final List<String> categories;
     private final AuctionSortField sortField;
     private final boolean sortAscending;
 
-    private static SimpleDateFormat parser = new SimpleDateFormat("MMM d, yyyy");
+    private static final SimpleDateFormat parser = new SimpleDateFormat("MMM d, yyyy");
 
     public AuctionQuery() {
-        this.queryMap = Collections.emptyMap();
+        this.filters = new ArrayList<>();
+        this.values = new ArrayList<>();
+        this.categories = new ArrayList<>();
         this.sortField = AuctionSortField.TITLE;
         this.sortAscending = true;
     }
 
-    public AuctionQuery(Map<String, String[]> queryMap, AuctionSortField sortField, boolean sortAscending) {
-        this.queryMap = new HashMap<>();
+    public AuctionQuery(Filters filterFactory, Map<String, String[]> queryMap, AuctionSortField sortField, boolean sortAscending) {
+        this.filters = new ArrayList<>(List.of(filterFactory.makeEqualityFilter("published")));
+        this.values = new ArrayList<>(List.of(true));
+        this.categories = new ArrayList<>();
         for (Map.Entry<String, String[]> entry : queryMap.entrySet()) {
-            List<Object> queryValues = new ArrayList<>();
-            for (String queryValue : entry.getValue()) {
-                if (queryValue.matches("[tT]rue|[fF]alse")) {
-                    queryValues.add(Boolean.parseBoolean(queryValue));
-                } else if (queryValue.matches("\\d+\\.\\d*")) {
-                    queryValues.add(Double.parseDouble(queryValue));
-                } else if (queryValue.matches("\\d+")) {
-                    queryValues.add(Integer.parseInt(queryValue));
-                } else {
-                    try {
-                        queryValues.add(parser.parse(queryValue));
-                    } catch (ParseException e) {
-                        queryValues.add(queryValue);
-                    }
-                }
+            var values = entry.getValue();
+            var keyParts = entry.getKey().split(":");
+            if (keyParts[0].equals("published")) {
+                continue;
+            } else if (keyParts[0].equals("hasCategories")) {
+                this.categories.addAll(values.length > 0 ? List.of(values[0].split(",")) : List.of());
+            } else if (keyParts.length == 1 || keyParts[1].equals("eq")) {
+                this.filters.add(filterFactory.makeEqualityFilter(keyParts[0]));
+                this.values.add(values.length > 0 ? convertValue(values[0]) : null);
+            } else if (keyParts[1].equals("like")) {
+                this.filters.add(filterFactory.makeLikeFilter(keyParts[0]));
+                this.values.add(values.length > 0 ? convertValue(values[0]) : "");
+            } else if (keyParts[1].equals("in")) {
+                this.filters.add(filterFactory.makeInFilter(keyParts[0], values.length));
+                this.values.addAll(Stream.of(values).map(AuctionQuery::convertValue).collect(Collectors.toList()));
             }
-            this.queryMap.put(entry.getKey(), queryValues.toArray());
         }
         this.sortField = sortField;
         this.sortAscending = sortAscending;
     }
 
-    public Map<String, Object[]> getQueryMap() {
-        return queryMap;
+    private static Object convertValue(String value) {
+        if (value.matches("[tT]rue|[fF]alse")) {
+            return Boolean.parseBoolean(value);
+        } else if (value.matches("\\d+\\.\\d*")) {
+            return Double.parseDouble(value);
+        } else if (value.matches("\\d+")) {
+            return Integer.parseInt(value);
+        } else {
+            try {
+                return parser.parse(value);
+            } catch (ParseException e) {
+                return value;
+            }
+        }
+    }
+
+    public Filter[] getFilters() {
+        return filters.toArray(new Filter[0]);
+    }
+
+    public Object[] getValues() {
+        return values.toArray();
     }
 
     public AuctionSortField getSortField() {
         return sortField;
+    }
+
+    public List<String> hasCategories() {
+        return categories;
     }
 
     public boolean isSortAscending() {
@@ -66,18 +99,19 @@ public class AuctionQuery {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         AuctionQuery that = (AuctionQuery) o;
-        return sortAscending == that.sortAscending && queryMap.equals(that.queryMap) && sortField == that.sortField;
+        return sortAscending == that.sortAscending && filters.equals(that.filters) && values.equals(that.values) && sortField == that.sortField;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(queryMap, sortField, sortAscending);
+        return Objects.hash(filters, values, sortField, sortAscending);
     }
 
     @Override
     public String toString() {
         return "AuctionSearch{" +
-                "queryText='" + queryMap + '\'' +
+                "queryText='" + filters + '\'' +
+                "queryValues='" + values + '\'' +
                 ", sortField=" + sortField +
                 ", sortAscending=" + sortAscending +
                 '}';
