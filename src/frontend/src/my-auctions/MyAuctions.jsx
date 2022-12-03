@@ -1,8 +1,7 @@
-import React from 'react';
+import React, {useContext, useEffect} from 'react';
 import {
     Flex,
     Heading,
-    Text,
     TextField,
     TableView,
     TableHeader,
@@ -12,38 +11,17 @@ import {
     Cell,
 } from '@adobe/react-spectrum';
 import Filter from '@spectrum-icons/workflow/Filter';
+import { useHttpQuery } from "../http-query/use-http-query";
+import { UserContext } from '../user.context';
+import { useNavigate } from "react-router-dom";
+import { Link } from '@adobe/react-spectrum';
+
 
 export const MyAuctions = () => {
-    const rows = [
-        {
-            id: 1,
-            title: 'guitar1',
-            start_date: '5/5/55',
-            status: 'Ongoing',
-            minimumBid: '2.0',
-            currentBid: '50.0',
-        },
-        {
-            id: 2,
-            title: 'guitar2',
-            start_date: '5/5/55',
-            status: 'Stopped',
-            minimumBid: '5.0',
-            currentBid: '20.0',
-        },
-        {
-            id: 3,
-            title: 'guitar3',
-            start_date: '5/5/55',
-            status: 'Stopped',
-            minimumBid: '12.0',
-            currentBid: '1000.0',
-        },
-    ];
     const columns = [
         { name: 'Auction Title', uid: 'title' },
-        { name: 'Auction Start Date', uid: 'start_date' },
-        { name: 'Auction Status', uid: 'status' },
+        { name: 'Auction Start Date', uid: 'startDate' },
+        { name: 'Auction Status', uid: 'published' },
         { name: 'Bid Increment', uid: 'minimumBid' },
         { name: 'Current Bid', uid: 'currentBid' },
     ];
@@ -52,31 +30,46 @@ export const MyAuctions = () => {
     // TODO Filter the list based on the keyword and auction titles
     // TODO Tie in with backend
     // TODO Sort list based on date
+    const user = useContext(UserContext);
 
     // Get our list of owned auctions, where appResponse is AppResponse<List<Auction>>
-    // const { sellerId } = useParams();
-    // const { appResponse, error, status } = useHttpQuery(`/auctions/search`);
+    const {appResponse, error, status} = useHttpQuery(`/auctions/search`, {
+        params: {
+            sellerId: user?.id
+        }
+    });
     // const auctions = appResponse?.data;
 
     // Display a toast if we have an error
-    // useEffect(() => {
-    //     if (
-    //         error ||
-    //         (status && status !== 200) ||
-    //         (appResponse && !appResponse.success)
-    //     ) {
-    //         toast.custom((t) => (
-    //             <Toast
-    //                 message={
-    //                     appResponse?.msg ||
-    //                     'Failed to find owned auctions! Try again later'
-    //                 }
-    //                 type="negative"
-    //                 dismissFn={() => toast.remove(t.id)}
-    //             />
-    //         ));
-    //     }
-    // }, [appResponse, error, status]);
+    useEffect(() => {
+        if (
+            error ||
+            (status && status !== 200) ||
+            (appResponse && !appResponse.success)
+        ) {
+            toast.custom((t) => (
+                <Toast
+                    message={
+                        appResponse?.msg ||
+                        'Failed to find owned auctions! Try again later'
+                    }
+                    type="negative"
+                    dismissFn={() => toast.remove(t.id)}
+                />
+            ));
+        }
+    }, [appResponse, error, status]);
+
+    const navigate = useNavigate();
+
+    function mapItemValue(item, columnKey) {
+        if (columnKey === 'published') {
+            return item[columnKey] ? 'Published' : 'Not Published';
+        } else if (columnKey === 'title') {
+            return (<Link onPress={() => navigate("/auction/" + item.id)}>{item[columnKey]}</Link>);
+        }
+        return item[columnKey];
+    }
 
     return (
         <Flex
@@ -101,10 +94,10 @@ export const MyAuctions = () => {
                         <Column key={column.uid}>{column.name}</Column>
                     )}
                 </TableHeader>
-                <TableBody items={rows}>
+                <TableBody items={appResponse && appResponse.success ? appResponse.data : []}>
                     {(item) => (
                         <Row>
-                            {(columnKey) => <Cell>{item[columnKey]}</Cell>}
+                            {(columnKey) => <Cell>{mapItemValue(item, columnKey)}</Cell>}
                         </Row>
                     )}
                 </TableBody>
