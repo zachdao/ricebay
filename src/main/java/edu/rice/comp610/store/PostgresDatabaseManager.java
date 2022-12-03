@@ -2,9 +2,15 @@ package edu.rice.comp610.store;
 
 import edu.rice.comp610.model.DatabaseManager;
 import edu.rice.comp610.util.DatabaseException;
+import org.postgresql.PGResultSetMetaData;
+import org.postgresql.jdbc.PgResultSet;
+import org.postgresql.jdbc.PgResultSetMetaData;
+import org.postgresql.util.PGmoney;
 
 import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -81,12 +87,18 @@ public class PostgresDatabaseManager implements DatabaseManager {
                 while (results.next()) {
                     T model = query.newModel();
                     for (int columnIndex = 1; columnIndex <= metadata.getColumnCount(); columnIndex++) {
+                        String type = metadata.getColumnTypeName(columnIndex);
                         String name = metadata.getColumnName(columnIndex);
                         PostgresQueryManager.Accessors accessors = query.accessorForColumn(name);
-                        Object arg = results.getObject(columnIndex);
+                        Object arg = null;
+                        if (type.equals("money")) {
+                            arg = results.getString(columnIndex);
+                        } else {
+                            arg = results.getObject(columnIndex);
+                        }
                         try {
                             accessors.invokeSetter(model, arg);
-                        } catch (IllegalArgumentException e) {
+                        } catch (IllegalArgumentException | ParseException e) {
                             throw new DatabaseException("Could not invoke " + accessors.setter.getName() + " for value "
                                     + arg + " of type " + typeOf(arg), e);
                         }

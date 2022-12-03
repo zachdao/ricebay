@@ -42,7 +42,7 @@ public class Auction {
         this.ownerId = ownerId;
     }
 
-    @OneToMany(table="category", on="acution_id")
+    @OneToMany(table="category", on="auction_id")
     public List<Integer> getCategoryIds() {
         return categoryIds;
     }
@@ -72,6 +72,7 @@ public class Auction {
         return minimumBid;
     }
 
+    @SqlType(PGmoney.class)
     public void setMinimumBid(double minimumBid) {
         this.minimumBid = minimumBid;
     }
@@ -81,6 +82,7 @@ public class Auction {
         return bidIncrement;
     }
 
+    @SqlType(PGmoney.class)
     public void setBidIncrement(double bidIncrement) {
         this.bidIncrement = bidIncrement;
     }
