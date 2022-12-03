@@ -15,6 +15,7 @@ import { CategoryTagGroup } from '../../category-tag-group/CategoryTagGroup';
 import styled from 'styled-components';
 import { DateTime, Interval } from 'luxon';
 import { ImagePlaceholder } from '../../image-placeholder/ImagePlaceholder';
+import { ImageCarousel } from '../../image-carousel/ImageCarousel';
 
 export const AuctionView = ({ auction, refresh }) => {
     const startDate = DateTime.fromFormat(auction.startDate, 'DD');
@@ -71,7 +72,7 @@ export const AuctionView = ({ auction, refresh }) => {
                 height="100%"
             >
                 {auction.images.length ? (
-                    <img src={auction.images[0]} alt="image of auction item" />
+                    <ImageCarousel images={auction.images} />
                 ) : (
                     <ImagePlaceholder size="XXL" />
                 )}

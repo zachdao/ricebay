@@ -107,6 +107,9 @@ public class StandardAuctionManager implements AuctionManager {
             return databaseManager.loadObjects(auctionQuery, ArrayUtil.prependToArray(true, query.getValues(), Object.class));
         } else if (query.getFilters().length == 0) {
             Object[] auctionIds = getAuctionIds(query);
+            if (auctionIds.length == 0) {
+                return List.of();
+            }
             Object[] objects = ArrayUtil.prependToArray(true, auctionIds, Object.class);
             return databaseManager.loadObjects(queryManager.makeLoadQuery(Auction.class,
                             queryManager.filters().makeAndFilter(
