@@ -25,6 +25,7 @@ public class AccountManagerTest {
     Account BOBS_ACCOUNT = new Account();
     Account NEW_ACCOUNT = new Account();
 
+    Filters filters = mock(Filters.class);
     QueryManager queryManager = mock(QueryManager.class);
     DatabaseManager databaseManager = mock(DatabaseManager.class);
 
@@ -34,6 +35,7 @@ public class AccountManagerTest {
     void setUp() throws DatabaseException {
         when(queryManager.makeLoadQuery(any(), any()))
                 .thenReturn(new Query<>());
+        when(queryManager.filters()).thenReturn(filters);
         // Default to returning an empty list
         when(databaseManager.loadObjects(any(Query.class), any(Object[].class)))
                 .thenReturn(List.of());

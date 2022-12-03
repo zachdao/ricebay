@@ -1,6 +1,5 @@
 package edu.rice.comp610.model;
 
-import edu.rice.comp610.model.*;
 import edu.rice.comp610.store.Query;
 import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.ObjectNotFoundException;
@@ -68,6 +67,7 @@ public class BidManagerTest {
         LATEST_BID.setOwnerId(ACCOUNT_3.getId());
     }
 
+    Filters filters = mock(Filters.class);
     QueryManager queryManager = mock(QueryManager.class);
     DatabaseManager databaseManager = mock(DatabaseManager.class);
     StandardBidManager bidManager = new StandardBidManager(queryManager, databaseManager);
@@ -76,6 +76,7 @@ public class BidManagerTest {
     void setUp() {
         when(queryManager.makeLoadQuery(any(), any()))
                 .thenReturn(new Query<>());
+        when(queryManager.filters()).thenReturn(filters);
     }
 
     @Test

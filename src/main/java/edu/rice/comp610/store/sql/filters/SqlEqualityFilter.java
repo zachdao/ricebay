@@ -1,4 +1,4 @@
-package edu.rice.comp610.store;
+package edu.rice.comp610.store.sql.filters;
 
 import edu.rice.comp610.model.Filter;
 

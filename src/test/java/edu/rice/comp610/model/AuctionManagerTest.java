@@ -29,6 +29,7 @@ class AuctionManagerTest {
     Auction NEW_AUCTION = new Auction();
     DatabaseManager databaseManager = mock(DatabaseManager.class);
     QueryManager queryManager = mock(QueryManager.class);
+    Filters filters = mock(Filters.class);
     StandardAuctionManager auctionManager = new StandardAuctionManager(queryManager, databaseManager);
 
     @BeforeEach
@@ -41,6 +42,7 @@ class AuctionManagerTest {
                 .thenReturn(new Query<>());
         when(queryManager.makeLoadQuery(any()))
                 .thenReturn(new Query<>());
+        when(queryManager.filters()).thenReturn(filters);
         NEW_AUCTION.setTitle("New Auction");
         NEW_AUCTION.setDescription("New Auction Description");
         NEW_AUCTION.setBidIncrement(1.0);
@@ -152,7 +154,7 @@ class AuctionManagerTest {
         newCategory2.setName("Cats");
 
         when(databaseManager.loadObjects(any(Query.class), any()))
-                .thenReturn(List.of(newCategory, newCategory2));
+                .thenReturn(List.of(newCategory));
 
         UUID auctionId = UUID.randomUUID();
         auctionManager.addCategories(List.of(newCategory.getName()), auctionId);
