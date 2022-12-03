@@ -206,6 +206,7 @@ class AuctionManagerTest {
         pic.setAuctionId(NEW_AUCTION.getId());
         pic.setPictureSequence(0);
         pic.setPictureData("Best Image Ever".getBytes());
+        pic.setPictureName("Image 0");
 
         List<Picture> pics = auctionManager.addImages(List.of("Best Image Ever".getBytes()), NEW_AUCTION.getId());
 
