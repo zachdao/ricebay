@@ -49,7 +49,7 @@ public class Picture {
         this.image = image;
     }
 
-    public UUID getAuctionIdId() {
+    public UUID getAuctionId() {
         return auctionId;
     }
 

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -196,4 +197,41 @@ class AuctionManagerTest {
 
         verify(databaseManager).saveObjects(any(Query.class), any(AuctionView.class));
     }
+
+    @Test
+    void addImagesTest() throws Exception {
+
+        NEW_AUCTION.setId(UUID.randomUUID());
+
+        Picture pic = new Picture();
+        pic.setAuctionId(NEW_AUCTION.getId());
+        pic.setSequenceNum(0);
+        pic.setImage("Best Image Ever".getBytes());
+
+        List<Picture> pics = auctionManager.addImages(List.of("Best Image Ever".getBytes()), NEW_AUCTION.getId());
+
+        verify(databaseManager).saveObjects(any(Query.class), any(Picture.class));
+
+        assertEquals(pic, pics.get(0));
+    }
+    @Test
+    void getImagesTest() throws Exception {
+
+        NEW_AUCTION.setId(UUID.randomUUID());
+
+        Picture pic = new Picture();
+        pic.setAuctionId(NEW_AUCTION.getId());
+        pic.setId(0);
+
+        when(databaseManager.loadObjects(any(Query.class), any(UUID.class)))
+                .thenReturn(List.of(pic));
+
+        List<Picture> pics = auctionManager.getImages(NEW_AUCTION.getId());
+
+        assertEquals(1, pics.size());
+        assertEquals(0, pics.get(0).getId());
+        assertEquals(NEW_AUCTION.getId(), pics.get(0).getAuctionId());
+
+    }
+
 }

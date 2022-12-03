@@ -135,8 +135,8 @@ public class AuctionAdapter {
                 userBid.setTimestamp(bid.getTimestamp());
                 viewAuction.setUserBid(userBid);
             }
-
-            viewAuction.setImages(List.of());
+            List<Picture> pictures = this.auctionManager.getImages(id);
+            viewAuction.setImages(pictures.stream().map(Picture::getImage).collect(Collectors.toList()));
 
             List<ViewBid> bids = new ArrayList<>();
             if (owner.getId().equals(user.getId())) {
