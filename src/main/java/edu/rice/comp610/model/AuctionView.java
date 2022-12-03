@@ -1,7 +1,6 @@
 package edu.rice.comp610.model;
 
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
@@ -11,7 +10,7 @@ import java.util.UUID;
  *
  * Includes a timestamp when the item was viewed and who viewed it.
  */
-public class ItemView {
+public class AuctionView {
     private UUID id;
     private Date timestamp;
     private UUID auctionId;
@@ -45,20 +44,19 @@ public class ItemView {
         return viewerId;
     }
 
-    public void setViewerUD(UUID viewerId) {
+    public void setViewerId(UUID viewerId) {
         this.viewerId = viewerId;
     }
-
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ItemView itemView = (ItemView) o;
-        return Objects.equals(id, itemView.id)
-                && Objects.equals(timestamp, itemView.timestamp)
-                && Objects.equals(auctionId, itemView.auctionId)
-                && Objects.equals(viewerId, itemView.viewerId);
+        AuctionView auctionView = (AuctionView) o;
+        return Objects.equals(id, auctionView.id)
+                && Objects.equals(timestamp, auctionView.timestamp)
+                && Objects.equals(auctionId, auctionView.auctionId)
+                && Objects.equals(viewerId, auctionView.viewerId);
     }
 
     @Override

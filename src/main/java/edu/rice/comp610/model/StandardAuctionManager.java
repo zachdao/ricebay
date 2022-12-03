@@ -46,7 +46,6 @@ public class StandardAuctionManager implements AuctionManager {
 
         return auction.getId();
     }
-
     /**
      * Loads an existing auction and returns it. The id must be that of an existing auction.
      *
@@ -55,11 +54,37 @@ public class StandardAuctionManager implements AuctionManager {
      * be found).
      */
     public Auction get(UUID auctionId) throws DatabaseException, ObjectNotFoundException {
+        return this.get(auctionId, null);
+    }
+
+    /**
+     * Loads an existing auction and returns it. The id must be that of an existing auction.
+     *
+     * @param auctionId the id of auction to load
+     * @param viewerId if not null then account id a user viewing the auction
+     * @return a response containing the auction; or an error message, if an error occurred (e.g., the auction could not
+     * be found).
+     */
+    public Auction get(UUID auctionId, UUID viewerId) throws DatabaseException, ObjectNotFoundException {
         var loadQuery = queryManager.makeLoadQuery(Auction.class, "id");
         List<Auction> auctions = databaseManager.loadObjects(loadQuery, auctionId);
 
         if (auctions.size() != 1) {
             throw new ObjectNotFoundException("Could not find auction for id=" + auctionId.toString());
+        }
+
+        // Record auction view in the database
+        // Only if the viewer is not the auction owner
+        if (viewerId != null && viewerId != auctions.get(0).getOwnerId()) {
+            // Time get set to defaults by postgres
+            AuctionView auctionView = new AuctionView();
+            auctionView.setAuctionId(auctionId);
+            auctionView.setViewerId(viewerId);
+            auctionView.setId(UUID.randomUUID());
+            // Not setting the timestamp, allowing the database set the timestamp
+
+            var insertAuctionViewQuery = queryManager.makeUpdateQuery(AuctionView.class);
+            databaseManager.saveObjects(insertAuctionViewQuery, auctionView);
         }
         return auctions.get(0);
     }

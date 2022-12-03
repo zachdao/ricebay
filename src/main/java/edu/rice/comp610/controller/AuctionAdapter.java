@@ -99,7 +99,7 @@ public class AuctionAdapter {
 
     AppResponse<?> get(UUID id, ViewAccount user) {
         try {
-            Auction auction = this.auctionManager.get(id);
+            Auction auction = this.auctionManager.get(id, user.getId());
             ViewAuction viewAuction = new ViewAuction();
             viewAuction.setId(auction.getId());
             viewAuction.setTitle(auction.getTitle());

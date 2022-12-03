@@ -1,7 +1,6 @@
 package edu.rice.comp610.model;
 
 import edu.rice.comp610.controller.AuctionQuery;
-import edu.rice.comp610.model.*;
 import edu.rice.comp610.store.Query;
 import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.ObjectNotFoundException;
@@ -9,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,6 +36,8 @@ class AuctionManagerTest {
         when(queryManager.makeLoadQuery(any(), any()))
                 .thenReturn(new Query<>());
         when(queryManager.makeUpdateQuery(any(), eq(false)))
+                .thenReturn(new Query<>());
+        when(queryManager.makeUpdateQuery(any()))
                 .thenReturn(new Query<>());
         when(queryManager.makeLoadQuery(any()))
                 .thenReturn(new Query<>());
@@ -141,7 +141,6 @@ class AuctionManagerTest {
     }
 
     @Test
-    // Not sure how to do this...  Trying to test the addCategories method in StandardAuctionManager
     void addCategories() throws Exception {
 
         Category newCategory = new Category();
@@ -168,5 +167,31 @@ class AuctionManagerTest {
 
         verify(databaseManager).saveObjects(any(Query.class), eq(newAuctionCategory));
         verify(databaseManager, never()).saveObjects(any(Query.class), eq(newAuctionCategory2));
+    }
+
+    @Test
+    void auctionViewByOwner() throws Exception {
+
+        NEW_AUCTION.setId(UUID.randomUUID());
+
+        when(databaseManager.loadObjects(any(Query.class), any()))
+                .thenReturn(List.of(NEW_AUCTION));
+
+        auctionManager.get(NEW_AUCTION.getId(), NEW_AUCTION.getOwnerId());
+
+        verify(databaseManager, never()).saveObjects(any(Query.class), any(AuctionView.class));
+    }
+
+    @Test
+    void auctionViewNotOwner() throws Exception {
+
+        NEW_AUCTION.setId(UUID.randomUUID());
+
+        when(databaseManager.loadObjects(any(Query.class), any()))
+                .thenReturn(List.of(NEW_AUCTION));
+
+        auctionManager.get(NEW_AUCTION.getId(), UUID.randomUUID());
+
+        verify(databaseManager).saveObjects(any(Query.class), any(AuctionView.class));
     }
 }
