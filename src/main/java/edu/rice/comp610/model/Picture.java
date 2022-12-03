@@ -1,5 +1,7 @@
 package edu.rice.comp610.model;
 
+import edu.rice.comp610.store.PrimaryKey;
+
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
@@ -12,11 +14,12 @@ import java.util.UUID;
 
 public class Picture {
     private int id;
-    private String name;
-    private int sequenceNum;
-    private byte[] image;
+    private String pictureName;
+    private int pictureSequence;
+    private byte[] pictureData;
     private UUID auctionId;
 
+    @PrimaryKey(generated = true)
     public int getId() {
         return id;
     }
@@ -25,28 +28,28 @@ public class Picture {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getPictureName() {
+        return pictureName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setPictureName(String pictureName) {
+        this.pictureName = pictureName;
     }
 
-    public int getSequenceNum() {
-        return sequenceNum;
+    public int getPictureSequence() {
+        return pictureSequence;
     }
 
-    public void setSequenceNum(int sequenceNum) {
-        this.sequenceNum = sequenceNum;
+    public void setPictureSequence(int pictureSequence) {
+        this.pictureSequence = pictureSequence;
     }
 
-    public byte[] getImage() {
-        return image;
+    public byte[] getPictureData() {
+        return pictureData;
     }
 
-    public void setImage(byte[] image) {
-        this.image = image;
+    public void setPictureData(byte[] pictureData) {
+        this.pictureData = pictureData;
     }
 
     public UUID getAuctionId() {
@@ -64,25 +67,25 @@ public class Picture {
         if (o == null || getClass() != o.getClass()) return false;
         Picture picture = (Picture) o;
         return Objects.equals(id, picture.id)
-                && Objects.equals(name, picture.name)
-                && Objects.equals(sequenceNum, picture.sequenceNum)
-                && Arrays.equals(image, picture.image)
+                && Objects.equals(pictureName, picture.pictureName)
+                && Objects.equals(pictureSequence, picture.pictureSequence)
+                && Arrays.equals(pictureData, picture.pictureData)
                 && Objects.equals(auctionId, picture.auctionId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, sequenceNum, Arrays.hashCode(image), auctionId);
+        return Objects.hash(id, pictureName, pictureSequence, Arrays.hashCode(pictureData), auctionId);
     }
 
     @Override
     public String toString() {
         return "Picture{" +
                 "id=" + id +
-                ", name='" + name + '\'' +
-                ", sequenceNum='" + sequenceNum + '\'' +
+                ", name='" + pictureName + '\'' +
+                ", sequenceNum='" + pictureSequence + '\'' +
                 ", auctionId=" + auctionId +
-                ", image=" + Arrays.toString(image) +
+                ", image=" + Arrays.toString(pictureData) +
                 '}';
     }
 }

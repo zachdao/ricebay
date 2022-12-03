@@ -1,5 +1,10 @@
 import React from 'react';
-import { Flex, Text, View } from '@adobe/react-spectrum';
+import {
+    Flex,
+    Image as SpectrumImage,
+    Text,
+    View,
+} from '@adobe/react-spectrum';
 import styled from 'styled-components';
 import Image from '@spectrum-icons/workflow/Image';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +17,10 @@ export const AuctionListItem = ({ auction }) => {
         <AuctionItemGrid onClick={() => navigate(`/auction/${auction.id}`)}>
             <View gridArea="image" width="100%" height="100%">
                 {auction.images && auction.images.length ? (
-                    <img src={auction.images[0]} alt="image of auction item" />
+                    <SpectrumImage
+                        src={auction.images[0]}
+                        alt="image of auction item"
+                    />
                 ) : (
                     <View width="100%" height="100%" backgroundColor="gray-300">
                         <Image width="100%" height="100%" />

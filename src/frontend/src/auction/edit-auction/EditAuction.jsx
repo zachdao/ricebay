@@ -305,7 +305,9 @@ export const EditAuction = ({ auction, refresh }) => {
             >
                 <Button
                     variant={isClean() ? 'primary' : 'negative'}
-                    onPress={() => (isClean() ? navigate(-1) : cancel())}
+                    onPress={() =>
+                        isClean() || !auction ? navigate(-1) : cancel()
+                    }
                 >
                     <Text>{isClean() ? 'Go Back' : 'Cancel'}</Text>
                 </Button>
@@ -321,10 +323,7 @@ export const EditAuction = ({ auction, refresh }) => {
             <ImageUploader
                 multiple
                 images={images}
-                setImages={(images) => {
-                    console.log('setting images to ', images);
-                    setImages(images);
-                }}
+                setImages={auction?.images?.length ? undefined : setImages}
                 zeroState={
                     <ImageUploadWrapper>
                         <Image size="XXL" />

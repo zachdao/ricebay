@@ -47,8 +47,11 @@ export const ImageCarousel = ({ images, setImages }) => {
                         <div onClick={() => setOpen(i)}>
                             <Image src={image} />
                         </div>
-                        <DialogContainer onDismiss={() => setOpen(undefined)}>
-                            {open === i && setImages && (
+                        <DialogContainer
+                            isDismissable={setImages === undefined}
+                            onDismiss={() => setOpen(undefined)}
+                        >
+                            {open === i && (
                                 <AlertDialog
                                     title="Remove Image"
                                     primaryActionLabel="Delete"

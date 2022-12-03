@@ -18,7 +18,7 @@ public class ViewAuction {
     private boolean published;
     private ViewSeller seller;
     private ViewBid userBid;
-    private List<byte[]> images;
+    private List<String> images;
     private List<ViewBid> bids;
 
     public UUID getId() {
@@ -125,11 +125,11 @@ public class ViewAuction {
         this.userBid = userBid;
     }
 
-    public List<byte[]> getImages() {
+    public List<String> getImages() {
         return images;
     }
 
-    public void setImages(List<byte[]> images) {
+    public void setImages(List<String> images) {
         this.images = images;
     }
 
