@@ -65,13 +65,21 @@ public class AuctionQuery {
             return Double.parseDouble(value);
         } else if (value.matches("\\d+")) {
             return Integer.parseInt(value);
-        } else {
-            try {
-                return parser.parse(value);
-            } catch (ParseException e) {
-                return value;
-            }
         }
+
+        try {
+            return parser.parse(value);
+        } catch (ParseException e) {
+            // Not a date
+        }
+
+        try {
+            return UUID.fromString(value);
+        } catch (IllegalArgumentException e) {
+            // Not a UUID
+        }
+
+        return value;
     }
 
     public Filter[] getFilters() {
