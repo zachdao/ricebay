@@ -1,6 +1,8 @@
 package edu.rice.comp610.model;
 
 
+import edu.rice.comp610.store.PrimaryKey;
+
 import java.util.Date;
 import java.util.Objects;
 import java.util.UUID;
@@ -16,6 +18,7 @@ public class AuctionView {
     private UUID auctionId;
     private UUID viewerId;
 
+    @PrimaryKey(generated = true)
     public UUID getId() {
         return id;
     }

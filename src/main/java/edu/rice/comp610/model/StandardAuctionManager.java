@@ -76,13 +76,11 @@ public class StandardAuctionManager implements AuctionManager {
 
         // Record auction view in the database
         // Only if the viewer is not the auction owner
-        if (viewerId != null && viewerId != auctions.get(0).getOwnerId()) {
-            // Time get set to defaults by postgres
+        if (viewerId != null && !viewerId.equals(auctions.get(0).getOwnerId())) {
             AuctionView auctionView = new AuctionView();
             auctionView.setAuctionId(auctionId);
             auctionView.setViewerId(viewerId);
-            auctionView.setId(UUID.randomUUID());
-            // Not setting the timestamp, allowing the database set the timestamp
+            auctionView.setTimestamp(new Date());
 
             var insertAuctionViewQuery = queryManager.makeUpdateQuery(AuctionView.class);
             databaseManager.saveObjects(insertAuctionViewQuery, auctionView);
