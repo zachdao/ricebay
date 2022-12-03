@@ -50,7 +50,6 @@ public class StandardAuctionManager implements AuctionManager {
      * Loads an existing auction and returns it. The id must be that of an existing auction.
      *
      * @param auctionId the id of auction to load
-     * @param viewerUD
      * @return a response containing the auction; or an error message, if an error occurred (e.g., the auction could not
      * be found).
      */
@@ -62,11 +61,11 @@ public class StandardAuctionManager implements AuctionManager {
      * Loads an existing auction and returns it. The id must be that of an existing auction.
      *
      * @param auctionId the id of auction to load
-     * @param viewerUD if not null then account id a user viewing the auction
+     * @param viewerId if not null then account id a user viewing the auction
      * @return a response containing the auction; or an error message, if an error occurred (e.g., the auction could not
      * be found).
      */
-    public Auction get(UUID auctionId, UUID viewerUD) throws DatabaseException, ObjectNotFoundException {
+    public Auction get(UUID auctionId, UUID viewerId) throws DatabaseException, ObjectNotFoundException {
         var loadQuery = queryManager.makeLoadQuery(Auction.class, "id");
         List<Auction> auctions = databaseManager.loadObjects(loadQuery, auctionId);
 
@@ -76,11 +75,11 @@ public class StandardAuctionManager implements AuctionManager {
 
         // Record auction view in the database
         // Only if the viewer is not the auction owner
-        if (viewerUD != null && viewerUD != auctions.get(0).getOwnerId()) {
+        if (viewerId != null && viewerId != auctions.get(0).getOwnerId()) {
             // Time get set to defaults by postgres
             AuctionView auctionView = new AuctionView();
             auctionView.setAuctionId(auctionId);
-            auctionView.setViewerUD(viewerUD);
+            auctionView.setViewerId(viewerId);
             auctionView.setId(UUID.randomUUID());
             // Not setting the timestamp, allowing the database set the timestamp
 

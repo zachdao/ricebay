@@ -44,10 +44,9 @@ public class AuctionView {
         return viewerId;
     }
 
-    public void setViewerUD(UUID viewerId) {
+    public void setViewerId(UUID viewerId) {
         this.viewerId = viewerId;
     }
-
 
     @Override
     public boolean equals(Object o) {
