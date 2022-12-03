@@ -1,11 +1,4 @@
-import {
-    Flex,
-    Heading,
-    Text,
-    ListBox,
-    Item,
-    ComboBox,
-} from '@adobe/react-spectrum';
+import { Flex, Heading, ListBox, Item, ComboBox } from '@adobe/react-spectrum';
 import React, { useContext, useEffect, useState } from 'react';
 import { AuctionList } from '../auction-list/AuctionList';
 import { CategoriesContext } from '../categories.context';
@@ -15,8 +8,8 @@ import toast from 'react-hot-toast';
 import { Toast } from '../toast/Toast';
 
 export const Search = () => {
-    const [sort, setSort] = React.useState();
-    const [category, setCategory] = React.useState(new Set([]));
+    const [sort, setSort] = useState();
+    const [categories, setCategories] = useState(new Set([]));
     const [searchURL, setSearchURL] = useState('/auctions/search');
     const searchText = useContext(SearchContext);
     const { appResponse, error } = useHttpQuery(searchURL);
@@ -43,33 +36,40 @@ export const Search = () => {
     }, [error]);
 
     useEffect(() => {
-        if (searchText && category) {
+        if (searchText && categories.size > 0) {
             setSearchURL(
-                `/auctions/search?filterBy=title&filterByValue=${searchText}&hasCategory=${[
-                    ...category,
+                `/auctions/search?title:like=${searchText}&description:like=${searchText}&hasCategories=${[
+                    ...categories,
                 ].join(',')}`,
             );
         } else if (searchText) {
             setSearchURL(
-                `/auctions/search?filterBy=title&filterByValue=${searchText}`,
+                `/auctions/search?title:like=${searchText}&description:like=${searchText}`,
             );
-        } else if (category) {
+        } else if (categories.size > 0) {
             setSearchURL(
-                `/auctions/search?hasCategory=${[...category].join(',')}`,
+                `/auctions/search?hasCategories=${[...categories].join(',')}`,
             );
+        } else {
+            setSearchURL('/auctions/search');
         }
-    }, [searchText, category]);
+    }, [searchText, categories]);
 
     return (
-        <Flex direction="row" alignItems="start" justifyContent="start">
+        <Flex
+            direction="row"
+            alignItems="start"
+            justifyContent="start"
+            width="100%"
+        >
             <Flex direction="column">
                 <Heading level="1">Categories</Heading>
                 <ListBox
                     selectionMode="multiple"
                     items={categoryOptions.map((opt) => ({ name: opt }))}
-                    selectedKeys={category}
+                    selectedKeys={categories}
                     onSelectionChange={(selected) =>
-                        setCategory(Array.from(selected))
+                        setCategories(new Set([...selected]))
                     }
                     width="size-2400"
                 >

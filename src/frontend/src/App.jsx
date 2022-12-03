@@ -84,7 +84,20 @@ export const App = () => {
                                     path="recentlyViewed*"
                                     element={<RecentlyViewed />}
                                 />
-                                <Route path="search*" element={<Search />} />
+                                <Route
+                                    path="search*"
+                                    element={
+                                        <Flex
+                                            direction="row"
+                                            alignItems="start"
+                                            justifyContent="center"
+                                            margin="size-400"
+                                            width=""
+                                        >
+                                            <Search />
+                                        </Flex>
+                                    }
+                                />
                                 <Route
                                     path="create"
                                     element={

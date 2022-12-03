@@ -315,7 +315,7 @@ export const EditAuction = ({ auction, refresh }) => {
             <Grid
                 gridArea="details"
                 columns={['2fr', '2fr', '2fr']}
-                autoRows="min-content"
+                autoRows="max-content"
                 gap="size-100"
                 height="100%"
             >
@@ -345,7 +345,11 @@ export const EditAuction = ({ auction, refresh }) => {
                                 (prev) => new Set([...prev, selected]),
                             )
                         }
+                        selectedKey={categories}
                         isDisabled={isTerminal}
+                        gridColumnStart="1"
+                        gridColumnEnd="4"
+                        width="100%"
                     >
                         {(item) => <Item key={item.name}>{item.name}</Item>}
                     </ComboBox>
@@ -356,8 +360,8 @@ export const EditAuction = ({ auction, refresh }) => {
                     gap="size-100"
                     height="min-content"
                     width="100%"
-                    gridColumnStart={auction ? '1' : '2'}
-                    gridColumnEnd={auction ? '4' : undefined}
+                    gridColumnStart="1"
+                    gridColumnEnd="4"
                 >
                     <LabeledValue label="Categories" />
                     {categories.size ? (

@@ -97,18 +97,40 @@ public class StandardAuctionManager implements AuctionManager {
      */
     public List<Auction> search(AuctionQuery query) throws DatabaseException {
         // find auction by category and text
-        if (query.hasCategories().isEmpty()) {
-            var auctionQuery = queryManager.makeLoadQuery(Auction.class, queryManager.filters().makeOrFilter(query.getFilters()));
-            return databaseManager.loadObjects(auctionQuery, query.getValues());
+        if (query.getFilters().length == 0 && query.hasCategories().isEmpty()) {
+            var auctionQuery = queryManager.makeLoadQuery(Auction.class, queryManager.filters().makeEqualityFilter("published"));
+            return databaseManager.loadObjects(auctionQuery, true);
+        } else if (query.hasCategories().isEmpty()) {
+            var auctionQuery = queryManager.makeLoadQuery(Auction.class,
+                    queryManager.filters().makeAndFilter(
+                            queryManager.filters().makeEqualityFilter("published"),
+                            queryManager.filters().makeOrFilter(query.getFilters())));
+            return databaseManager.loadObjects(auctionQuery, ArrayUtil.prependToArray(true, query.getValues(), Object.class));
+        } else if (query.getFilters().length == 0) {
+            Object[] auctionIds = getAuctionIds(query);
+            Object[] objects = ArrayUtil.prependToArray(true, auctionIds, Object.class);
+            return databaseManager.loadObjects(queryManager.makeLoadQuery(Auction.class,
+                            queryManager.filters().makeAndFilter(
+                                    queryManager.filters().makeEqualityFilter("published"),
+                                    queryManager.filters().makeInFilter("id", auctionIds.length))),
+                    objects);
         } else {
-            var categoryQuery = queryManager.makeLoadQuery(Category.class, queryManager.filters().makeInFilter("name", query.hasCategories().size()));
-            var categoryIds = databaseManager.loadObjects(categoryQuery, query.hasCategories().toArray()).stream().map(Category::getId).toArray();
-            var auctionCategoryQuery = queryManager.makeLoadQuery(AuctionCategory.class, queryManager.filters().makeInFilter("category_id", categoryIds.length));
-            var auctionIds = databaseManager.loadObjects(auctionCategoryQuery, categoryIds).stream().map(AuctionCategory::getAuctionId).toArray();
-            Filter[] filterBy = ArrayUtil.prependToArray(queryManager.filters().makeInFilter("id", auctionIds.length), query.getFilters(), Filter.class);
-            Object[] objects = ArrayUtil.add(auctionIds, query.getValues());
-            return databaseManager.loadObjects(queryManager.makeLoadQuery(Auction.class, queryManager.filters().makeOrFilter(filterBy)), objects);
+            Object[] auctionIds = getAuctionIds(query);
+            Object[] objects = ArrayUtil.add(ArrayUtil.prependToArray(true, auctionIds, Object.class), query.getValues());
+            return databaseManager.loadObjects(queryManager.makeLoadQuery(Auction.class,
+                        queryManager.filters().makeAndFilter(
+                                queryManager.filters().makeEqualityFilter("published"),
+                                queryManager.filters().makeInFilter("id", auctionIds.length),
+                                queryManager.filters().makeOrFilter(query.getFilters()))),
+                    objects);
         }
+    }
+
+    private Object[] getAuctionIds(AuctionQuery query) throws DatabaseException {
+        var categoryQuery = queryManager.makeLoadQuery(Category.class, queryManager.filters().makeInFilter("name", query.hasCategories().size()));
+        var categoryIds = databaseManager.loadObjects(categoryQuery, query.hasCategories().toArray()).stream().map(Category::getId).toArray();
+        var auctionCategoryQuery = queryManager.makeLoadQuery(AuctionCategory.class, queryManager.filters().makeInFilter("category_id", categoryIds.length));
+        return databaseManager.loadObjects(auctionCategoryQuery, categoryIds).stream().map(AuctionCategory::getAuctionId).toArray();
     }
 
     public List<Auction> expired() throws DatabaseException {
