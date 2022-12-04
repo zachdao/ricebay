@@ -35,6 +35,7 @@ public class AuctionAdapter {
             auction.setBidIncrement(viewAuction.getBidIncrement());
             auction.setStartDate(viewAuction.getStartDate());
             auction.setEndDate(viewAuction.getEndDate());
+            auction.setTaxPercent(viewAuction.getTaxPercent());
             UUID newId = this.auctionManager.save(auction);
             if (viewAuction.getImages() != null) {
                 this.auctionManager.addImages(viewAuction.getImages().stream().map(String::getBytes).collect(Collectors.toList()), newId);
