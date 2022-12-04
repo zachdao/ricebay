@@ -87,7 +87,8 @@ export const EditAuction = ({ auction, refresh }) => {
         {
             id: auction?.id,
             title,
-            images: auction?.images?.length === 0 ? images : undefined,
+            images:
+                !auction || auction.images?.length === 0 ? images : undefined,
             minimumBid: startingBid,
             bidIncrement,
             startDate: range.start.toString(),
