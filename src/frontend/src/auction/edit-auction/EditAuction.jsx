@@ -85,9 +85,9 @@ export const EditAuction = ({ auction, refresh }) => {
     const saveAuction = usePostWithToast(
         auction ? `/auctions/${auction.id}` : '/auctions',
         {
-            ...auction,
+            id: auction?.id,
             title,
-            images,
+            images: auction?.images?.length === 0 ? images : undefined,
             minimumBid: startingBid,
             bidIncrement,
             startDate: range.start.toString(),
