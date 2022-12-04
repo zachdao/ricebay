@@ -75,7 +75,9 @@ public class AuctionAdapter {
             if (viewAuction.getTaxPercent() != 0 ) {
                 auction.setTaxPercent(viewAuction.getTaxPercent());
             }
-            this.auctionManager.addImages(viewAuction.getImages().stream().map(String::getBytes).collect(Collectors.toList()), viewAuction.getId());
+            if (viewAuction.getImages() != null && !viewAuction.getImages().isEmpty()) {
+                this.auctionManager.addImages(viewAuction.getImages().stream().map(String::getBytes).collect(Collectors.toList()), viewAuction.getId());
+            }
             auction.setPublished(viewAuction.isPublished());
             // TODO: Diff categories and add new ones and delete removed ones
             this.auctionManager.save(auction);
