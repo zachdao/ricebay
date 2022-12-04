@@ -36,7 +36,9 @@ public class AuctionAdapter {
             auction.setStartDate(viewAuction.getStartDate());
             auction.setEndDate(viewAuction.getEndDate());
             UUID newId = this.auctionManager.save(auction);
-            this.auctionManager.addImages(viewAuction.getImages().stream().map(String::getBytes).collect(Collectors.toList()), newId);
+            if (viewAuction.getImages() != null) {
+                this.auctionManager.addImages(viewAuction.getImages().stream().map(String::getBytes).collect(Collectors.toList()), newId);
+            }
             this.auctionManager.addCategories(viewAuction.getCategories() != null ? viewAuction.getCategories() : List.of(), newId);
             return new AppResponse<>(201, true, newId, "OK");
         } catch (BadRequestException e) {
