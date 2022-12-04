@@ -12,7 +12,13 @@ const convertFileToBase64 = (file) => {
     });
 };
 
-export const ImageUploader = ({ images, setImages, zeroState, multiple }) => {
+export const ImageUploader = ({
+    images,
+    setImages,
+    zeroState,
+    multiple,
+    hideCarousel,
+}) => {
     const inputRef = useRef();
     const [isLoading, setIsLoading] = useState(false);
     const triggerUploadDialog = () => inputRef?.current?.click();
@@ -56,7 +62,7 @@ export const ImageUploader = ({ images, setImages, zeroState, multiple }) => {
                             />
                         </ZeroStateWrapper>
                     )}
-                    {images && (
+                    {images && !hideCarousel && (
                         <ImageCarousel images={images} setImages={setImages} />
                     )}
                 </>

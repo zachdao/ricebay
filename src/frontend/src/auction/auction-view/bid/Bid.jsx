@@ -13,7 +13,7 @@ import {
 export const Bid = ({ auction, makeBid, ...otherProps }) => {
     const [bid, setBid] = useState(auction?.userBid?.bid || 0);
     const [maxBid, setMaxBid] = useState(auction?.userBid?.maxBid || undefined);
-    const user = useContext(UserContext);
+    const { user } = useContext(UserContext);
 
     const ownsBid = user?.id && user.id === auction?.seller?.id;
 

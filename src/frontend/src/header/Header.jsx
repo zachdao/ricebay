@@ -13,14 +13,15 @@ import {
 import ShowMenu from '@spectrum-icons/workflow/ShowMenu';
 import { UserProfile } from '../user-profile/UserProfile';
 import LogOut from '@spectrum-icons/workflow/LogOut';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { UserContext } from '../user.context';
 import styled from 'styled-components';
 
 export const Header = ({ menuClicked, searchValue, searchValueUpdated }) => {
     const navigate = useNavigate();
-    const user = useContext(UserContext);
+    const location = useLocation();
+    const { user } = useContext(UserContext);
     const logout = useCallback(async () => {
         await axios.post('/accounts/logout');
         navigate('/login');
@@ -50,6 +51,11 @@ export const Header = ({ menuClicked, searchValue, searchValueUpdated }) => {
                 <ShowMenu width="30px" height="30px" />
             </ActionButton>
             <Flex
+                isHidden={
+                    location.pathname.includes('account') ||
+                    location.pathname.includes('create') ||
+                    location.pathname.includes('auction')
+                }
                 gridArea="search"
                 justifyContent="center"
                 data-testid="search-area"
@@ -79,7 +85,7 @@ export const Header = ({ menuClicked, searchValue, searchValueUpdated }) => {
                     alignItems="center"
                     justifyContent="center"
                 >
-                    <UserProfile />
+                    <UserProfile src={user?.image} />
                 </ActionButton>
                 <Dialog size="M">
                     <Content>
@@ -95,7 +101,11 @@ export const Header = ({ menuClicked, searchValue, searchValueUpdated }) => {
                                 alignItems="center"
                                 height="size-1000"
                             >
-                                <UserProfile width="80px" height="80px" />
+                                <UserProfile
+                                    width="80px"
+                                    height="80px"
+                                    src={user?.image}
+                                />
                                 <Flex direction="column" alignItems="start">
                                     <FancyName>
                                         {`${user?.givenName} ${user?.surname}`}{' '}
