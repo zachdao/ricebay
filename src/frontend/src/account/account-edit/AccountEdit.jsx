@@ -116,9 +116,10 @@ export const AccountEdit = ({ account, refresh }) => {
             surname === account.surname &&
             alias === account.alias &&
             email === account.email &&
-            zelleId === account.zelleId
+            zelleId === account.zelleId &&
+            image === account.image
         );
-    }, [givenName, surname, alias, email, zelleId]);
+    }, [givenName, surname, alias, email, zelleId, image]);
 
     const accountOverview = useCallback(async () => {
         navigate('/account');

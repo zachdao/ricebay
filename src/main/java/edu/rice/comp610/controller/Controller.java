@@ -117,6 +117,9 @@ public class Controller {
                     throw new UnauthorizedException();
                 }
                 var appResponse = accountAdapter.update(account);
+                if (appResponse.isSuccess()) {
+                    request.session().attribute("user", account);
+                }
                 response.status(appResponse.getStatus());
                 return gson.toJson(appResponse);
             });
@@ -126,9 +129,12 @@ public class Controller {
                 if (!Objects.equals(loggedInAccount.getId().toString(), request.params("id"))) {
                     throw new UnauthorizedException();
                 }
-                var credentials = gson.fromJson(request.body(), Credentials.class);
                 var jsonBody = util.getJsonParser().parse(request.body());
+                var currentPassword = jsonBody.getAsJsonObject().get("currentPassword").getAsString();
                 var newPassword = jsonBody.getAsJsonObject().get("newPassword").getAsString();
+                var credentials = new Credentials();
+                credentials.setEmail(loggedInAccount.getEmail());
+                credentials.setPassword(currentPassword);
                 var appResponse = accountAdapter.updatePassword(credentials, newPassword);
                 response.status(appResponse.getStatus());
                 return gson.toJson(appResponse);

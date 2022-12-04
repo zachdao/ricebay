@@ -77,8 +77,8 @@ public class LocalAccountManager implements AccountManager {
                 throw new UnauthorizedException();
             }
 
-            var aliasQuery = queryManager.makeLoadQuery(Account.class, queryManager.filters().makeEqualityFilter("id"));
-            var accounts = databaseManager.loadObjects(aliasQuery, credentials.getEmail());
+            var emailQuery = queryManager.makeLoadQuery(Account.class, queryManager.filters().makeEqualityFilter("email"));
+            var accounts = databaseManager.loadObjects(emailQuery, credentials.getEmail());
             if (accounts.size() != 1) {
                 throw new UnauthorizedException();
             }

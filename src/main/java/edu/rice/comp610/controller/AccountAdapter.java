@@ -49,6 +49,9 @@ public class AccountAdapter {
             if (viewAccount.getImage() != null && !viewAccount.getImage().isEmpty()) {
                 account.setImage(viewAccount.getImage().getBytes());
             }
+            if (!viewAccount.getEmail().isEmpty()) {
+                account.setEmail(viewAccount.getEmail());
+            }
             this.accountManager.save(account);
             return new AppResponse<>(200, true, account.getId(), "OK");
         } catch (ObjectNotFoundException e) {
