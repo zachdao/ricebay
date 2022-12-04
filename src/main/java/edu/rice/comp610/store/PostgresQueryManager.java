@@ -140,9 +140,20 @@ public class PostgresQueryManager implements QueryManager {
      * @return a SQL query string .
      */
     public <T> Query<T> makeLoadQuery(Class<T> modelClass) {
-        return makeLoadQuery(modelClass, null);
+        return makeLoadQuery(modelClass, null, null, true);
     }
-
+    public <T> Query<T> makeLoadQuery(Class<T> modelClass, Filter filterBy) {
+        return makeLoadQuery(modelClass, filterBy, null, true);
+    }
+    public <T> Query<T> makeLoadQuery(Class<T> modelClass, Filter filterBy, AuctionSortField sortBy) {
+        return makeLoadQuery(modelClass, filterBy, sortBy, true);
+    }
+    /* public <T> Query<T> makeLoadQuery(Class<T> modelClass, AuctionSortField sortBy) {
+         return makeLoadQuery(modelClass, null, sortBy, true);
+    } */
+    /* public <T> Query<T> makeLoadQuery(Class<T> modelClass, AuctionSortField sortBy, Boolean sortAscending) {
+        return makeLoadQuery(modelClass, null, sortBy, sortAscending);
+    } */
     /**
      * Generate a SQL query to load model objects of a particular type. The model class is mapped to a database table
      * and class fields are mapped to columns that are used in a WHERE clause to filter the results.
@@ -151,7 +162,9 @@ public class PostgresQueryManager implements QueryManager {
      * @param filterBy the set of fields to filter by.
      * @return a SQL query string .
      */
-    public <T> Query<T> makeLoadQuery(Class<T> modelClass, Filter filterBy) {
+
+
+    public <T> Query<T> makeLoadQuery(Class<T> modelClass, Filter filterBy, AuctionSortField sortBy, Boolean sortAscending) {
         Map<String, Accessors> accessorsMap = makeColumnsToAccessorsMap(modelClass);
         String primaryTable = Util.getInstance().camelToSnake(modelClass.getSimpleName());
 
@@ -167,6 +180,15 @@ public class PostgresQueryManager implements QueryManager {
         if (filterBy != null) {
             stringBuilder.append(" WHERE ")
                     .append(filters.makeAndFilter(filterBy).toQuery());
+        }
+        if (sortBy != null) {
+            // TODO: Handle enum, do we need to convert to a string
+            stringBuilder.append(" ORDER BY ").append(sortBy.toString().toLowerCase());
+            if (!sortAscending) {
+                stringBuilder.append(" DESC");
+            } else {
+                stringBuilder.append(" ASC");
+            }
         }
 
         String sql = stringBuilder.toString();
