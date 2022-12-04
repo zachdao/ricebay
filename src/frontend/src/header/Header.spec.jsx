@@ -12,7 +12,7 @@ const renderComponent = async (menuClicked) => {
         <Provider theme={defaultTheme}>
             <MemoryRouter>
                 <UserContext.Provider
-                    value={{ alias: 'test', email: 'test@rice.edu' }}
+                    value={{ user: { alias: 'test', email: 'test@rice.edu' } }}
                 >
                     <Header menuClicked={menuClicked} />
                 </UserContext.Provider>

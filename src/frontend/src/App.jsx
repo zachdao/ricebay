@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Flex, Grid, View } from '@adobe/react-spectrum';
 import { Header } from './header/Header';
 import { Sidebar } from './sidebar/Sidebar';
 import { Route, Routes } from 'react-router-dom';
 import { Account } from './account/Account';
-import { AuctionList } from './auction-list/AuctionList';
 import { MyAuctions } from './my-auctions/MyAuctions';
 import { PurchaseHistory } from './purchase-history/PurchaseHistory';
 import { EditAuction } from './auction/edit-auction/EditAuction';
@@ -20,13 +19,20 @@ import { Home } from './home/Home';
 export const App = () => {
     const [showSidebar, setShowSidebar] = useState(false);
     const [searchText, setSearchText] = useState();
+    const [user, setUser] = useState();
     const { appResponse } = useHttpQuery('/accounts/me');
     const { appResponse: categoryResponse } = useHttpQuery('/categories');
     const categories = categoryResponse?.data || [];
 
+    useEffect(() => {
+        if (appResponse?.data) {
+            setUser(appResponse.data);
+        }
+    }, [appResponse]);
+
     return (
         // The UserContext.Provider allows sub-components to easily access the logged in user
-        <UserContext.Provider value={appResponse?.data}>
+        <UserContext.Provider value={{ user, setUser }}>
             <CategoriesContext.Provider value={categories}>
                 <SearchContext.Provider value={searchText}>
                     <Grid

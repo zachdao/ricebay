@@ -10,7 +10,7 @@ const renderComponent = async () => {
         <Provider theme={defaultTheme}>
             <MemoryRouter>
                 <UserContext.Provider
-                    value={{ alias: 'test', email: 'test@rice.edu' }}
+                    value={{ user: { alias: 'test', email: 'test@rice.edu' } }}
                 >
                     <MyAuctions />
                 </UserContext.Provider>

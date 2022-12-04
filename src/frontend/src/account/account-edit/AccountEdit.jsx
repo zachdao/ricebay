@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import {
     ActionButton,
     Button,
@@ -20,6 +20,8 @@ import JumpToTop from '@spectrum-icons/workflow/JumpToTop';
 import ArrowLeft from '@spectrum-icons/workflow/ArrowLeft';
 import VisibilityOff from '@spectrum-icons/workflow/VisibilityOff';
 import Visibility from '@spectrum-icons/workflow/Visibility';
+import { ImageUploader } from '../../image-uploader/ImageUploader';
+import { UserContext } from '../../user.context';
 
 export const AccountEdit = ({ account, refresh }) => {
     const [givenName, setGivenName] = useState(account.givenName || '');
@@ -33,7 +35,9 @@ export const AccountEdit = ({ account, refresh }) => {
     const [error, setError] = useState({});
     const [changePassword, setChangePassword] = useState(false);
     const [showZelleId, setShowZelleId] = useState(false);
+    const [image, setImage] = useState(account.image);
     const navigate = useNavigate();
+    const { setUser } = useContext(UserContext);
 
     const undo = usePostWithToast(
         `/accounts/${account.id}`,
@@ -47,6 +51,7 @@ export const AccountEdit = ({ account, refresh }) => {
             setAlias(appResponse.data.alias);
             setEmail(appResponse.data.email);
             setZelleId(appResponse.data.zelleId);
+            setImage(appResponse.data.image);
             setError({});
             refresh();
         },
@@ -57,13 +62,14 @@ export const AccountEdit = ({ account, refresh }) => {
         `/accounts/${account.id}`,
         {
             ...account,
+            image,
             givenName,
             surname,
             alias,
             email,
             zelleId,
         },
-        [givenName, surname, alias, email, zelleId],
+        [image, givenName, surname, alias, email, zelleId],
         {
             message: 'Account details updated!',
             actionTitle: 'UNDO',
@@ -73,7 +79,18 @@ export const AccountEdit = ({ account, refresh }) => {
             },
         },
         { message: 'Failed to save account' },
-        refresh,
+        () => {
+            refresh();
+            setUser({
+                ...account,
+                image,
+                givenName,
+                surname,
+                alias,
+                email,
+                zelleId,
+            });
+        },
         (axiosError) => setError(axiosError?.response?.data || {}),
     );
 
@@ -116,16 +133,17 @@ export const AccountEdit = ({ account, refresh }) => {
             columnGap="20px"
         >
             <View gridArea="image" position="relative" maxWidth="250px">
-                <UserProfile src={account.image} />
+                <UserProfile src={image} />
                 {/*TODO: Tie to action to upload profile image*/}
-                <ActionButton
-                    isQuiet
-                    bottom="20px"
-                    right="20px"
-                    position="absolute"
-                >
-                    <JumpToTop />
-                </ActionButton>
+                <View position="absolute" bottom="size-200" right="size-200">
+                    <ImageUploader
+                        setImages={(images) =>
+                            setImage(images.length ? images[0] : undefined)
+                        }
+                        zeroState={<JumpToTop size="M" />}
+                        hideCarousel
+                    />
+                </View>
             </View>
             <Flex
                 direction="column"

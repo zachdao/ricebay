@@ -1,4 +1,4 @@
-import React, {useContext, useEffect} from 'react';
+import React, { useContext, useEffect } from 'react';
 import {
     Flex,
     Heading,
@@ -11,11 +11,10 @@ import {
     Cell,
 } from '@adobe/react-spectrum';
 import Filter from '@spectrum-icons/workflow/Filter';
-import { useHttpQuery } from "../http-query/use-http-query";
+import { useHttpQuery } from '../http-query/use-http-query';
 import { UserContext } from '../user.context';
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import { Link } from '@adobe/react-spectrum';
-
 
 export const MyAuctions = () => {
     const columns = [
@@ -30,13 +29,13 @@ export const MyAuctions = () => {
     // TODO Filter the list based on the keyword and auction titles
     // TODO Tie in with backend
     // TODO Sort list based on date
-    const user = useContext(UserContext);
+    const { user } = useContext(UserContext);
 
     // Get our list of owned auctions, where appResponse is AppResponse<List<Auction>>
-    const {appResponse, error, status} = useHttpQuery(`/auctions/search`, {
+    const { appResponse, error, status } = useHttpQuery(`/auctions/search`, {
         params: {
-            owner_id: user?.id
-        }
+            owner_id: user?.id,
+        },
     });
     // const auctions = appResponse?.data;
 
@@ -66,7 +65,11 @@ export const MyAuctions = () => {
         if (columnKey === 'published') {
             return item[columnKey] ? 'Published' : 'Not Published';
         } else if (columnKey === 'title') {
-            return (<Link onPress={() => navigate("/auction/" + item.id)}>{item[columnKey]}</Link>);
+            return (
+                <Link onPress={() => navigate('/auction/' + item.id)}>
+                    {item[columnKey]}
+                </Link>
+            );
         }
         return item[columnKey];
     }
@@ -94,10 +97,18 @@ export const MyAuctions = () => {
                         <Column key={column.uid}>{column.name}</Column>
                     )}
                 </TableHeader>
-                <TableBody items={appResponse && appResponse.success ? appResponse.data : []}>
+                <TableBody
+                    items={
+                        appResponse && appResponse.success
+                            ? appResponse.data
+                            : []
+                    }
+                >
                     {(item) => (
                         <Row>
-                            {(columnKey) => <Cell>{mapItemValue(item, columnKey)}</Cell>}
+                            {(columnKey) => (
+                                <Cell>{mapItemValue(item, columnKey)}</Cell>
+                            )}
                         </Row>
                     )}
                 </TableBody>
