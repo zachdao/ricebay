@@ -6,9 +6,7 @@ import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.DatabaseException;
 import edu.rice.comp610.util.ObjectNotFoundException;
 import org.eclipse.jetty.util.ArrayUtil;
-import org.eclipse.jetty.util.security.Credential;
 
-import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -108,7 +106,7 @@ public class StandardAuctionManager implements AuctionManager {
                             queryManager.filters().makeOrFilter(query.getFilters())));
             return databaseManager.loadObjects(auctionQuery, ArrayUtil.prependToArray(true, query.getValues(), Object.class));
         } else if (query.getFilters().length == 0) {
-            Object[] auctionIds = getAuctionIds(query);
+            Object[] auctionIds = getAuctionIdsFromCategories(query);
             if (auctionIds.length == 0) {
                 return List.of();
             }
@@ -119,7 +117,7 @@ public class StandardAuctionManager implements AuctionManager {
                                     queryManager.filters().makeInFilter("id", auctionIds.length))),
                     objects);
         } else {
-            Object[] auctionIds = getAuctionIds(query);
+            Object[] auctionIds = getAuctionIdsFromCategories(query);
             Object[] objects = ArrayUtil.add(ArrayUtil.prependToArray(true, auctionIds, Object.class), query.getValues());
             return databaseManager.loadObjects(queryManager.makeLoadQuery(Auction.class,
                         queryManager.filters().makeAndFilter(
@@ -130,7 +128,7 @@ public class StandardAuctionManager implements AuctionManager {
         }
     }
 
-    private Object[] getAuctionIds(AuctionQuery query) throws DatabaseException {
+    private Object[] getAuctionIdsFromCategories(AuctionQuery query) throws DatabaseException {
         var categoryQuery = queryManager.makeLoadQuery(Category.class, queryManager.filters().makeInFilter("name", query.hasCategories().size()));
         var categoryIds = databaseManager.loadObjects(categoryQuery, query.hasCategories().toArray()).stream().map(Category::getId).toArray();
         var auctionCategoryQuery = queryManager.makeLoadQuery(AuctionCategory.class, queryManager.filters().makeInFilter("category_id", categoryIds.length));
@@ -142,6 +140,21 @@ public class StandardAuctionManager implements AuctionManager {
                 queryManager.filters().makeAndFilter(
                         queryManager.filters().makeEqualityFilter("published"),
                         queryManager.filters().makeLessThanFilter("end_date"))), true, new Date());
+    }
+
+    public List<Auction> recentlyViewed(UUID viewerId) throws DatabaseException {
+        var auctionViewQuery = queryManager.makeLoadQuery(AuctionView.class,
+                queryManager.filters().makeEqualityFilter("viewer_id"));
+        var auctionIds = databaseManager.loadObjects(auctionViewQuery, viewerId).stream().map(AuctionView::getAuctionId).toArray();
+        if (auctionIds.length == 0) {
+            return List.of();
+        }
+        var auctionQuery = queryManager.makeLoadQuery(Auction.class,
+                queryManager.filters().makeAndFilter(
+                        queryManager.filters().makeEqualityFilter("published"),
+                        queryManager.filters().makeInFilter("id", auctionIds.length)
+                ));
+        return databaseManager.loadObjects(auctionQuery, ArrayUtil.prependToArray(true, auctionIds, Object.class));
     }
 
     public List<Category> categories() throws DatabaseException {
@@ -181,12 +194,9 @@ public class StandardAuctionManager implements AuctionManager {
     }
 
     public List<Picture> getImages(UUID auctionId) throws DatabaseException {
-
         // Grab the image data from the database
         var getImageQuery = queryManager.makeLoadQuery(Picture.class, queryManager.filters().makeEqualityFilter("auction_id"));
-        List<Picture> pictureObjs = databaseManager.loadObjects(getImageQuery, auctionId);
-
-        return pictureObjs;
+        return databaseManager.loadObjects(getImageQuery, auctionId);
     }
 
     /**

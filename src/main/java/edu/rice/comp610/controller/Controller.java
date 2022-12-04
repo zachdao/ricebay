@@ -154,6 +154,12 @@ public class Controller {
                 response.status(appResponse.getStatus());
                 return gson.toJson(appResponse);
             }));
+            get("/recentlyViewed", (((request, response) -> {
+                ViewAccount loggedInAccount = request.session().attribute("user");
+                var appResponse = auctionAdapter.recentlyViewed(loggedInAccount.getId());
+                response.status(appResponse.getStatus());
+                return gson.toJson(appResponse);
+            })));
             get("/:id", ((request, response) -> {
                 ViewAccount loggedInAccount = request.session().attribute("user");
                 var appResponse = auctionAdapter.get(UUID.fromString(request.params("id")), loggedInAccount);

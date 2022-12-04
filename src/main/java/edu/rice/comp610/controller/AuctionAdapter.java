@@ -91,29 +91,46 @@ public class AuctionAdapter {
 
     AppResponse<?> search(AuctionQuery query) {
         try {
-            var auctions = this.auctionManager.search(query).stream().map(auction -> {
-                ViewAuction viewAuction = new ViewAuction();
-                viewAuction.setId(auction.getId());
-                viewAuction.setTitle(auction.getTitle());
-                viewAuction.setDescription(auction.getDescription());
-                viewAuction.setMinimumBid(auction.getMinimumBid());
-                try {
-                    Bid currentBid = this.bidManager.getCurrentBid(auction.getId());
-                    if (currentBid != null) {
-                        viewAuction.setCurrentBid(currentBid.getAmount());
-                    }
-                } catch (DatabaseException e) {
-                    e.printStackTrace();
-                    System.err.format("Encountered DB error while loading current bid for auction %s%n", auction.getId().toString());
-                }
-                try {
-                    viewAuction.setImages(this.auctionManager.getImages(viewAuction.getId()).stream().map(Picture::getPictureData).map(String::new).collect(Collectors.toList()));
-                } catch (DatabaseException e) {
-                    e.printStackTrace();
-                    System.err.format("Encountered DB error while loading images for auction %s%n", auction.getId().toString());
-                }
-                return viewAuction;
-            }).collect(Collectors.toList());
+            var auctions = this.auctionManager.search(query).stream()
+                    .map(this::auctionToViewAuctionMapper)
+                    .collect(Collectors.toList());
+            return new AppResponse<>(200, true, auctions, "OK");
+        } catch (DatabaseException e) {
+            return new AppResponse<>(500, false, null, "Internal Server Error");
+        }
+    }
+
+    ViewAuction auctionToViewAuctionMapper(Auction auction) {
+        ViewAuction viewAuction = new ViewAuction();
+        viewAuction.setId(auction.getId());
+        viewAuction.setTitle(auction.getTitle());
+        viewAuction.setDescription(auction.getDescription());
+        viewAuction.setMinimumBid(auction.getMinimumBid());
+        viewAuction.setStartDate(auction.getStartDate());
+        viewAuction.setEndDate(auction.getEndDate());
+        try {
+            Bid currentBid = this.bidManager.getCurrentBid(auction.getId());
+            if (currentBid != null) {
+                viewAuction.setCurrentBid(currentBid.getAmount());
+            }
+        } catch (DatabaseException e) {
+            e.printStackTrace();
+            System.err.format("Encountered DB error while loading current bid for auction %s%n", auction.getId().toString());
+        }
+        try {
+            viewAuction.setImages(this.auctionManager.getImages(viewAuction.getId()).stream().map(Picture::getPictureData).map(String::new).collect(Collectors.toList()));
+        } catch (DatabaseException e) {
+            e.printStackTrace();
+            System.err.format("Encountered DB error while loading images for auction %s%n", auction.getId().toString());
+        }
+        return viewAuction;
+    }
+
+    AppResponse<?> recentlyViewed(UUID viewerId) {
+        try {
+            var auctions = this.auctionManager.recentlyViewed(viewerId).stream()
+                    .map(this::auctionToViewAuctionMapper)
+                    .collect(Collectors.toList());
             return new AppResponse<>(200, true, auctions, "OK");
         } catch (DatabaseException e) {
             return new AppResponse<>(500, false, null, "Internal Server Error");
