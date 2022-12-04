@@ -85,7 +85,7 @@ public class PostgresQueryManager implements QueryManager {
             } else if (from instanceof String && fromType == PGmoney.class) {
                 String money = (String) from;
                 DecimalFormat parser = new DecimalFormat("'$'0.##");
-                return parser.parse(money);
+                return parser.parse(money).doubleValue();
             } else {
                 throw new IllegalArgumentException("Cannot convert SQL type " + from.getClass() + " to type " + fromType);
             }
