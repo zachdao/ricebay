@@ -53,7 +53,11 @@ export const ImageCarousel = ({ images, setImages }) => {
                         >
                             {open === i && (
                                 <AlertDialog
-                                    title="Remove Image"
+                                    title={
+                                        setImages === undefined
+                                            ? 'Image Detail'
+                                            : 'Remove Image'
+                                    }
                                     primaryActionLabel="Delete"
                                     variant="destructive"
                                     cancelLabel="Cancel"
