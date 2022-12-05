@@ -132,6 +132,9 @@ public class StandardAuctionManager implements AuctionManager {
         } else {
             Object[] auctionIds = getAuctionIdsFromCategories(query);
             Object[] objects = ArrayUtil.add(ArrayUtil.prependToArray(true, auctionIds, Object.class), query.getValues());
+            if (auctionIds.length == 0) {
+                return List.of();
+            }
             return databaseManager.loadObjects(queryManager.makeLoadQuery(Auction.class,
                         queryManager.filters().makeAndFilter(
                                 queryManager.filters().makeEqualityFilter("published"),

@@ -1,4 +1,11 @@
-import { Flex, Heading, ListBox, Item, ComboBox } from '@adobe/react-spectrum';
+import {
+    Flex,
+    Heading,
+    ListBox,
+    Item,
+    ComboBox,
+    Checkbox,
+} from '@adobe/react-spectrum';
 import React, { useContext, useEffect, useState } from 'react';
 import { AuctionList } from '../auction-list/AuctionList';
 import { CategoriesContext } from '../categories.context';
@@ -8,20 +15,22 @@ import toast from 'react-hot-toast';
 import { Toast } from '../toast/Toast';
 
 export const Search = () => {
-    const [sort, setSort] = useState();
+    const sortOptions = [
+        { name: 'Title', uid: 'title' },
+        { name: 'Start Date', uid: 'start_date' },
+        { name: 'End Date', uid: 'end_date' },
+    ];
+    const [sort, setSort] = useState(sortOptions[0].uid);
+    const [sortDirection, setSortDirection] = useState(false);
     const [categories, setCategories] = useState(new Set([]));
-    const [searchURL, setSearchURL] = useState('/auctions/search');
+    const [searchParams, setSearchParams] = useState();
     const searchText = useContext(SearchContext);
-    const { appResponse, error } = useHttpQuery(searchURL);
+    const { appResponse, error } = useHttpQuery(
+        '/auctions/search',
+        searchParams,
+    );
 
     const categoryOptions = useContext(CategoriesContext);
-
-    const sortOptions = [
-        { name: 'Price Lowest to Highest' },
-        { name: 'Price Highest to Lowest' },
-        { name: 'Least Time Remaining' },
-        { name: 'Most Time Remaining' },
-    ];
 
     useEffect(() => {
         if (error) {
@@ -36,24 +45,17 @@ export const Search = () => {
     }, [error]);
 
     useEffect(() => {
-        if (searchText && categories.size > 0) {
-            setSearchURL(
-                `/auctions/search?title:like=${searchText}&description:like=${searchText}&hasCategories=${[
-                    ...categories,
-                ].join(',')}`,
-            );
-        } else if (searchText) {
-            setSearchURL(
-                `/auctions/search?title:like=${searchText}&description:like=${searchText}`,
-            );
-        } else if (categories.size > 0) {
-            setSearchURL(
-                `/auctions/search?hasCategories=${[...categories].join(',')}`,
-            );
-        } else {
-            setSearchURL('/auctions/search');
-        }
-    }, [searchText, categories]);
+        setSearchParams({
+            params: {
+                'title:like': searchText,
+                'description:like': searchText,
+                sortBy: sort,
+                sortDescending: sortDirection ? sortDirection : undefined,
+                hasCategories:
+                    categories.size > 0 ? [...categories].join(',') : undefined,
+            },
+        });
+    }, [searchText, categories, sort, sortDirection]);
 
     return (
         <Flex
@@ -78,14 +80,18 @@ export const Search = () => {
                 <Heading level="1">Sort</Heading>
                 <ComboBox
                     items={sortOptions}
-                    selectedKeys={sort}
-                    onSelectionChange={(selected) =>
-                        setOptions(Array.from(selected))
-                    }
+                    selectedKey={sort}
+                    onSelectionChange={setSort}
                     width="size-2400"
                 >
-                    {(item) => <Item key={item.name}>{item.name}</Item>}
+                    {(item) => <Item key={item.uid}>{item.name}</Item>}
                 </ComboBox>
+                <Checkbox
+                    isSelected={sortDirection}
+                    onChange={setSortDirection}
+                >
+                    Sort Descending
+                </Checkbox>
             </Flex>
 
             <AuctionList auctions={appResponse?.data || []} />

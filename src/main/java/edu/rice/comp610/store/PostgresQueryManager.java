@@ -160,10 +160,10 @@ public class PostgresQueryManager implements QueryManager {
      *
      * @param modelClass the model class that will be loaded.
      * @param filterBy the set of fields to filter by.
+     * @param sortBy field to sort by
+     * @param sortAscending ascending or not
      * @return a SQL query string .
      */
-
-
     public <T> Query<T> makeLoadQuery(Class<T> modelClass, Filter filterBy, AuctionSortField sortBy, Boolean sortAscending) {
         Map<String, Accessors> accessorsMap = makeColumnsToAccessorsMap(modelClass);
         String primaryTable = Util.getInstance().camelToSnake(modelClass.getSimpleName());
@@ -182,8 +182,7 @@ public class PostgresQueryManager implements QueryManager {
                     .append(filters.makeAndFilter(filterBy).toQuery());
         }
         if (sortBy != null) {
-            // TODO: Handle enum, do we need to convert to a string
-            stringBuilder.append(" ORDER BY ").append(sortBy.toString().toLowerCase());
+            stringBuilder.append(" ORDER BY ").append(sortBy.getColumnName());
             if (!sortAscending) {
                 stringBuilder.append(" DESC");
             } else {

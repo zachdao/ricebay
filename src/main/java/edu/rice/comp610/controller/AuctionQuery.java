@@ -19,8 +19,8 @@ public class AuctionQuery {
     private final List<Filter> filters;
     private final List<Object> values;
     private final List<String> categories;
-    private final AuctionSortField sortField;
-    private final boolean sortAscending;
+    private AuctionSortField sortField;
+    private boolean sortAscending;
 
     private static final SimpleDateFormat parser = new SimpleDateFormat("MMM d, yyyy");
 
@@ -32,10 +32,12 @@ public class AuctionQuery {
         this.sortAscending = true;
     }
 
-    public AuctionQuery(Filters filterFactory, Map<String, String[]> queryMap, AuctionSortField sortField, boolean sortAscending) {
+    public AuctionQuery(Filters filterFactory, Map<String, String[]> queryMap) {
         this.filters = new ArrayList<>();
         this.values = new ArrayList<>();
         this.categories = new ArrayList<>();
+        this.sortField = AuctionSortField.TITLE;
+        this.sortAscending = true;
         for (Map.Entry<String, String[]> entry : queryMap.entrySet()) {
             var values = entry.getValue();
             var keyParts = entry.getKey().split(":");
@@ -43,6 +45,10 @@ public class AuctionQuery {
                 continue;
             } else if (keyParts[0].equals("hasCategories")) {
                 this.categories.addAll(values.length > 0 ? List.of(values[0].split(",")) : List.of());
+            } else if (keyParts[0].equals("sortBy")) {
+                this.sortField = AuctionSortField.getSortField(values.length > 0 ? values[0] : "title");
+            } else if (keyParts[0].equals("sortDescending")) {
+                this.sortAscending = false;
             } else if (keyParts.length == 1 || keyParts[1].equals("eq")) {
                 this.filters.add(filterFactory.makeEqualityFilter(keyParts[0]));
                 this.values.add(values.length > 0 ? convertValue(values[0]) : null);
@@ -54,8 +60,6 @@ public class AuctionQuery {
                 this.values.addAll(Stream.of(values).map(AuctionQuery::convertValue).collect(Collectors.toList()));
             }
         }
-        this.sortField = sortField;
-        this.sortAscending = sortAscending;
     }
 
     private static Object convertValue(String value) {
