@@ -95,16 +95,26 @@ public class StandardAuctionManager implements AuctionManager {
      * otherwise.
      */
     public List<Auction> search(AuctionQuery query) throws DatabaseException {
+        // ADDING SORT, LETS JUST ASSUME SORT BY TITLE UNLESS SPECIFIED
         // find auction by category and text
+        // No text filters and no category filters
+        //if (query.getFilters().length == 0 && query.hasCategories().isEmpty()) {
         if (query.getFilters().length == 0 && query.hasCategories().isEmpty()) {
-            var auctionQuery = queryManager.makeLoadQuery(Auction.class, queryManager.filters().makeEqualityFilter("published"));
+            var auctionQuery = queryManager.makeLoadQuery(Auction.class,
+                    queryManager.filters().makeEqualityFilter("published"),
+                    query.getSortField(),
+                    query.isSortAscending());
             return databaseManager.loadObjects(auctionQuery, true);
+        // the search has no category, but does have text to filter by
         } else if (query.hasCategories().isEmpty()) {
             var auctionQuery = queryManager.makeLoadQuery(Auction.class,
                     queryManager.filters().makeAndFilter(
                             queryManager.filters().makeEqualityFilter("published"),
-                            queryManager.filters().makeOrFilter(query.getFilters())));
+                            queryManager.filters().makeOrFilter(query.getFilters())),
+                    query.getSortField(),
+                    query.isSortAscending());
             return databaseManager.loadObjects(auctionQuery, ArrayUtil.prependToArray(true, query.getValues(), Object.class));
+        // the search has no text based filtering but does have category(s) to filter by
         } else if (query.getFilters().length == 0) {
             Object[] auctionIds = getAuctionIdsFromCategories(query);
             if (auctionIds.length == 0) {
@@ -114,16 +124,24 @@ public class StandardAuctionManager implements AuctionManager {
             return databaseManager.loadObjects(queryManager.makeLoadQuery(Auction.class,
                             queryManager.filters().makeAndFilter(
                                     queryManager.filters().makeEqualityFilter("published"),
-                                    queryManager.filters().makeInFilter("id", auctionIds.length))),
+                                    queryManager.filters().makeInFilter("id", auctionIds.length)),
+                            query.getSortField(),
+                            query.isSortAscending()),
                     objects);
+        // the search has both text and category filters
         } else {
             Object[] auctionIds = getAuctionIdsFromCategories(query);
             Object[] objects = ArrayUtil.add(ArrayUtil.prependToArray(true, auctionIds, Object.class), query.getValues());
+            if (auctionIds.length == 0) {
+                return List.of();
+            }
             return databaseManager.loadObjects(queryManager.makeLoadQuery(Auction.class,
                         queryManager.filters().makeAndFilter(
                                 queryManager.filters().makeEqualityFilter("published"),
                                 queryManager.filters().makeInFilter("id", auctionIds.length),
-                                queryManager.filters().makeOrFilter(query.getFilters()))),
+                                queryManager.filters().makeOrFilter(query.getFilters())),
+                            query.getSortField(),
+                            query.isSortAscending()),
                     objects);
         }
     }

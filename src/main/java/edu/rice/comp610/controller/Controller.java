@@ -153,9 +153,7 @@ public class Controller {
                 return gson.toJson(appResponse);
             }));
             get("/search", ((request, response) -> {
-                var query = new AuctionQuery(queryManager.filters(), request.queryMap().toMap(),
-                        AuctionSortField.valueOf(request.params().getOrDefault("sortField", String.valueOf(AuctionSortField.END_DATE))),
-                        Boolean.parseBoolean(request.params().getOrDefault("sortAscending", "true")));
+                var query = new AuctionQuery(queryManager.filters(), request.queryMap().toMap());
                 var appResponse = auctionAdapter.search(query);
                 response.status(appResponse.getStatus());
                 return gson.toJson(appResponse);
