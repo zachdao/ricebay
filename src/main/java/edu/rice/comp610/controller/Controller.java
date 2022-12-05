@@ -179,6 +179,15 @@ public class Controller {
                 response.status(appResponse.getStatus());
                 return gson.toJson(appResponse);
             }));
+            post("/:id/updateRating", (request, response) -> {
+                ViewAccount loggedInAccount = request.session().attribute("user");
+                var jsonBody = util.getJsonParser().parse(request.body());
+                var auctionId = jsonBody.getAsJsonObject().get("auctionId").getAsString();
+                var rating = jsonBody.getAsJsonObject().get("rating").getAsInt();
+                var appResponse = auctionAdapter.updateRating(auctionId, loggedInAccount.getId(), rating);
+                response.status(appResponse.getStatus());
+                return gson.toJson(appResponse);
+            });
 
             // BID ENDPOINTS -----------------------------------------------------------------
             post("/:id/placeBid", (((request, response) -> {
@@ -190,7 +199,14 @@ public class Controller {
                 return gson.toJson(appResponse);
             })));
 
-            // TODO: Update bid endpoint
+            post("/:id/updateBid", (((request, response) -> {
+                ViewAccount loggedInAccount = request.session().attribute("user");
+                ViewBid bid = gson.fromJson(request.body(), ViewBid.class);
+                UUID auctionId = UUID.fromString(request.params("id"));
+                var appResponse = auctionAdapter.updateBid(loggedInAccount.getId(), auctionId, bid.getBid());
+                response.status(appResponse.getStatus());
+                return gson.toJson(appResponse);
+            })));
 
         });
 

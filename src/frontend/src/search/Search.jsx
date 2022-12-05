@@ -62,7 +62,7 @@ export const Search = () => {
             justifyContent="start"
             width="100%"
         >
-            <Flex direction="column">
+            <Flex direction="column" justifyContent="center">
                 <Heading level="1">Categories</Heading>
                 <ListBox
                     selectionMode="multiple"

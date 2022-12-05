@@ -162,6 +162,7 @@ public class AuctionAdapter {
 
             Account owner = this.accountManager.get(auction.getOwnerId());
             ViewSeller seller = new ViewSeller();
+            seller.setYourRating(this.ratingManager.getBuyersRating(user.getId(), owner.getId()));
             seller.setAlias(owner.getAlias());
             seller.setRating(this.ratingManager.getRating(auction.getOwnerId()));
             viewAuction.setSeller(seller);
@@ -251,7 +252,7 @@ public class AuctionAdapter {
         }
     }
 
-    AppResponse<?> updateBid(UUID bidderId, UUID auctionId, double bid, double maxBid) {
+    AppResponse<?> updateBid(UUID bidderId, UUID auctionId, double bid) {
         try {
             // Check that the bidder exists
             this.accountManager.get(bidderId);
@@ -261,7 +262,6 @@ public class AuctionAdapter {
             newBid.setOwnerId(bidderId);
             newBid.setAmount(bid);
             newBid.setTimestamp(new Date());
-            newBid.setMaxBid(maxBid);
 
             this.bidManager.updateBid(auction, newBid);
             return new AppResponse<>(200, true, null, "OK");
@@ -281,6 +281,26 @@ public class AuctionAdapter {
             return new AppResponse<>(200, true, categoryNames, "OK");
         } catch (DatabaseException e) {
             return new AppResponse<>(500, false, null, "Internal Server Error");
+        }
+    }
+
+    AppResponse<?> updateRating(String auctionId, UUID raterId, int theRating) {
+        try {
+            var auction = this.auctionManager.get(UUID.fromString(auctionId));
+            var rating = new Rating();
+            rating.setRating(theRating);
+            rating.setRaterId(raterId);
+            rating.setSellerId(auction.getOwnerId());
+            this.ratingManager.updateRating(rating);
+            return new AppResponse<>(200, true, null, "OK");
+        } catch (ObjectNotFoundException e) {
+            return new AppResponse<>(404, false, null, "Not Found");
+        } catch (DatabaseException e) {
+            return new AppResponse<>(500, false, null, "Internal Server Error");
+        } catch (BadRequestException e) {
+            return new AppResponse<>(400, false, e.getRequestErrors(), "Bad Request");
+        } catch (IllegalArgumentException e) {
+            return new AppResponse<>(400, false, null, "Bad Request");
         }
     }
 

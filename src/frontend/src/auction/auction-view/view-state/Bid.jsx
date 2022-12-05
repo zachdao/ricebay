@@ -9,53 +9,28 @@ import {
     DialogTrigger,
     NumberField,
 } from '@adobe/react-spectrum';
+import { usePostWithToast } from '../../../http-query/use-post-with-toast';
 
-export const Bid = ({ auction, makeBid, ...otherProps }) => {
+export const Bid = ({ auction, refresh, ...otherProps }) => {
     const [bid, setBid] = useState(auction?.userBid?.bid || 0);
     const [maxBid, setMaxBid] = useState(auction?.userBid?.maxBid || undefined);
-    const { user } = useContext(UserContext);
-
-    const ownsBid = user?.id && user.id === auction?.seller?.id;
 
     const isValid = useCallback(() => {
         return makeBid > 0 ? bid <= maxBid : true;
     }, [bid, maxBid]);
 
-    /* TODO: This component needs extended to display the correct button and perform the correct on click action
-             based on the user + auction state (i.e. user hasn't placed a bid and isn't the owner, show the bid button)
-    // auction is not owned by session user
-    if (auction?.ownerID != user.ID) {
-    // if bid is still published
-    if (auction?.published) {
-        // TODO Not sure how to find if user has leading bid with available controller endpoints
-        // when user isn't currently leading bid, option to place bid
-
-
-        // if user is leading bid disable option to bid
-    }
-    // when bid is over
-    else {
-        // if user is winner
-        // TODO not sure how to find if user has won auction with available controller endpoints
-            // if no rating exists, give option to rate
-
-            // else, give option to change seller rating
-
-        // else disable action and display that bid is over
-    }
-    }*/
-
-    // TODO Disable button if user currently has highest bid
-    // TODO re-enable button and give notification if they have been outbid
+    const makeBid = usePostWithToast(
+        `/auctions/${auction.id}/placeBid`,
+        null,
+        [auction],
+        { message: 'Bid placed!' },
+        { message: 'Failed to place bid!' },
+        () => refresh(),
+    );
 
     return (
         <DialogTrigger type="popover">
-            <Button
-                alignSelf="center"
-                variant="cta"
-                isDisabled={ownsBid}
-                {...otherProps}
-            >
+            <Button alignSelf="center" variant="cta" {...otherProps}>
                 Bid
             </Button>
             <Dialog size="M">

@@ -98,7 +98,8 @@ public class StandardBidManager implements BidManager {
         }
 
         bid.setAuctionId(auction.getId());
-        bid.setId(bid.getId());
+        bid.setId(bids.get(0).getId());
+        bid.setMaxBid(bids.get(0).getMaxBid());
         var saveQuery = queryManager.makeUpdateQuery(Bid.class);
         databaseManager.saveObjects(saveQuery, bid);
     }

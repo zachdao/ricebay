@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useContext } from 'react';
 import {
     Content,
     ContextualHelp,
@@ -9,27 +9,24 @@ import {
     Text,
 } from '@adobe/react-spectrum';
 import { usePostWithToast } from '../../http-query/use-post-with-toast';
-import { Bid } from './bid/Bid';
+import { Bid } from './view-state/Bid';
 import { StarRating } from '../../star-rating/StarRating';
 import { CategoryTagGroup } from '../../category-tag-group/CategoryTagGroup';
 import styled from 'styled-components';
 import { DateTime, Interval } from 'luxon';
 import { ImagePlaceholder } from '../../image-placeholder/ImagePlaceholder';
 import { ImageCarousel } from '../../image-carousel/ImageCarousel';
+import { UserContext } from '../../user.context';
+import { Owner } from './view-state/Owner';
+import { UserBid } from './view-state/UserBid';
+import { WonBid } from './view-state/WonBid';
 
 export const AuctionView = ({ auction, refresh }) => {
     const startDate = DateTime.fromFormat(auction.startDate, 'DD');
     const endDate = DateTime.fromFormat(auction.endDate, 'DD');
+    const { user } = useContext(UserContext);
 
     // Handle bad calls to make the bid, Handle bad calls to increase max bid
-    const makeBid = usePostWithToast(
-        `/auctions/${auction.id}/placeBid`,
-        null,
-        [auction],
-        { message: 'Bid placed!' },
-        { message: 'Failed to place bid!' },
-        () => refresh(),
-    );
 
     const getTimeRemaining = useCallback(() => {
         const total = Interval.fromDateTimes(startDate, endDate).length();
@@ -53,6 +50,84 @@ export const AuctionView = ({ auction, refresh }) => {
         // Jump two here for extra padding on long lists
         return 6;
     };
+
+    let bidState = null;
+    if (auction.seller.alias === user.alias) {
+        bidState = (
+            <Owner
+                auctionId={auction.id}
+                width="100%"
+                gridColumnStart="1"
+                gridColumnEnd="3"
+                marginTop="5px"
+            />
+        );
+    } else if (auction.userBid && auction.published) {
+        bidState = (
+            <UserBid
+                auction={auction}
+                width="100%"
+                gridColumnStart="1"
+                gridColumnEnd="3"
+                marginTop="5px"
+                refresh={refresh}
+            />
+        );
+    } else if (
+        !auction.published &&
+        auction.userBid?.bid === auction.currentBid
+    ) {
+        bidState = (
+            <>
+                <WonBid
+                    auction={auction}
+                    refresh={refresh}
+                    width="100%"
+                    gridColumnStart="1"
+                    gridColumnEnd="3"
+                    marginTop="5px"
+                />
+                <div
+                    style={{
+                        color: 'green',
+                        width: '100%',
+                        gridColumnStart: '1',
+                        gridColumnEnd: '3',
+                        marginTop: '5px',
+                        textAlign: 'center',
+                    }}
+                >
+                    You won!
+                </div>
+            </>
+        );
+    } else if (auction.published) {
+        bidState = (
+            <Bid
+                auction={auction}
+                width="100%"
+                gridColumnStart="1"
+                gridColumnEnd="3"
+                marginTop="5px"
+                refresh={refresh}
+            />
+        );
+    } else {
+        bidState = (
+            <div
+                style={{
+                    color: 'red',
+                    width: '100%',
+                    gridColumnStart: '1',
+                    gridColumnEnd: '3',
+                    marginTop: '5px',
+                    textAlign: 'center',
+                }}
+            >
+                Bid is closed and you did not win
+            </div>
+        );
+    }
 
     // Render data if found
     return (
@@ -129,14 +204,7 @@ export const AuctionView = ({ auction, refresh }) => {
                     >
                         <CategoryTagGroup categories={auction.categories} />
                     </Text>
-                    <Bid
-                        auction={auction}
-                        makeBid={makeBid}
-                        width="100%"
-                        gridColumnStart="1"
-                        gridColumnEnd="3"
-                        marginTop="5px"
-                    />
+                    {bidState}
                 </Grid>
             </Flex>
 

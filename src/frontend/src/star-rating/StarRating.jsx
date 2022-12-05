@@ -18,7 +18,7 @@ export const StarRating = ({ rating, onPress, ...otherProps }) => {
         ));
     return (
         <Flex direction="row" {...otherProps}>
-            {rating > 0 ? stars : <em>Seller not rated</em>}
+            {rating === 0 && !onPress ? <em>Seller not rated</em> : stars}
         </Flex>
     );
 };
