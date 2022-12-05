@@ -148,12 +148,6 @@ public class PostgresQueryManager implements QueryManager {
     public <T> Query<T> makeLoadQuery(Class<T> modelClass, Filter filterBy, AuctionSortField sortBy) {
         return makeLoadQuery(modelClass, filterBy, sortBy, true);
     }
-    /* public <T> Query<T> makeLoadQuery(Class<T> modelClass, AuctionSortField sortBy) {
-         return makeLoadQuery(modelClass, null, sortBy, true);
-    } */
-    /* public <T> Query<T> makeLoadQuery(Class<T> modelClass, AuctionSortField sortBy, Boolean sortAscending) {
-        return makeLoadQuery(modelClass, null, sortBy, sortAscending);
-    } */
     /**
      * Generate a SQL query to load model objects of a particular type. The model class is mapped to a database table
      * and class fields are mapped to columns that are used in a WHERE clause to filter the results.
