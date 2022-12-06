@@ -52,7 +52,7 @@ export const AuctionView = ({ auction, refresh }) => {
     };
 
     let bidState = null;
-    if (auction.seller.alias === user.alias) {
+    if (auction?.seller?.alias === user?.alias) {
         bidState = (
             <Owner
                 auctionId={auction.id}
@@ -189,10 +189,10 @@ export const AuctionView = ({ auction, refresh }) => {
                         value={getTimeRemaining()}
                     />
                     <FancyLabel>Seller</FancyLabel>
-                    <Text>{auction.seller.alias}</Text>
+                    <Text>{auction?.seller?.alias}</Text>
                     <FancyLabel>Seller Rating</FancyLabel>
                     <StarRating
-                        rating={auction.seller.rating || 0}
+                        rating={auction?.seller?.rating || 0}
                         alignItems="start"
                         justifyContent="start"
                     />
