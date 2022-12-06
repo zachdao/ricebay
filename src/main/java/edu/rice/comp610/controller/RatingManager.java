@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface RatingManager {
     void updateRating(Rating rating) throws BadRequestException, DatabaseException;
     Double getRating(UUID userId) throws DatabaseException;
+
+    Double getBuyersRating(UUID buyerId, UUID sellerId) throws DatabaseException;
 }

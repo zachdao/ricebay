@@ -24,6 +24,7 @@ public class SellerRatingManager implements RatingManager {
 
     /**
      * Update Seller's rating give by Buyer
+     *
      * @param rating Rating object created by Buyer
      */
     public void updateRating(Rating rating) throws DatabaseException, BadRequestException {
@@ -36,6 +37,7 @@ public class SellerRatingManager implements RatingManager {
 
     /**
      * Calculates average rating for given list of ratings
+     *
      * @param userId the id of the user to get the rating for
      * @return the user's average rating
      */
@@ -47,5 +49,21 @@ public class SellerRatingManager implements RatingManager {
         var sum = ratingsForUser.stream().mapToInt(Rating::getRating).sum();
         double total = ratingsForUser.size() * 1.0;
         return sum / total;
+    }
+
+    @Override
+    public Double getBuyersRating(UUID buyerId, UUID sellerId) throws DatabaseException {
+        Rating buyerRating = getRating(buyerId, sellerId);
+        return (buyerRating != null ? buyerRating.getRating() : 0.0);
+    }
+
+    private Rating getRating(UUID buyerId, UUID sellerId) throws DatabaseException {
+        List<Rating> buyerRating = this.databaseManager.loadObjects(
+                this.queryManager.makeLoadQuery(Rating.class,
+                        this.queryManager.filters().makeAndFilter(
+                                queryManager.filters().makeEqualityFilter("rater_id"),
+                                queryManager.filters().makeEqualityFilter("seller_id"))),
+                buyerId, sellerId);
+        return (buyerRating.size() > 0 ? buyerRating.get(0) : null);
     }
 }

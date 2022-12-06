@@ -70,7 +70,7 @@ public class PostgresQueryManager implements QueryManager {
         }
 
         private Object toSqlType(Object from, Class<?> toType) {
-            if (from.getClass() == toType) {
+            if (from == null || from.getClass() == toType) {
                 return from;
             } else if (from instanceof Double && toType == PGmoney.class) {
                 return new PGmoney((Double) from);
