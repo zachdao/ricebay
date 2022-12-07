@@ -51,16 +51,14 @@ public class Controller {
         final DatabaseManager databaseManager = PostgresDatabaseManager.getInstance();
 
         final AccountManager accountManager = new LocalAccountManager(queryManager, databaseManager);
-
         final AuctionManager auctionManager = new StandardAuctionManager(queryManager, databaseManager);
+        final SellerRatingManager sellerRatingManager = new SellerRatingManager(queryManager, databaseManager);
+        final BidManager bidManager = new StandardBidManager(queryManager, databaseManager);
 
-        final AccountAdapter accountAdapter = new AccountAdapter(accountManager);
-        final AuctionAdapter auctionAdapter = new AuctionAdapter(accountManager,
-                auctionManager,
-                new SellerRatingManager(queryManager, databaseManager),
-                new StandardBidManager(queryManager, databaseManager));
+        final AccountAdapter accountAdapter = new AccountAdapter(accountManager, sellerRatingManager);
+        final AuctionAdapter auctionAdapter = new AuctionAdapter(accountManager,auctionManager, sellerRatingManager, bidManager);
 
-        final ActiveAuctionMonitor activeAuctionMonitor = new ActiveAuctionMonitor(auctionManager);
+        final ActiveAuctionMonitor activeAuctionMonitor = new ActiveAuctionMonitor(auctionManager, bidManager);
 
         Filter authenticatedMiddleware = (request, response) -> {
             boolean isUnauthenticatedRoute = Objects.equals(request.requestMethod(), "POST") &&
@@ -164,6 +162,24 @@ public class Controller {
                 response.status(appResponse.getStatus());
                 return gson.toJson(appResponse);
             })));
+            get("/purchases", (request, response) -> {
+                ViewAccount loggedInAccount = request.session().attribute("user");
+                var appResponse = auctionAdapter.purchases(loggedInAccount.getId());
+                response.status(appResponse.getStatus());
+                return gson.toJson(appResponse);
+            });
+            get("/mine", (request, response) -> {
+                ViewAccount loggedInAccount = request.session().attribute("user");
+                var appResponse = auctionAdapter.userAuctions(loggedInAccount.getId());
+                response.status(appResponse.getStatus());
+                return gson.toJson(appResponse);
+            });
+            get("/myBids", (request, response) -> {
+                ViewAccount loggedInAccount = request.session().attribute("user");
+                var appResponse = auctionAdapter.getActiveBids(loggedInAccount.getId());
+                response.status(appResponse.getStatus());
+                return gson.toJson(appResponse);
+            });
             get("/:id", ((request, response) -> {
                 ViewAccount loggedInAccount = request.session().attribute("user");
                 var appResponse = auctionAdapter.get(UUID.fromString(request.params("id")), loggedInAccount);

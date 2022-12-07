@@ -1,8 +1,7 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
     Flex,
     Heading,
-    TextField,
     TableView,
     TableHeader,
     Column,
@@ -10,11 +9,11 @@ import {
     Row,
     Cell,
 } from '@adobe/react-spectrum';
-import Filter from '@spectrum-icons/workflow/Filter';
 import { useHttpQuery } from '../http-query/use-http-query';
-import { UserContext } from '../user.context';
 import { useNavigate } from 'react-router-dom';
 import { Link } from '@adobe/react-spectrum';
+import toast from 'react-hot-toast';
+import { Toast } from '../toast/Toast';
 
 export const MyAuctions = () => {
     const columns = [
@@ -25,19 +24,8 @@ export const MyAuctions = () => {
         { name: 'Current Bid', uid: 'currentBid' },
     ];
 
-    // TODO Make sure dates and double type gets translated into table correctly
-    // TODO Filter the list based on the keyword and auction titles
-    // TODO Tie in with backend
-    // TODO Sort list based on date
-    const { user } = useContext(UserContext);
-
     // Get our list of owned auctions, where appResponse is AppResponse<List<Auction>>
-    const { appResponse, error, status } = useHttpQuery(`/auctions/search`, {
-        params: {
-            owner_id: user?.id,
-        },
-    });
-    // const auctions = appResponse?.data;
+    const { appResponse, error, status } = useHttpQuery('/auctions/mine');
 
     // Display a toast if we have an error
     useEffect(() => {
@@ -70,6 +58,8 @@ export const MyAuctions = () => {
                     {item[columnKey]}
                 </Link>
             );
+        } else if (columnKey.includes('Bid')) {
+            return `$${item[columnKey].toFixed(2)}`;
         }
         return item[columnKey];
     }
@@ -87,11 +77,13 @@ export const MyAuctions = () => {
             <Heading level={1} alignSelf="center">
                 Your Auctions
             </Heading>
-            <Flex direction="row" gap="size-100" alignItems="end">
-                <Filter aria-label="Filter" />
-                <TextField label="Filter" />
-            </Flex>
-            <TableView>
+            <TableView
+                width="100%"
+                selectionMode="none"
+                aria-label="bid history"
+                height="size-3000"
+                renderEmptyState={() => <em>No Bids</em>}
+            >
                 <TableHeader columns={columns}>
                     {(column) => (
                         <Column key={column.uid}>{column.name}</Column>

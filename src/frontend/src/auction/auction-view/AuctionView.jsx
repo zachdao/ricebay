@@ -8,7 +8,6 @@ import {
     ProgressBar,
     Text,
 } from '@adobe/react-spectrum';
-import { usePostWithToast } from '../../http-query/use-post-with-toast';
 import { Bid } from './view-state/Bid';
 import { StarRating } from '../../star-rating/StarRating';
 import { CategoryTagGroup } from '../../category-tag-group/CategoryTagGroup';
@@ -51,11 +50,12 @@ export const AuctionView = ({ auction, refresh }) => {
         return 6;
     };
 
-    let bidState = null;
+    let bidState;
     if (auction?.seller?.alias === user?.alias) {
         bidState = (
             <Owner
                 auctionId={auction.id}
+                hasWinner={auction.winner !== undefined}
                 width="100%"
                 gridColumnStart="1"
                 gridColumnEnd="3"

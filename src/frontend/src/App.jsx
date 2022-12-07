@@ -15,6 +15,7 @@ import { CategoriesContext } from './categories.context';
 import { SearchContext } from './search.context';
 import { Search } from './search/Search';
 import { Home } from './home/Home';
+import { MyBids } from './my-bids/MyBids';
 
 export const App = () => {
     const [showSidebar, setShowSidebar] = useState(false);
@@ -90,6 +91,7 @@ export const App = () => {
                                     path="recentlyViewed*"
                                     element={<RecentlyViewed />}
                                 />
+                                <Route path="myBids" element={<MyBids />} />
                                 <Route
                                     path="search*"
                                     element={

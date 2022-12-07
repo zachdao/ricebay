@@ -1,16 +1,11 @@
 package edu.rice.comp610.controller;
 
-import edu.rice.comp610.controller.ActiveAuctionMonitor;
-import edu.rice.comp610.controller.AuctionManager;
 import edu.rice.comp610.model.Auction;
-import edu.rice.comp610.model.Filters;
-import edu.rice.comp610.model.QueryManager;
+import edu.rice.comp610.model.Bid;
 import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.DatabaseException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,6 +16,7 @@ import static org.mockito.Mockito.*;
 public class ActiveAuctionMonitorTest {
 
     private final AuctionManager auctionManager = mock(AuctionManager.class);
+    private final BidManager bidManager = mock(BidManager.class);
 
     private static final Auction NEW_AUCTION = new Auction();
     static {
@@ -36,11 +32,22 @@ public class ActiveAuctionMonitorTest {
         NEW_AUCTION.setOwnerId(UUID.randomUUID());
     }
 
+    private static final Bid CURRENT_BID = new Bid();
+    static {
+        CURRENT_BID.setId(UUID.randomUUID());
+        CURRENT_BID.setAmount(2.0);
+        CURRENT_BID.setAuctionId(NEW_AUCTION.getId());
+        CURRENT_BID.setOwnerId(UUID.randomUUID());
+    }
+
     @Test
     void doExpiryCheckTest() throws DatabaseException, BadRequestException {
         when(auctionManager.expired()).thenReturn(List.of(NEW_AUCTION));
-        new ActiveAuctionMonitor(auctionManager).doExpiryCheck();
+        when(bidManager.getCurrentBid(NEW_AUCTION.getId())).thenReturn(CURRENT_BID);
+        new ActiveAuctionMonitor(auctionManager, bidManager).doExpiryCheck();
         assertFalse(NEW_AUCTION.getPublished());
+        assertEquals(CURRENT_BID.getOwnerId(), NEW_AUCTION.getWinnerId());
         verify(auctionManager).save(eq(NEW_AUCTION));
+        verify(bidManager).getCurrentBid(eq(NEW_AUCTION.getId()));
     }
 }

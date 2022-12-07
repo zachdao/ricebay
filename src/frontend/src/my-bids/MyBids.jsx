@@ -13,10 +13,11 @@ import { useHttpQuery } from '../http-query/use-http-query';
 import { Toast } from '../toast/Toast';
 import { useNavigate } from 'react-router-dom';
 import ImageIcon from '@spectrum-icons/workflow/Image';
+import Alert from '@spectrum-icons/workflow/Alert';
 
-export const PurchaseHistory = () => {
+export const MyBids = () => {
     // Get our list of won auctions, where appResponse is AppResponse<List<Auction>>
-    const { appResponse, error, status } = useHttpQuery('/auctions/purchases');
+    const { appResponse, error, status } = useHttpQuery('/auctions/myBids');
     const navigate = useNavigate();
 
     // Display a toast if we have an error
@@ -26,7 +27,7 @@ export const PurchaseHistory = () => {
                 <Toast
                     message={
                         appResponse?.msg ||
-                        'Failed to find purchased items! Try again later'
+                        'Failed to find bids! Try again later'
                     }
                     type="negative"
                     dismissFn={() => toast.remove(t.id)}
@@ -34,6 +35,9 @@ export const PurchaseHistory = () => {
             ));
         }
     }, [appResponse, error, status]);
+
+    const hasHighestBid = (auction) =>
+        auction.userBid?.bid >= auction.currentBid;
 
     return (
         <Flex
@@ -46,12 +50,12 @@ export const PurchaseHistory = () => {
             data-testid="auctions-area"
         >
             <Heading level={1} alignSelf="center">
-                Purchase History
+                Your Active Bids
             </Heading>
             <ListView
                 items={appResponse?.data || []}
                 minHeight="size-6000"
-                renderEmptyState={() => <em>You have won no auctions!</em>}
+                renderEmptyState={() => <em>You have no active Bids!</em>}
                 selectionMode="none"
                 onAction={(id) => navigate(`/auction/${id}`)}
             >
@@ -70,6 +74,24 @@ export const PurchaseHistory = () => {
                                 ? auction.description.substring(0, 500) + '...'
                                 : auction.description}
                         </Text>
+                        <Flex
+                            alignItems="center"
+                            gap="size-100"
+                            gridArea="actions"
+                        >
+                            <Alert
+                                color={
+                                    hasHighestBid(auction)
+                                        ? 'positive'
+                                        : 'negative'
+                                }
+                            />
+                            <Text>
+                                {hasHighestBid(auction)
+                                    ? 'You have the highest bid'
+                                    : 'You have been outbid'}
+                            </Text>
+                        </Flex>
                     </Item>
                 )}
             </ListView>

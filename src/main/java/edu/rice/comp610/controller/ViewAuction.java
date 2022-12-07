@@ -20,6 +20,7 @@ public class ViewAuction {
     private ViewBid userBid;
     private List<String> images;
     private List<ViewBid> bids;
+    private ViewWinner winner;
 
     public UUID getId() {
         return id;
@@ -139,5 +140,13 @@ public class ViewAuction {
 
     public void setBids(List<ViewBid> bids) {
         this.bids = bids;
+    }
+
+    public ViewWinner getWinner() {
+        return winner;
+    }
+
+    public void setWinner(ViewWinner winner) {
+        this.winner = winner;
     }
 }

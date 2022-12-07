@@ -1,5 +1,4 @@
-import React, { useCallback, useContext, useState } from 'react';
-import { UserContext } from '../../../user.context';
+import React, { useCallback, useState } from 'react';
 import {
     Button,
     Content,
@@ -7,12 +6,15 @@ import {
     Flex,
     Heading,
     DialogTrigger,
-    NumberField,
 } from '@adobe/react-spectrum';
 import { usePostWithToast } from '../../../http-query/use-post-with-toast';
 import { StarRating } from '../../../star-rating/StarRating';
+import { useEffect } from 'react';
+import toast from 'react-hot-toast';
+import { Toast } from '../../../toast/Toast';
 
 export const WonBid = ({ auction, refresh, ...otherProps }) => {
+    const [isOpen, setIsOpen] = useState(false);
     const [rating, setRating] = useState(auction?.seller?.yourRating || 0);
 
     const isValid = useCallback(() => rating > 0, [rating]);
@@ -23,11 +25,27 @@ export const WonBid = ({ auction, refresh, ...otherProps }) => {
         [auction],
         { message: 'Rating updated!' },
         { message: 'Failed to update rating!' },
-        () => refresh(),
+        () => {
+            setIsOpen(false);
+            refresh();
+        },
     );
 
+    useEffect(() => {
+        const message = auction.winner.hasPaid
+            ? `Thank you for finishing the transaction with ${auction.seller.alias}`
+            : `Please make sure to collect your item from ${auction.seller.alias}`;
+        toast.custom((t) => (
+            <Toast
+                message={message}
+                type={auction.winner.hasPaid ? 'positive' : 'notice'}
+                dismissFn={() => toast.remove(t.id)}
+            />
+        ));
+    }, []);
+
     return (
-        <DialogTrigger type="popover">
+        <DialogTrigger type="popover" isOpen={isOpen} onOpenChange={setIsOpen}>
             <Button alignSelf="center" variant="cta" {...otherProps}>
                 {rating > 0 ? 'Update Rating' : 'Rate Seller'}
             </Button>
