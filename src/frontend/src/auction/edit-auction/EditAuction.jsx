@@ -79,6 +79,7 @@ export const EditAuction = ({ auction, refresh }) => {
         [auction],
         { message: 'Auction restored!' },
         { message: 'Failed to undo auction save!' },
+        () => refresh(),
     );
 
     // Set up a POST to save our auction state
@@ -125,12 +126,37 @@ export const EditAuction = ({ auction, refresh }) => {
         (axiosError) => setError(axiosError?.response?.data),
     );
 
+    const cancelAuction = usePostWithToast(
+        `/auctions/${auction?.id}`,
+        null,
+        [auction],
+        'Auction Cancelled!',
+        'Failed to cancel the auction',
+        () => refresh(),
+    );
+
+    const markPaid = usePostWithToast(
+        `/auctions/${auction?.id}`,
+        null,
+        [auction],
+        'Marked paid!',
+        'Failed to mark the buyer as paid',
+        () => refresh(),
+    );
+
     // Set up a POST to copy this auction
     const copyAuction = usePostWithToast(
         `/auctions`,
         {
-            ...auction,
             id: undefined,
+            title,
+            images,
+            minimumBid: startingBid,
+            bidIncrement,
+            categories: [...categories],
+            description,
+            published,
+            taxPercent,
             startDate: range.start.toString(),
             endDate: range.end.toString(),
         },
@@ -219,7 +245,7 @@ export const EditAuction = ({ auction, refresh }) => {
     }, [auction, range]);
     const isCleanPublished = useCallback(
         () => published === auction?.published,
-        [auction, range],
+        [auction, published],
     );
     const isCleanTaxPercent = useCallback(
         () => taxPercent === auction?.taxPercent,
@@ -294,8 +320,9 @@ export const EditAuction = ({ auction, refresh }) => {
                 auction={auction}
                 published={published}
                 setPublished={setPublished}
-                saveAuction={saveAuction}
+                cancelAuction={cancelAuction}
                 copyAuction={copyAuction}
+                markPaid={markPaid}
                 isClean={isClean}
             />
             <Flex

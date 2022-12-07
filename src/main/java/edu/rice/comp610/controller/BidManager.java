@@ -14,6 +14,6 @@ public interface BidManager {
     void updateBid(Auction auction, Bid bid) throws BadRequestException, DatabaseException, ObjectNotFoundException;
     Bid getCurrentBid(UUID auctionId) throws DatabaseException;
     Bid getUserBid(UUID auctionId, UUID ownerId) throws DatabaseException;
-
+    List<Bid> getUserBids(UUID ownerId) throws DatabaseException;
     List<Bid> getAuctionBids(UUID auctionId) throws DatabaseException;
 }

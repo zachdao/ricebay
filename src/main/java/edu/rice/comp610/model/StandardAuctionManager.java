@@ -2,6 +2,7 @@ package edu.rice.comp610.model;
 
 import edu.rice.comp610.controller.AuctionManager;
 import edu.rice.comp610.controller.AuctionQuery;
+import edu.rice.comp610.store.AuctionSortField;
 import edu.rice.comp610.util.BadRequestException;
 import edu.rice.comp610.util.DatabaseException;
 import edu.rice.comp610.util.ObjectNotFoundException;
@@ -13,7 +14,6 @@ import java.util.*;
  * Manages requests for creating, updating, searching and loading auctions.
  */
 public class StandardAuctionManager implements AuctionManager {
-
     private final QueryManager queryManager;
     private final DatabaseManager databaseManager;
 
@@ -85,6 +85,20 @@ public class StandardAuctionManager implements AuctionManager {
             databaseManager.saveObjects(insertAuctionViewQuery, auctionView);
         }
         return auctions.get(0);
+    }
+    public List<Auction> getInIDs(List<UUID> auctionIds) throws DatabaseException {
+        return this.getInIDs(auctionIds, false);
+    }
+
+    public List<Auction> getInIDs(List<UUID> auctionIds, boolean includeUnpublished) throws DatabaseException {
+        if (auctionIds.isEmpty()) {
+            return List.of();
+        }
+        var query = queryManager.makeLoadQuery(Auction.class,
+                queryManager.filters().makeAndFilter(
+                        queryManager.filters().makeEqualityFilter("published"),
+                        queryManager.filters().makeInFilter("id", auctionIds.size())));
+        return databaseManager.loadObjects(query, ArrayUtil.prependToArray(!includeUnpublished, auctionIds.toArray(), Object.class));
     }
 
     /**
@@ -175,6 +189,14 @@ public class StandardAuctionManager implements AuctionManager {
         return databaseManager.loadObjects(auctionQuery, ArrayUtil.prependToArray(true, auctionIds, Object.class));
     }
 
+    public List<Auction> purchases(UUID buyerId) throws DatabaseException {
+        return databaseManager.loadObjects(queryManager.makeLoadQuery(Auction.class, queryManager.filters().makeEqualityFilter("winner_id"), AuctionSortField.END_DATE, false), buyerId);
+    }
+
+    public List<Auction> userAuctions(UUID ownerId) throws DatabaseException {
+        return databaseManager.loadObjects(queryManager.makeLoadQuery(Auction.class, queryManager.filters().makeEqualityFilter("owner_id"), AuctionSortField.END_DATE, false), ownerId);
+    }
+
     public List<Category> categories() throws DatabaseException {
         return databaseManager.loadObjects(queryManager.makeLoadQuery(Category.class));
     }
@@ -194,7 +216,7 @@ public class StandardAuctionManager implements AuctionManager {
 
     public List<Picture> addImages(List<byte[]> images, UUID auctionId) throws DatabaseException {
 
-        List<Picture> pictures = new ArrayList<Picture>();
+        List<Picture> pictures = new ArrayList<>();
         for (int i = 0; i < images.size(); i++) {
             // Create new picture object
             Picture img = new Picture();

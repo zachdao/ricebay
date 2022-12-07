@@ -38,7 +38,7 @@ public class AuctionAdapter {
             auction.setTaxPercent(viewAuction.getTaxPercent());
             UUID newId = this.auctionManager.save(auction);
             if (viewAuction.getImages() != null) {
-                this.auctionManager.addImages(viewAuction.getImages().stream().map(String::getBytes).collect(Collectors.toList()), newId);
+                this.auctionManager.addImages(viewAuction.getImages().parallelStream().map(String::getBytes).collect(Collectors.toList()), newId);
             }
             this.auctionManager.addCategories(viewAuction.getCategories() != null ? viewAuction.getCategories() : List.of(), newId);
             return new AppResponse<>(201, true, newId, "OK");
@@ -57,10 +57,10 @@ public class AuctionAdapter {
             if (!auction.getOwnerId().equals(ownerId)) {
                 return new AppResponse<>(401, false, null, "Unauthorized");
             }
-            if (!viewAuction.getTitle().isEmpty()) {
+            if (viewAuction.getTitle() != null && !viewAuction.getTitle().isEmpty()) {
                 auction.setTitle(viewAuction.getTitle());
             }
-            if (!viewAuction.getDescription().isEmpty()) {
+            if (viewAuction.getDescription() != null && !viewAuction.getDescription().isEmpty()) {
                 auction.setDescription(viewAuction.getDescription());
             }
             if (viewAuction.getMinimumBid() != 0) {
@@ -79,7 +79,10 @@ public class AuctionAdapter {
                 auction.setTaxPercent(viewAuction.getTaxPercent());
             }
             if (viewAuction.getImages() != null && !viewAuction.getImages().isEmpty()) {
-                this.auctionManager.addImages(viewAuction.getImages().stream().map(String::getBytes).collect(Collectors.toList()), viewAuction.getId());
+                this.auctionManager.addImages(viewAuction.getImages().parallelStream().map(String::getBytes).collect(Collectors.toList()), viewAuction.getId());
+            }
+            if (viewAuction.getWinner() != null) {
+                auction.setBuyerPaid(viewAuction.getWinner().getHasPaid());
             }
             auction.setPublished(viewAuction.isPublished());
             // TODO: Diff categories and add new ones and delete removed ones
@@ -106,6 +109,10 @@ public class AuctionAdapter {
     }
 
     ViewAuction auctionToViewAuctionMapper(Auction auction) {
+        return auctionToViewAuctionMapper(auction, null);
+    }
+
+    ViewAuction auctionToViewAuctionMapper(Auction auction, UUID viewerId) {
         ViewAuction viewAuction = new ViewAuction();
         viewAuction.setId(auction.getId());
         viewAuction.setTitle(auction.getTitle());
@@ -117,13 +124,20 @@ public class AuctionAdapter {
             Bid currentBid = this.bidManager.getCurrentBid(auction.getId());
             if (currentBid != null) {
                 viewAuction.setCurrentBid(currentBid.getAmount());
+                if (currentBid.getOwnerId().equals(viewerId)) {
+                    ViewBid userBid = new ViewBid();
+                    userBid.setBid(currentBid.getAmount());
+                    userBid.setMaxBid(currentBid.getMaxBid());
+                    userBid.setTimestamp(currentBid.getTimestamp());
+                    viewAuction.setUserBid(userBid);
+                }
             }
         } catch (DatabaseException e) {
             e.printStackTrace();
             System.err.format("Encountered DB error while loading current bid for auction %s%n", auction.getId().toString());
         }
         try {
-            viewAuction.setImages(this.auctionManager.getImages(viewAuction.getId()).stream().map(Picture::getPictureData).map(String::new).collect(Collectors.toList()));
+            viewAuction.setImages(this.auctionManager.getImages(viewAuction.getId()).parallelStream().map(Picture::getPictureData).map(String::new).collect(Collectors.toList()));
         } catch (DatabaseException e) {
             e.printStackTrace();
             System.err.format("Encountered DB error while loading images for auction %s%n", auction.getId().toString());
@@ -133,12 +147,47 @@ public class AuctionAdapter {
 
     AppResponse<?> recentlyViewed(UUID viewerId) {
         try {
-            var auctions = this.auctionManager.recentlyViewed(viewerId).stream()
+            var auctions = this.auctionManager.recentlyViewed(viewerId).parallelStream()
                     .map(this::auctionToViewAuctionMapper)
                     .collect(Collectors.toList());
             return new AppResponse<>(200, true, auctions, "OK");
         } catch (DatabaseException e) {
             return new AppResponse<>(500, false, null, "Internal Server Error");
+        }
+    }
+
+    AppResponse<?> purchases(UUID viewerId) {
+        try {
+            var auctions = this.auctionManager.purchases(viewerId).parallelStream()
+                    .map(this::auctionToViewAuctionMapper)
+                    .collect(Collectors.toList());
+            return new AppResponse<>(200, true, auctions, "OK");
+        } catch (DatabaseException e) {
+            return new AppResponse<>(500, false, null, "Internal Server Error");
+        }
+    }
+
+    AppResponse<?> userAuctions(UUID ownerId) {
+        try {
+            var auctions = this.auctionManager.userAuctions(ownerId).parallelStream()
+                    .map(this::auctionToViewAuctionMapper)
+                    .collect(Collectors.toList());
+            return new AppResponse<>(200, true, auctions, "OK");
+        } catch (DatabaseException e) {
+            return new AppResponse<>(500, false, null, "Internal Server Error");
+        }
+    }
+
+    AppResponse<?> getActiveBids(UUID bidderId) {
+        try {
+            var myBids = this.bidManager.getUserBids(bidderId);
+            var auctions = this.auctionManager.getInIDs(myBids.stream().parallel().map(Bid::getAuctionId).collect(Collectors.toList()))
+                    .parallelStream()
+                    .map(auction -> auctionToViewAuctionMapper(auction, bidderId))
+                    .collect(Collectors.toList());
+            return new AppResponse<>(200, true, auctions, "OK");
+        } catch (DatabaseException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -182,7 +231,7 @@ public class AuctionAdapter {
                 viewAuction.setUserBid(userBid);
             }
             List<Picture> pictures = this.auctionManager.getImages(id);
-            viewAuction.setImages(pictures.stream()
+            viewAuction.setImages(pictures.parallelStream()
                     .map(Picture::getPictureData)
                     .map(String::new)
                     .collect(Collectors.toList()));
@@ -199,6 +248,15 @@ public class AuctionAdapter {
                     bids.add(viewBid);
                 }
             }
+            if (auction.getWinnerId() != null && currentBid != null &&
+                    (user.getId().equals(owner.getId()) || user.getId().equals(currentBid.getOwnerId()))) {
+                Account buyer = this.accountManager.get(auction.getWinnerId());
+                ViewWinner winner = new ViewWinner();
+                winner.setAlias(buyer.getAlias());
+                winner.setHasPaid(auction.getBuyerPaid());
+                winner.setAmount(currentBid.getAmount() * (1.0 + auction.getTaxPercent()));
+                viewAuction.setWinner(winner);
+            }
             viewAuction.setBids(bids);
 
             return new AppResponse<>(200, true, viewAuction, "OK");
@@ -208,25 +266,6 @@ public class AuctionAdapter {
             return new AppResponse<>(500, false, null, "Internal Server Error");
         }
     }
-
-    AppResponse<?> rateSeller(UUID raterId, UUID auctionId, int rating) {
-        try {
-            var auction = this.auctionManager.get(auctionId);
-            var sellerRating = new Rating();
-            sellerRating.setRating(rating);
-            sellerRating.setSellerId(auction.getOwnerId());
-            sellerRating.setRaterId(raterId);
-            this.ratingManager.updateRating(sellerRating);
-            return new AppResponse<>(200, true, null, "OK");
-        } catch (ObjectNotFoundException e) {
-            return new AppResponse<>(404, false, null, "Not Found");
-        } catch (DatabaseException e) {
-            return new AppResponse<>(500, false, null, "Internal Server Error");
-        } catch (BadRequestException e) {
-            return new AppResponse<>(400, false, e.getRequestErrors(), "Bad Request");
-        }
-    }
-
 
     AppResponse<?> placeBid(UUID bidderId, UUID auctionId, double bid, double maxBid) {
         try {

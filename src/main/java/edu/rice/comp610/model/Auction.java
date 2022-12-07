@@ -24,6 +24,8 @@ public class Auction {
     private Date endDate;
     private double taxPercent;
     private boolean published;
+    private UUID winnerId;
+    private boolean buyerPaid;
 
     @PrimaryKey
     public UUID getId() {
@@ -118,6 +120,20 @@ public class Auction {
         this.published = published;
     }
 
+    public UUID getWinnerId() {
+        return winnerId;
+    }
+    public void setWinnerId(UUID winnerId) {
+        this.winnerId = winnerId;
+    }
+
+    public boolean getBuyerPaid() {
+        return buyerPaid;
+    }
+    public void setBuyerPaid(boolean buyerPaid) {
+        this.buyerPaid = buyerPaid;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -133,12 +149,14 @@ public class Auction {
                 && Objects.equals(description, auction.description)
                 && Objects.equals(startDate, auction.startDate)
                 && Objects.equals(endDate, auction.endDate)
-                && published == auction.published;
+                && published == auction.published
+                && Objects.equals(winnerId, auction.winnerId)
+                && buyerPaid == auction.buyerPaid;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, ownerId, categoryIds, title, description, minimumBid, bidIncrement, startDate, endDate, taxPercent, published);
+        return Objects.hash(id, ownerId, categoryIds, title, description, minimumBid, bidIncrement, startDate, endDate, taxPercent, published, winnerId, buyerPaid);
     }
 
     @Override
@@ -155,6 +173,8 @@ public class Auction {
                 ", endDate=" + endDate +
                 ", taxPercentage=" + taxPercent +
                 ", published=" + published +
+                ", winner=" + winnerId +
+                ", buyerPaid=" + buyerPaid +
                 '}';
     }
 }

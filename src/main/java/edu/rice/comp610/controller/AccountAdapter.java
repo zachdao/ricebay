@@ -9,9 +9,11 @@ import edu.rice.comp610.util.UnauthorizedException;
 public class AccountAdapter {
 
     private final AccountManager accountManager;
+    private final RatingManager ratingManager;
 
-    public AccountAdapter(AccountManager accountManager) {
+    public AccountAdapter(AccountManager accountManager, RatingManager ratingManager) {
         this.accountManager = accountManager;
+        this.ratingManager = ratingManager;
     }
 
     AppResponse<?> register(ViewAccount viewAccount, Credentials credentials) {
@@ -98,6 +100,7 @@ public class AccountAdapter {
             if (account.getImage() != null) {
                 viewAccount.setImage(new String(account.getImage()));
             }
+            viewAccount.setRating(this.ratingManager.getRating(account.getId()));
             return new AppResponse<>(200, true, viewAccount, "OK");
         } catch (ObjectNotFoundException e) {
             return new AppResponse<>(404, false, null, "Not Found");

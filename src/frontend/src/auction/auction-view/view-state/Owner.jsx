@@ -2,7 +2,7 @@ import React from 'react';
 import { Button, Flex } from '@adobe/react-spectrum';
 import { useNavigate } from 'react-router-dom';
 
-export const Owner = ({ auctionId, otherProps }) => {
+export const Owner = ({ auctionId, hasWinner, ...otherProps }) => {
     const navigate = useNavigate();
 
     return (
@@ -13,7 +13,7 @@ export const Owner = ({ auctionId, otherProps }) => {
                 onPress={() => navigate(`/auction/${auctionId}/edit`)}
                 {...otherProps}
             >
-                Edit
+                {hasWinner ? 'View More Details' : 'Edit Listing'}
             </Button>
         </Flex>
     );

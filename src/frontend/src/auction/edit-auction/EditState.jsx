@@ -1,24 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PublishCheck from '@spectrum-icons/workflow/PublishCheck';
-import { Badge, Button, Flex, StatusLight, Text } from '@adobe/react-spectrum';
+import {
+    ActionButton,
+    Badge,
+    Button,
+    Dialog,
+    Flex,
+    StatusLight,
+    Text,
+    DialogTrigger,
+    Content,
+} from '@adobe/react-spectrum';
 import Cancel from '@spectrum-icons/workflow/Cancel';
 import Copy from '@spectrum-icons/workflow/Copy';
 import User from '@spectrum-icons/workflow/User';
-
-const getLastBid = (bids) => {
-    if (!bids) {
-        return undefined;
-    }
-
-    return bids[bids.length - 1];
-};
 
 export const EditState = ({
     auction,
     published,
     setPublished,
-    saveAuction,
+    cancelAuction,
     copyAuction,
+    markPaid,
     isClean,
 }) => {
     return (
@@ -40,14 +43,17 @@ export const EditState = ({
                 <CancelAuction
                     isDisabled={auction?.bids?.length > 0 || !isClean()}
                     onPress={() => {
-                        saveAuction({ published: false });
+                        setPublished(false);
+                        cancelAuction({ id: auction?.id, published: false });
                     }}
                 />
             )}
             {auction && (
                 <AuctionState
+                    auctionId={auction?.id}
                     isPublished={auction?.published}
-                    lastBid={getLastBid(auction?.bids)}
+                    winner={auction?.winner}
+                    markPaid={markPaid}
                     isRelisted={
                         auction?.published === false && published === true
                     }
@@ -89,28 +95,72 @@ const CopyAuction = ({ onPress }) => {
     );
 };
 
-const AuctionState = ({ isPublished, lastBid, isRelisted }) => {
+const AuctionState = ({
+    auctionId,
+    isPublished,
+    winner,
+    markPaid,
+    isRelisted,
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
     let variant = 'positive';
-    let statusText = `Published ${!lastBid ? '(No Bids)' : ''}`;
+    let statusText = `Published ${!winner ? '(No Bids)' : ''}`;
     if (isRelisted) {
         variant = 'neutral';
         statusText = 'Unpublished (Save to Publish)';
-    } else if (!isPublished && !lastBid) {
+    } else if (!isPublished && !winner) {
         variant = 'negative';
         statusText = 'Expired';
-    } else if (!isPublished && lastBid) {
-        variant = 'info';
-        statusText = 'Sold';
+    } else if (!isPublished && winner) {
+        variant = winner.hasPaid ? 'info' : 'notice';
+        statusText = `Sold for $${winner.amount.toFixed(2)}`;
     }
     return (
         <Flex direction="row" alignItems="center">
             <StatusLight variant={variant}>{statusText}</StatusLight>
-            {!isPublished && lastBid && (
-                <Badge variant="positive" marginStart="size-100">
-                    <User />
-                    <Text>Buyer: {lastBid.alias}</Text>
-                </Badge>
-            )}
+            {winner?.hasPaid === true ? (
+                <BuyerBadge winner={winner} />
+            ) : winner ? (
+                <DialogTrigger
+                    type="popover"
+                    containerPadding="size-100"
+                    isOpen={isOpen}
+                    onOpenChange={setIsOpen}
+                >
+                    <ActionButton isQuiet>
+                        <BuyerBadge winner={winner} />
+                    </ActionButton>
+                    <Dialog size="S">
+                        <Content>
+                            <Button
+                                width="100%"
+                                variant="cta"
+                                onPress={() => {
+                                    setIsOpen(false);
+                                    markPaid({
+                                        id: auctionId,
+                                        winner: { ...winner, hasPaid: true },
+                                    });
+                                }}
+                            >
+                                Mark Paid
+                            </Button>
+                        </Content>
+                    </Dialog>
+                </DialogTrigger>
+            ) : null}
         </Flex>
+    );
+};
+
+const BuyerBadge = ({ winner }) => {
+    return (
+        <Badge
+            variant={winner?.hasPaid ? 'positive' : 'negative'}
+            marginStart="size-100"
+        >
+            <User />
+            <Text>Buyer: {winner?.alias}</Text>
+        </Badge>
     );
 };

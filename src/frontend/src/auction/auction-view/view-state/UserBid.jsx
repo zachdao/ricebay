@@ -1,5 +1,4 @@
-import React, { useCallback, useContext, useState } from 'react';
-import { UserContext } from '../../../user.context';
+import React, { useCallback, useState } from 'react';
 import {
     Button,
     Content,
@@ -12,6 +11,7 @@ import {
 import { usePostWithToast } from '../../../http-query/use-post-with-toast';
 
 export const UserBid = ({ auction, refresh, ...otherProps }) => {
+    const [isOpen, setIsOpen] = useState(false);
     const [bid, setBid] = useState(auction?.userBid?.bid || 0);
 
     const isValid = useCallback(() => {
@@ -26,12 +26,21 @@ export const UserBid = ({ auction, refresh, ...otherProps }) => {
         [auction],
         { message: 'Bid updated!' },
         { message: 'Failed to update bid!' },
-        () => refresh(),
+        () => {
+            setIsOpen(false);
+            refresh();
+        },
     );
+
     const isHighest = auction.userBid.bid === auction.currentBid;
+
     return (
         <>
-            <DialogTrigger type="popover">
+            <DialogTrigger
+                type="popover"
+                isOpen={isOpen}
+                onOpenChange={setIsOpen}
+            >
                 <Button
                     alignSelf="center"
                     variant="cta"

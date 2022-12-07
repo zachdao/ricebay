@@ -17,8 +17,8 @@ class PostgresQueryManagerTest {
         var map = PostgresQueryManager.makeColumnsToAccessorsMap(Auction.class);
         assertNotNull(map);
         assertEquals(map.keySet(), Set.of(
-                "bid_increment", "category_ids", "description", "end_date", "id", "minimum_bid", "owner_id",
-                "published", "start_date", "tax_percent", "title"));
+                "bid_increment", "buyer_paid", "category_ids", "description", "end_date", "id", "minimum_bid", "owner_id",
+                "published", "start_date", "tax_percent", "title", "winner_id"));
         for (var entry : map.entrySet()) {
             assertNotNull(entry.getValue().getter, entry.getKey() + " has null getter");
             assertNotNull(entry.getValue().setter, entry.getKey() + " has null setter");
@@ -27,8 +27,8 @@ class PostgresQueryManagerTest {
     @Test
     void makeLoadQuery() {
         Query<Auction> query = queryManager.makeLoadQuery(Auction.class, queryManager.filters().makeEqualityFilter("id"));
-        assertEquals("SELECT bid_increment, description, end_date, id, minimum_bid, owner_id, published, " +
-                "start_date, tax_percent, title FROM auction " +
+        assertEquals("SELECT bid_increment, buyer_paid, description, end_date, id, minimum_bid, owner_id, published, " +
+                "start_date, tax_percent, title, winner_id FROM auction " +
                 "WHERE (id = ?)",
                 query.getSql());
     }
@@ -36,11 +36,12 @@ class PostgresQueryManagerTest {
     @Test
     void makeUpdateQuery() {
         Query<Auction> query = queryManager.makeUpdateQuery(Auction.class);
-        assertEquals("INSERT INTO auction (bid_increment, description, end_date, id, " +
-                "minimum_bid, owner_id, published, start_date, tax_percent, title) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
-                "ON CONFLICT (id) DO UPDATE SET bid_increment = ?, description = ?, end_date = ?, " +
-                "minimum_bid = ?, owner_id = ?, published = ?, start_date = ?, tax_percent = ?, title = ?",
+        assertEquals("INSERT INTO auction (bid_increment, buyer_paid, description, end_date, id, " +
+                "minimum_bid, owner_id, published, start_date, tax_percent, title, winner_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                "ON CONFLICT (id) DO UPDATE SET bid_increment = ?, buyer_paid = ?, description = ?, end_date = ?, " +
+                "minimum_bid = ?, owner_id = ?, published = ?, start_date = ?, tax_percent = ?, " +
+                "title = ?, winner_id = ?",
                 query.getSql());
     }
 

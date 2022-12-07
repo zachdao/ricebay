@@ -1,10 +1,12 @@
 import React, { useCallback } from 'react';
 import { Flex, Heading } from '@adobe/react-spectrum';
 import styled, { keyframes } from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export const Sidebar = ({ dismiss }) => {
     const navigate = useNavigate();
+    const location = useLocation();
+    console.log('location', location);
 
     const navigateAndDismiss = useCallback(
         (route) => {
@@ -17,20 +19,47 @@ export const Sidebar = ({ dismiss }) => {
     return (
         <Wrapper>
             <Flex direction="column" width="100%">
-                <MenuItem onClick={() => navigateAndDismiss('/')}>
+                <MenuItem
+                    onClick={() => navigateAndDismiss('/')}
+                    active={location.pathname === '/'}
+                >
                     <Heading level={3}>Home</Heading>
                 </MenuItem>
-                <MenuItem onClick={() => navigateAndDismiss('/account')}>
+                <MenuItem
+                    onClick={() => navigateAndDismiss('/search')}
+                    active={location.pathname === '/search'}
+                >
+                    <Heading level={3}>Search</Heading>
+                </MenuItem>
+                <MenuItem
+                    onClick={() => navigateAndDismiss('/account')}
+                    active={location.pathname.startsWith('/account')}
+                >
                     <Heading level={3}>Account</Heading>
                 </MenuItem>
-                <MenuItem onClick={() => navigateAndDismiss('/recentlyViewed')}>
+                <MenuItem
+                    onClick={() => navigateAndDismiss('/recentlyViewed')}
+                    active={location.pathname === '/recentlyViewed'}
+                >
                     <Heading level={3}>Recently Viewed</Heading>
                 </MenuItem>
-                <MenuItem onClick={() => navigateAndDismiss('/myauctions')}>
+                <MenuItem
+                    onClick={() => navigateAndDismiss('/myauctions')}
+                    active={location.pathname === '/myauctions'}
+                >
                     <Heading level={3}>My Auctions</Heading>
                 </MenuItem>
-                <MenuItem onClick={() => navigateAndDismiss('/search')}>
-                    <Heading level={3}>Search</Heading>
+                <MenuItem
+                    onClick={() => navigateAndDismiss('/purchases')}
+                    active={location.pathname === '/purchases'}
+                >
+                    <Heading level={3}>My Purchases</Heading>
+                </MenuItem>
+                <MenuItem
+                    onClick={() => navigateAndDismiss('/myBids')}
+                    active={location.pathname === '/myBids'}
+                >
+                    <Heading level={3}>My Active Bids</Heading>
                 </MenuItem>
             </Flex>
         </Wrapper>
@@ -51,8 +80,10 @@ const MenuItem = styled.div`
                 --spectrum-global-color-gray-200,
                 var(--spectrum-semantic-gray-200-color-background)
             )
-        );
+        ) !important;
     }
+    background-color: ${(props) =>
+        props.active === true ? '#095aba2e' : 'unset'};
 `;
 
 const SlideOpen = keyframes`

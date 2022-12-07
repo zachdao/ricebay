@@ -9,6 +9,8 @@ public class ViewAccount {
     private String givenName;
     private String surname;
     private String image;
+    private String zelleId;
+    private Double rating;
 
     public UUID getId() {
         return id;
@@ -66,5 +68,11 @@ public class ViewAccount {
         this.zelleId = zelleId;
     }
 
-    private String zelleId;
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
 }

@@ -3,6 +3,7 @@ import { Flex, Grid, Heading, Text, View } from '@adobe/react-spectrum';
 import { UserProfile } from '../../user-profile/UserProfile';
 import styled from 'styled-components';
 import { HiddenValue } from '../../hidden-value/HiddenValue';
+import { StarRating } from '../../star-rating/StarRating';
 
 /**
  * Render the details of an account
@@ -32,6 +33,12 @@ export const AccountDetail = ({ account }) => {
                 </LargeText>
                 {/* email */}
                 <Text>{account.email}</Text>
+                <Heading level="4">Your Seller Rating</Heading>
+                {account.rating ? (
+                    <StarRating rating={account.rating} />
+                ) : (
+                    <em>Not Rated</em>
+                )}
                 <Heading level="4">Payment Information</Heading>
                 <HiddenValue value={account.zelleId} />
             </Flex>

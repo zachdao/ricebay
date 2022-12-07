@@ -54,6 +54,12 @@ public class StandardBidManager implements BidManager {
         return bids.isEmpty() ? null : bids.get(0);
     }
 
+    public List<Bid> getUserBids(UUID ownerId) throws DatabaseException {
+        var loadBid = queryManager.makeLoadQuery(Bid.class,
+                        queryManager.filters().makeEqualityFilter("owner_id"));
+        return databaseManager.loadObjects(loadBid, ownerId);
+    }
+
     /**
      * This methods checks if bid satisfies following conditions:
      * 1. new bid > current bid + bid increment
