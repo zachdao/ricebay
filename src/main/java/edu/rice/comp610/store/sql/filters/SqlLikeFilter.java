@@ -10,6 +10,6 @@ public class SqlLikeFilter implements Filter {
     }
     @Override
     public String toQuery(){
-        return String.format("LOWER(%s) LIKE CONCAT('%%', ?, '%%')", column);
+        return String.format("LOWER(%s) LIKE CONCAT('%%', LOWER(?), '%%')", column);
     }
 }
