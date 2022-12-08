@@ -9,7 +9,7 @@ public class SqlLikeFilterTest {
     @Test
     void makesLikeExpression() {
         var expr = new SqlLikeFilter("foobar").toQuery();
-        assertEquals("LOWER(foobar) LIKE CONCAT('%', ?, '%')", expr);
+        assertEquals("LOWER(foobar) LIKE CONCAT('%', LOWER(?), '%')", expr);
     }
 
 }
