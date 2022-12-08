@@ -80,7 +80,7 @@ public class PostgresQueryManager implements QueryManager {
         }
 
         private Object fromSqlType(Object from, Class<?> fromType) throws ParseException {
-            if (from.getClass() == fromType) {
+            if (from == null || from.getClass() == fromType) {
                 return from;
             } else if (from instanceof String && fromType == PGmoney.class) {
                 String money = (String) from;
