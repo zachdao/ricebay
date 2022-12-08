@@ -120,7 +120,7 @@ public class StandardAuctionManager implements AuctionManager {
                     query.isSortAscending());
             return databaseManager.loadObjects(auctionQuery, true);
         // the search has no category, but does have text to filter by
-        } else if (query.hasCategories().isEmpty()) {
+        } else if (query.getFilters().length > 0 && query.hasCategories().isEmpty()) {
             var auctionQuery = queryManager.makeLoadQuery(Auction.class,
                     queryManager.filters().makeAndFilter(
                             queryManager.filters().makeEqualityFilter("published"),
@@ -129,7 +129,7 @@ public class StandardAuctionManager implements AuctionManager {
                     query.isSortAscending());
             return databaseManager.loadObjects(auctionQuery, ArrayUtil.prependToArray(true, query.getValues(), Object.class));
         // the search has no text based filtering but does have category(s) to filter by
-        } else if (query.getFilters().length == 0) {
+        } else if (query.getFilters().length == 0 && !query.hasCategories().isEmpty()) {
             Object[] auctionIds = getAuctionIdsFromCategories(query);
             if (auctionIds.length == 0) {
                 return List.of();
