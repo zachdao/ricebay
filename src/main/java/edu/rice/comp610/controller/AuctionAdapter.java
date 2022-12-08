@@ -267,7 +267,7 @@ public class AuctionAdapter {
         }
     }
 
-    AppResponse<?> placeBid(UUID bidderId, UUID auctionId, double bid, double maxBid) {
+    AppResponse<?> placeBid(UUID bidderId, UUID auctionId, Double bid, Double maxBid) {
         try {
             // Check that the bidder exists
             this.accountManager.get(bidderId);
