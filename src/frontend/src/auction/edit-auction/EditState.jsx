@@ -53,6 +53,7 @@ export const EditState = ({
                     auctionId={auction?.id}
                     isPublished={auction?.published}
                     winner={auction?.winner}
+                    hasBids={auction?.bids?.length > 0}
                     markPaid={markPaid}
                     isRelisted={
                         auction?.published === false && published === true
@@ -99,12 +100,13 @@ const AuctionState = ({
     auctionId,
     isPublished,
     winner,
+    hasBids,
     markPaid,
     isRelisted,
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     let variant = 'positive';
-    let statusText = `Published ${!winner ? '(No Bids)' : ''}`;
+    let statusText = `Published ${!hasBids ? '(No Bids)' : ''}`;
     if (isRelisted) {
         variant = 'neutral';
         statusText = 'Unpublished (Save to Publish)';
