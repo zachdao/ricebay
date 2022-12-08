@@ -62,7 +62,9 @@ export const EditAuction = ({ auction, refresh }) => {
         new Set(auction?.categories || []),
     );
     const [published, setPublished] = useState(auction?.published);
-    const [taxPercent, setTaxPercent] = useState(auction?.taxPercent);
+    const [taxPercent, setTaxPercent] = useState(
+        auction?.taxPercent || undefined,
+    );
     const [error, setError] = useState({});
     const navigate = useNavigate();
 
