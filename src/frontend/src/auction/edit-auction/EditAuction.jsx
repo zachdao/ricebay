@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import {
     Flex,
     Grid,
@@ -24,6 +24,8 @@ import Cancel from '@spectrum-icons/workflow/Cancel';
 import { EditState } from './EditState';
 import { BidHistory } from './BidHistory';
 import { ImageUploader } from '../../image-uploader/ImageUploader';
+import toast from 'react-hot-toast';
+import { Toast } from '../../toast/Toast';
 
 const getInitialRange = (startDate, endDate) => {
     return {
@@ -69,6 +71,18 @@ export const EditAuction = ({ auction, refresh }) => {
     const navigate = useNavigate();
 
     const categoryOptions = useContext(CategoriesContext);
+
+    useEffect(() => {
+        if (auction?.winner?.hasPaid === false) {
+            toast.custom((t) => (
+                <Toast
+                    message="Your auction has SOLD! Please mark the buyer as paid when the transaction is complete."
+                    type="positive"
+                    dismissFn={() => toast.remove(t.id)}
+                />
+            ));
+        }
+    }, []);
 
     // Set up a POST to undo our changes
     const undo = usePostWithToast(
